@@ -768,6 +768,17 @@ body {
     z-index: 1;
 }
 
+.events-game-filter {
+    grid-column: 1 / -1;
+}
+
+.game-filter-card:hover {
+    border-color: var(--lime) !important;
+    color: var(--lime) !important;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(170, 255, 0, 0.15);
+}
+
 .event-featured {
     background: linear-gradient(135deg, var(--dark-panel) 0%, rgba(170, 255, 0, 0.05) 100%);
     border: 1px solid rgba(170, 255, 0, 0.2);
