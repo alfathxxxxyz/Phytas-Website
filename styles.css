@@ -2044,3 +2044,148 @@ body {
     0%, 100% { transform: rotateX(-15deg) rotateY(25deg) translateY(0); }
     50% { transform: rotateX(-15deg) rotateY(25deg) translateY(-15px); }
 }
+
+
+
+/* ========================================
+   ARCADE ELEMENTS - subtle but impactful
+   ======================================== */
+
+/* --- CRT Scanlines: barely-visible horizontal lines over whole page --- */
+.crt-scanlines {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    background: repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 2px,
+        rgba(255, 255, 255, 0.022) 3px,
+        rgba(255, 255, 255, 0.022) 4px
+    );
+}
+
+/* --- Retro perspective grid floor for HERO section --- */
+.retro-grid {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 200%;
+    height: 55%;
+    transform: translateX(-50%) perspective(500px) rotateX(62deg);
+    transform-origin: bottom center;
+    background-image:
+        linear-gradient(rgba(170, 255, 0, 0.18) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(170, 255, 0, 0.18) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 1;
+    -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.3) 60%, transparent 100%);
+            mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.3) 60%, transparent 100%);
+    animation: gridScroll 6s linear infinite;
+    opacity: 0.55;
+}
+
+@keyframes gridScroll {
+    0%   { background-position: 0 0, 0 0; }
+    100% { background-position: 0 60px, 0 0; }
+}
+
+/* Hero glow horizon line where grid meets sky */
+.retro-grid::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: var(--lime);
+    box-shadow: 0 0 12px var(--lime), 0 0 24px rgba(170, 255, 0, 0.5);
+    transform: rotateX(-62deg) translateY(-1px);
+    transform-origin: top;
+}
+
+/* --- Pixel font utility (Press Start 2P) --- */
+.pixel-tag {
+    display: inline-block;
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    font-size: 9px;
+    line-height: 1;
+    color: var(--lime);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-shadow: 0 0 6px rgba(170, 255, 0, 0.4);
+}
+
+.pixel-tag.magenta {
+    color: var(--magenta);
+    text-shadow: 0 0 6px rgba(255, 0, 128, 0.4);
+}
+
+/* Blinking cursor effect for arcade-style "PRESS START_" */
+.pixel-tag.blink::after {
+    content: '_';
+    margin-left: 2px;
+    animation: pixelBlink 1s steps(2, end) infinite;
+}
+
+@keyframes pixelBlink {
+    50% { opacity: 0; }
+}
+
+/* --- Hero pixel intro tag "> PRESS START" above title --- */
+.hero-content .pixel-tag.hero-press-start {
+    display: block;
+    margin-bottom: 16px;
+    font-size: 11px;
+}
+
+/* --- Stat card "HI-SCORE" small pixel label --- */
+.stat-card .pixel-tag.stat-hi {
+    display: block;
+    font-size: 8px;
+    color: var(--gray-light);
+    text-shadow: none;
+    margin-bottom: 10px;
+    opacity: 0.75;
+}
+
+.stat-card:hover .pixel-tag.stat-hi {
+    color: var(--lime);
+    text-shadow: 0 0 6px rgba(170, 255, 0, 0.4);
+    opacity: 1;
+    transition: all 0.3s ease;
+}
+
+/* --- Hall of Fame "LV.XX" pixel level tag --- */
+.hof-card .pixel-tag.hof-lv {
+    display: block;
+    font-size: 10px;
+    margin-bottom: 8px;
+    color: var(--magenta);
+    text-shadow: 0 0 6px rgba(255, 0, 128, 0.4);
+}
+
+.hof-card.champion .pixel-tag.hof-lv {
+    color: var(--lime);
+    text-shadow: 0 0 8px rgba(170, 255, 0, 0.5);
+}
+
+/* --- Disable heavy effects on mobile for performance/clarity --- */
+@media (max-width: 768px) {
+    .retro-grid {
+        height: 35%;
+        opacity: 0.4;
+        background-size: 40px 40px;
+    }
+    .crt-scanlines {
+        opacity: 0.5;
+    }
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    .retro-grid { animation: none; }
+    .pixel-tag.blink::after { animation: none; }
+}
