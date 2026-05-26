@@ -336,3 +336,46 @@ if (tagline) {
     }
     setTimeout(typeWriter, 800);
 }
+
+
+
+// 3D Cube interactive with cursor
+const cube3d = document.getElementById('cube3d');
+const scene3d = document.getElementById('hero3d');
+
+if (cube3d && scene3d) {
+    let rotX = -15, rotY = 25;
+    let autoRotate = true;
+    let autoRotateId = null;
+
+    // Auto rotate slowly
+    function startAutoRotate() {
+        autoRotate = true;
+        autoRotateId = setInterval(() => {
+            if (autoRotate) {
+                rotY += 0.3;
+                cube3d.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+            }
+        }, 30);
+    }
+
+    startAutoRotate();
+
+    // Mouse move on scene = control cube rotation
+    scene3d.addEventListener('mousemove', (e) => {
+        autoRotate = false;
+        const rect = scene3d.getBoundingClientRect();
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+        rotY = x * 0.4;
+        rotX = -y * 0.3;
+        cube3d.style.animation = 'none';
+        cube3d.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+    });
+
+    // Mouse leave = resume auto rotate
+    scene3d.addEventListener('mouseleave', () => {
+        autoRotate = true;
+        cube3d.style.animation = '';
+    });
+}
