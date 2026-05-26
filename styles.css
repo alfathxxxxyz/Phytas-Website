@@ -1,5 +1,5 @@
 /* ========================================
-   PHYTAS COMMUNITY - ESPORTS STYLE CSS
+   PYTHAS COLLECTIVE - ESPORTS STYLE CSS
    ======================================== */
 
 :root {
@@ -1791,7 +1791,7 @@ body {
     75% { transform: translateY(-6px) rotate(-3deg); }
 }
 
-/* Community avatar ring glow on hover */
+/* Collective avatar ring glow on hover */
 .member-card:hover .member-avatar {
     border-color: var(--lime);
     box-shadow: 0 0 15px rgba(170, 255, 0, 0.4);
