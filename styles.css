@@ -2044,3 +2044,644 @@ body {
     0%, 100% { transform: rotateX(-15deg) rotateY(25deg) translateY(0); }
     50% { transform: rotateX(-15deg) rotateY(25deg) translateY(-15px); }
 }
+
+
+
+/* =============================================
+   ARCADE VISUAL UPGRADE - PHYTAS COMMUNITY
+   ============================================= */
+
+/* ========== CUSTOM SCROLLBAR ========== */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--black);
+    border-left: 1px solid var(--gray-dark);
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--lime) 0%, var(--lime-dark) 100%);
+    border-radius: 0;
+    border: 2px solid var(--black);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, var(--lime) 0%, var(--magenta) 100%);
+    box-shadow: 0 0 10px rgba(170, 255, 0, 0.5);
+}
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--lime) var(--black);
+}
+
+
+/* ========== ANIMATED GRADIENT BORDER ON CARDS ========== */
+.game-card,
+.event-featured,
+.product-card,
+.hof-card.champion,
+.announcement-card.featured {
+    position: relative;
+}
+
+.game-card::before,
+.event-featured::before,
+.product-card::before,
+.hof-card.champion::before,
+.announcement-card.featured::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    z-index: -1;
+    border-radius: 0;
+    background: conic-gradient(
+        from var(--angle, 0deg),
+        var(--lime) 0%,
+        var(--magenta) 25%,
+        var(--blue) 50%,
+        var(--lime) 75%,
+        var(--lime) 100%
+    );
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    animation: rotateGradient 3s linear infinite;
+}
+
+.game-card:hover::before,
+.event-featured:hover::before,
+.product-card:hover::before,
+.hof-card.champion:hover::before,
+.announcement-card.featured:hover::before {
+    opacity: 1;
+}
+
+@property --angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+}
+
+@keyframes rotateGradient {
+    0% { --angle: 0deg; }
+    100% { --angle: 360deg; }
+}
+
+
+/* ========== SHIMMER / SKELETON EFFECT ON PLACEHOLDERS ========== */
+.masonry-placeholder,
+.game-thumb-placeholder,
+.product-image,
+.banner-visual {
+    position: relative;
+    overflow: hidden;
+}
+
+.masonry-placeholder::after,
+.game-thumb-placeholder::after,
+.product-image::after,
+.banner-visual::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(170, 255, 0, 0.03) 20%,
+        rgba(170, 255, 0, 0.08) 50%,
+        rgba(170, 255, 0, 0.03) 80%,
+        transparent 100%
+    );
+    animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 200%; }
+}
+
+
+/* ========== PARTICLE GRID BACKGROUND ON HERO ========== */
+.hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        radial-gradient(circle, rgba(170, 255, 0, 0.15) 1px, transparent 1px),
+        radial-gradient(circle, rgba(255, 0, 128, 0.08) 1px, transparent 1px);
+    background-size: 60px 60px, 90px 90px;
+    background-position: 0 0, 30px 30px;
+    animation: gridFloat 20s linear infinite;
+    opacity: 0.4;
+    pointer-events: none;
+    z-index: 1;
+}
+
+@keyframes gridFloat {
+    0% { transform: translate(0, 0); }
+    50% { transform: translate(-15px, -15px); }
+    100% { transform: translate(0, 0); }
+}
+
+/* Floating neon orbs in hero */
+.hero::after {
+    content: '';
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(170, 255, 0, 0.08) 0%, transparent 70%);
+    top: 20%;
+    left: 10%;
+    border-radius: 50%;
+    animation: orbFloat 8s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 1;
+}
+
+@keyframes orbFloat {
+    0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.6; }
+    33% { transform: translate(50px, -30px) scale(1.2); opacity: 0.8; }
+    66% { transform: translate(-20px, 20px) scale(0.9); opacity: 0.4; }
+}
+
+
+/* ========== NAVBAR GLASS MORPHISM IMPROVEMENT ========== */
+.navbar {
+    background: rgba(10, 10, 10, 0.75) !important;
+    backdrop-filter: blur(25px) saturate(1.4) !important;
+    border-bottom: 1px solid rgba(170, 255, 0, 0.15) !important;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(170, 255, 0, 0.05);
+}
+
+
+/* ========== SECTION PROGRESS INDICATOR ========== */
+.nav-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--lime), var(--magenta), var(--lime));
+    background-size: 200% 100%;
+    animation: progressGlow 2s linear infinite;
+    transition: width 0.4s ease;
+    box-shadow: 0 0 8px rgba(170, 255, 0, 0.6), 0 0 20px rgba(170, 255, 0, 0.3);
+}
+
+@keyframes progressGlow {
+    0% { background-position: 0% 0%; }
+    100% { background-position: 200% 0%; }
+}
+
+
+/* ========== HERO BADGE PULSE / GLOW ========== */
+.hero-badge {
+    animation: badgePulse 2s ease-in-out infinite;
+    box-shadow: 0 0 15px rgba(170, 255, 0, 0.2), inset 0 0 10px rgba(170, 255, 0, 0.05);
+}
+
+@keyframes badgePulse {
+    0%, 100% {
+        box-shadow: 0 0 15px rgba(170, 255, 0, 0.2), inset 0 0 10px rgba(170, 255, 0, 0.05);
+        border-color: rgba(170, 255, 0, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 25px rgba(170, 255, 0, 0.5), inset 0 0 15px rgba(170, 255, 0, 0.1), 0 0 40px rgba(170, 255, 0, 0.2);
+        border-color: rgba(170, 255, 0, 0.7);
+    }
+}
+
+
+/* ========== FOOTER VISUAL ENHANCEMENT ========== */
+.footer-section {
+    background: linear-gradient(180deg, var(--dark) 0%, #080808 100%) !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.footer-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(170, 255, 0, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(170, 255, 0, 0.02) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+.footer-section::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--lime), var(--magenta), var(--lime), transparent);
+    opacity: 0.4;
+}
+
+
+/* =============================================
+   ARCADE STYLE ELEMENTS
+   ============================================= */
+
+/* ========== SCANLINE OVERLAY (SUBTLE CRT) ========== */
+body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.03) 0px,
+        rgba(0, 0, 0, 0.03) 1px,
+        transparent 1px,
+        transparent 3px
+    );
+    pointer-events: none;
+    z-index: 9999;
+    animation: scanlineFlicker 0.1s steps(2) infinite;
+}
+
+@keyframes scanlineFlicker {
+    0% { opacity: 0.4; }
+    50% { opacity: 0.35; }
+    100% { opacity: 0.4; }
+}
+
+/* ========== PIXEL/ARCADE CORNERS ON CARDS ========== */
+.stat-card,
+.announcement-card,
+.event-card,
+.hof-card,
+.member-card,
+.spotlight-card,
+.partner-card {
+    position: relative;
+}
+
+.stat-card::after,
+.announcement-card::after,
+.event-card::after,
+.hof-card::after,
+.member-card::after,
+.spotlight-card::after,
+.partner-card::after {
+    content: '';
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 8px;
+    height: 8px;
+    border-top: 2px solid var(--lime);
+    border-right: 2px solid var(--lime);
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.stat-card:hover::after,
+.announcement-card:hover::after,
+.event-card:hover::after,
+.hof-card:hover::after,
+.member-card:hover::after,
+.spotlight-card:hover::after,
+.partner-card:hover::after {
+    opacity: 1;
+    transform: translate(2px, -2px);
+}
+
+/* Bottom-left pixel corner */
+.stat-card .stat-accent,
+.event-card::before,
+.hof-card::after,
+.member-card::before {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    left: 4px;
+    width: 8px;
+    height: 8px;
+    border-bottom: 2px solid var(--magenta);
+    border-left: 2px solid var(--magenta);
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.stat-card:hover .stat-accent,
+.event-card:hover::before,
+.hof-card:hover::after,
+.member-card:hover::before {
+    opacity: 1;
+    transform: translate(-2px, 2px);
+}
+
+
+/* ========== NEON TEXT GLOW - ARCADE STYLE ========== */
+.section-title .accent-text {
+    text-shadow: 0 0 10px rgba(170, 255, 0, 0.4), 0 0 30px rgba(170, 255, 0, 0.2);
+}
+
+.section-title:hover .accent-text {
+    text-shadow: 0 0 15px rgba(170, 255, 0, 0.7), 0 0 40px rgba(170, 255, 0, 0.4), 0 0 80px rgba(170, 255, 0, 0.2);
+}
+
+.hero-title .accent-text {
+    text-shadow: 0 0 20px rgba(170, 255, 0, 0.5), 0 0 60px rgba(170, 255, 0, 0.3), 0 0 100px rgba(170, 255, 0, 0.1);
+    animation: neonFlicker 4s ease-in-out infinite;
+}
+
+@keyframes neonFlicker {
+    0%, 100% { text-shadow: 0 0 20px rgba(170, 255, 0, 0.5), 0 0 60px rgba(170, 255, 0, 0.3), 0 0 100px rgba(170, 255, 0, 0.1); }
+    5% { text-shadow: 0 0 5px rgba(170, 255, 0, 0.2), 0 0 20px rgba(170, 255, 0, 0.1); }
+    6% { text-shadow: 0 0 20px rgba(170, 255, 0, 0.5), 0 0 60px rgba(170, 255, 0, 0.3), 0 0 100px rgba(170, 255, 0, 0.1); }
+    50% { text-shadow: 0 0 25px rgba(170, 255, 0, 0.6), 0 0 70px rgba(170, 255, 0, 0.4), 0 0 120px rgba(170, 255, 0, 0.15); }
+    52% { text-shadow: 0 0 10px rgba(170, 255, 0, 0.3), 0 0 30px rgba(170, 255, 0, 0.15); }
+    53% { text-shadow: 0 0 25px rgba(170, 255, 0, 0.6), 0 0 70px rgba(170, 255, 0, 0.4), 0 0 120px rgba(170, 255, 0, 0.15); }
+}
+
+
+/* ========== ARCADE BUTTON STYLE ENHANCEMENT ========== */
+.btn-primary {
+    box-shadow: 0 4px 0 var(--lime-dark), 0 6px 20px rgba(170, 255, 0, 0.3);
+    transition: all 0.15s ease;
+}
+
+.btn-primary:hover {
+    box-shadow: 0 2px 0 var(--lime-dark), 0 4px 15px rgba(170, 255, 0, 0.4) !important;
+    transform: translateY(2px) !important;
+}
+
+.btn-primary:active {
+    box-shadow: 0 0px 0 var(--lime-dark), 0 2px 10px rgba(170, 255, 0, 0.3);
+    transform: translateY(4px) !important;
+}
+
+.btn-magenta {
+    box-shadow: 0 4px 0 var(--magenta-dark), 0 6px 20px rgba(255, 0, 128, 0.3);
+    transition: all 0.15s ease;
+}
+
+.btn-magenta:hover {
+    box-shadow: 0 2px 0 var(--magenta-dark), 0 4px 15px rgba(255, 0, 128, 0.4) !important;
+    transform: translateY(2px) !important;
+}
+
+.btn-magenta:active {
+    box-shadow: 0 0px 0 var(--magenta-dark), 0 2px 10px rgba(255, 0, 128, 0.3);
+    transform: translateY(4px) !important;
+}
+
+.btn-outline {
+    box-shadow: 0 4px 0 rgba(255, 255, 255, 0.2);
+    transition: all 0.15s ease;
+}
+
+.btn-outline:hover {
+    box-shadow: 0 2px 0 rgba(255, 255, 255, 0.3) !important;
+    transform: translateY(2px) !important;
+}
+
+
+/* ========== ARCADE SCORE-LIKE STAT NUMBERS ========== */
+.stat-number {
+    letter-spacing: 3px;
+    text-shadow: 0 0 10px rgba(170, 255, 0, 0.5), 0 0 30px rgba(170, 255, 0, 0.3);
+}
+
+
+/* ========== GAME-OVER STYLE BADGE ========== */
+.event-status.closed {
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
+
+/* ========== PIXEL ART BORDER ON SECTION TAGS ========== */
+.section-tag {
+    border: 1px solid rgba(170, 255, 0, 0.2);
+    box-shadow: 
+        3px 3px 0 rgba(170, 255, 0, 0.1),
+        -1px -1px 0 rgba(170, 255, 0, 0.05);
+    text-shadow: 0 0 5px rgba(170, 255, 0, 0.3);
+}
+
+
+/* ========== ARCADE COIN-INSERT ANIMATION ON NAV ACTIVE ========== */
+.nav-links a.active {
+    text-shadow: 0 0 8px rgba(170, 255, 0, 0.6), 0 0 20px rgba(170, 255, 0, 0.3);
+    animation: coinInsert 0.4s ease;
+}
+
+@keyframes coinInsert {
+    0% { transform: translateY(-10px); opacity: 0; }
+    50% { transform: translateY(2px); opacity: 1; }
+    100% { transform: translateY(0); opacity: 1; }
+}
+
+
+/* ========== NEON LINE SEPARATORS ========== */
+.stats-section,
+.announcements-section,
+.games-section,
+.events-section,
+.halloffame-section,
+.community-section,
+.moments-section,
+.shop-section,
+.partners-section {
+    border-top: 1px solid rgba(170, 255, 0, 0.08);
+    position: relative;
+}
+
+.stats-section::after,
+.games-section::after,
+.events-section::after,
+.halloffame-section::after,
+.community-section::after,
+.moments-section::after,
+.shop-section::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--lime), transparent);
+    box-shadow: 0 0 10px rgba(170, 255, 0, 0.4);
+}
+
+
+/* ========== POWER-UP GLOW ON HOF CHAMPION ========== */
+.hof-card.champion {
+    box-shadow: 0 0 20px rgba(170, 255, 0, 0.1), inset 0 0 30px rgba(170, 255, 0, 0.03);
+    animation: championGlow 3s ease-in-out infinite;
+}
+
+@keyframes championGlow {
+    0%, 100% { box-shadow: 0 0 20px rgba(170, 255, 0, 0.1), inset 0 0 30px rgba(170, 255, 0, 0.03); }
+    50% { box-shadow: 0 0 35px rgba(170, 255, 0, 0.2), inset 0 0 40px rgba(170, 255, 0, 0.05), 0 0 60px rgba(170, 255, 0, 0.1); }
+}
+
+
+/* ========== RETRO GRID ON GAME THUMBNAILS ========== */
+.game-thumbnail::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(170, 255, 0, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(170, 255, 0, 0.04) 1px, transparent 1px);
+    background-size: 20px 20px;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.game-card:hover .game-thumbnail::before {
+    opacity: 1;
+}
+
+
+/* ========== LOADING BAR ON EVENT CARDS ========== */
+.event-card {
+    overflow: hidden;
+}
+
+.event-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--lime), var(--magenta));
+    transition: width 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow: 0 0 8px rgba(170, 255, 0, 0.5);
+}
+
+.event-card:hover::after {
+    width: 100%;
+}
+
+
+/* ========== GLOWING AVATAR RINGS ========== */
+.hof-avatar,
+.member-avatar,
+.spotlight-avatar {
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.hof-card.champion .hof-avatar {
+    border-color: var(--lime);
+    box-shadow: 0 0 15px rgba(170, 255, 0, 0.3), 0 0 30px rgba(170, 255, 0, 0.1);
+    animation: avatarRingPulse 2s ease-in-out infinite;
+}
+
+@keyframes avatarRingPulse {
+    0%, 100% { box-shadow: 0 0 15px rgba(170, 255, 0, 0.3), 0 0 30px rgba(170, 255, 0, 0.1); }
+    50% { box-shadow: 0 0 20px rgba(170, 255, 0, 0.5), 0 0 40px rgba(170, 255, 0, 0.2); }
+}
+
+
+/* ========== ARCADE INSERT COIN TEXT (Footer) ========== */
+.footer-bottom::before {
+    content: 'INSERT COIN TO CONTINUE';
+    display: block;
+    text-align: center;
+    font-family: var(--font-heading);
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--gray);
+    margin-bottom: 20px;
+    animation: insertCoin 1.5s ease-in-out infinite;
+}
+
+@keyframes insertCoin {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+
+/* ========== HIGH SCORE STYLE FOR STAT SECTION ========== */
+.stats-section .section-header .section-tag::before {
+    content: 'HI-SCORE ';
+}
+
+
+/* ========== PIXEL HOVER CURSOR TRAIL ========== */
+.game-card,
+.product-card,
+.hof-card,
+.event-featured {
+    cursor: pointer;
+}
+
+
+/* ========== ENHANCED MEMBER WALL - ARCADE MARQUEE FEEL ========== */
+.member-wall-grid span {
+    clip-path: polygon(4px 0, calc(100% - 4px) 0, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 0 calc(100% - 4px), 0 4px);
+}
+
+
+/* ========== GLITCH HOVER ON LOGO ========== */
+.nav-logo .logo-text:hover {
+    animation: logoGlitch 0.5s ease;
+}
+
+@keyframes logoGlitch {
+    0% { transform: translate(0); }
+    10% { transform: translate(-2px, 1px); text-shadow: 2px 0 var(--magenta), -2px 0 var(--blue); }
+    20% { transform: translate(2px, -1px); text-shadow: -2px 0 var(--magenta), 2px 0 var(--blue); }
+    30% { transform: translate(-1px, 2px); text-shadow: 1px 0 var(--lime), -1px 0 var(--magenta); }
+    40% { transform: translate(1px, -2px); text-shadow: -1px 0 var(--lime), 1px 0 var(--magenta); }
+    50% { transform: translate(0); text-shadow: none; }
+    100% { transform: translate(0); text-shadow: none; }
+}
+
+
+/* ========== VIGNETTE EFFECT ON BODY ========== */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.4) 100%);
+    pointer-events: none;
+    z-index: 9998;
+}
+
+
+/* ========== ANIMATED DOT GRID ON DARK SECTIONS ========== */
+.halloffame-section::before,
+.community-section::before,
+.partners-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(170, 255, 0, 0.04) 1px, transparent 1px);
+    background-size: 30px 30px;
+    pointer-events: none;
+}
+
+
+/* ========== ENHANCED CUBE FACE ARCADE STYLE ========== */
+.cube-face {
+    border-width: 3px !important;
+    box-shadow: inset 0 0 30px rgba(170, 255, 0, 0.1);
+}
+
+.cube-face.front {
+    box-shadow: inset 0 0 40px rgba(170, 255, 0, 0.15), 0 0 20px rgba(170, 255, 0, 0.2);
+}
+
+.cube-face.back {
+    box-shadow: inset 0 0 40px rgba(255, 0, 128, 0.15), 0 0 20px rgba(255, 0, 128, 0.2);
+}

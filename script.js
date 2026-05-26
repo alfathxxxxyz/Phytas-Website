@@ -457,3 +457,100 @@ if (cube3d && scene3d) {
         isDragging = false;
     });
 }
+
+
+
+// ========== SECTION PROGRESS INDICATOR ==========
+const navProgress = document.getElementById('navProgress');
+const allNavSections = ['hero', 'stats', 'announcements', 'games', 'events', 'halloffame', 'community', 'moments', 'shop', 'partners', 'contact'];
+
+function updateProgressBar(sectionId) {
+    if (!navProgress) return;
+    const idx = allNavSections.indexOf(sectionId);
+    if (idx === -1) return;
+    const progress = ((idx + 1) / allNavSections.length) * 100;
+    navProgress.style.width = progress + '%';
+}
+
+// Hook into showSection to update progress
+const originalShowSection = showSection;
+showSection = function(targetId, skipAnimation) {
+    originalShowSection(targetId, skipAnimation);
+    updateProgressBar(targetId);
+};
+
+// Initialize progress for current section
+updateProgressBar('hero');
+
+
+// ========== ARCADE PARTICLE EFFECTS ==========
+(function() {
+    const canvas = document.createElement('canvas');
+    canvas.id = 'arcadeParticles';
+    canvas.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:9997;opacity:0.3;';
+    document.body.appendChild(canvas);
+    const ctx = canvas.getContext('2d');
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    const particles = [];
+    const maxParticles = 35;
+
+    for (let i = 0; i < maxParticles; i++) {
+        particles.push({
+            x: Math.random() * window.innerWidth,
+            y: Math.random() * window.innerHeight,
+            size: Math.random() * 2 + 0.5,
+            speedX: (Math.random() - 0.5) * 0.3,
+            speedY: (Math.random() - 0.5) * 0.3,
+            opacity: Math.random() * 0.5 + 0.2,
+            color: Math.random() > 0.7 ? '#FF0080' : '#AAFF00'
+        });
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => {
+            p.x += p.speedX;
+            p.y += p.speedY;
+
+            if (p.x < 0) p.x = canvas.width;
+            if (p.x > canvas.width) p.x = 0;
+            if (p.y < 0) p.y = canvas.height;
+            if (p.y > canvas.height) p.y = 0;
+
+            ctx.beginPath();
+            ctx.rect(p.x, p.y, p.size, p.size);
+            ctx.fillStyle = p.color;
+            ctx.globalAlpha = p.opacity;
+            ctx.fill();
+        });
+
+        // Draw faint connecting lines between close particles
+        for (let i = 0; i < particles.length; i++) {
+            for (let j = i + 1; j < particles.length; j++) {
+                const dx = particles[i].x - particles[j].x;
+                const dy = particles[i].y - particles[j].y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 120) {
+                    ctx.beginPath();
+                    ctx.moveTo(particles[i].x, particles[i].y);
+                    ctx.lineTo(particles[j].x, particles[j].y);
+                    ctx.strokeStyle = particles[i].color;
+                    ctx.globalAlpha = 0.08 * (1 - dist / 120);
+                    ctx.lineWidth = 0.5;
+                    ctx.stroke();
+                }
+            }
+        }
+
+        ctx.globalAlpha = 1;
+        requestAnimationFrame(animate);
+    }
+    animate();
+})();
