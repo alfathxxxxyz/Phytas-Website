@@ -11,10 +11,13 @@
     <meta property="og:url" content="https://phytas.gg">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23000'/><text x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-size='20' font-weight='bold' fill='%23AAFF00'>P</text></svg>">
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
     <!-- Images should use loading="lazy" for performance when added -->
 </head>
 <body>
+    <!-- ARCADE: CRT scanlines overlay -->
+    <div class="crt-scanlines" aria-hidden="true"></div>
+
     <!-- NAVIGATION -->
     <nav class="navbar" id="navbar" role="navigation" aria-label="Main navigation">
         <div class="nav-container">
@@ -47,9 +50,11 @@
     <section class="hero section-page section-active" id="hero">
         <div class="hero-bg-shape"></div>
         <div class="hero-grain"></div>
+        <div class="retro-grid" aria-hidden="true"></div>
         <div class="hero-watermark">P</div>
         <div class="hero-container">
             <div class="hero-content">
+                <span class="pixel-tag blink hero-press-start">&gt; PRESS START</span>
                 <div class="hero-badge">ROBLOX COMMUNITY</div>
                 <h1 class="hero-title">PHYTAS<br><span class="accent-text">COMMUNITY</span></h1>
                 <p class="hero-tagline">A Roblox community built for racers, creators, and players.</p>
@@ -80,26 +85,31 @@
         <div class="container">
             <div class="stats-grid">
                 <div class="stat-card">
+                    <span class="pixel-tag stat-hi">HI-SCORE</span>
                     <div class="stat-number" data-target="2847">0</div>
                     <div class="stat-label">DISCORD MEMBERS</div>
                     <div class="stat-accent"></div>
                 </div>
                 <div class="stat-card">
+                    <span class="pixel-tag stat-hi">HI-SCORE</span>
                     <div class="stat-number" data-target="5120">0</div>
                     <div class="stat-label">ROBLOX GROUP</div>
                     <div class="stat-accent"></div>
                 </div>
                 <div class="stat-card">
+                    <span class="pixel-tag stat-hi">HI-SCORE</span>
                     <div class="stat-number" data-target="84">0</div>
                     <div class="stat-label">TOTAL EVENTS</div>
                     <div class="stat-accent"></div>
                 </div>
                 <div class="stat-card">
+                    <span class="pixel-tag stat-hi">HI-SCORE</span>
                     <div class="stat-number" data-target="312">0</div>
                     <div class="stat-label">TOTAL WINNERS</div>
                     <div class="stat-accent"></div>
                 </div>
                 <div class="stat-card">
+                    <span class="pixel-tag stat-hi">HI-SCORE</span>
                     <div class="stat-number" data-target="6">0</div>
                     <div class="stat-label">ACTIVE GAMES</div>
                     <div class="stat-accent"></div>
@@ -303,6 +313,7 @@
             <div class="hof-grid">
                 <div class="hof-card champion">
                     <div class="hof-trophy">&#127942;</div>
+                    <span class="pixel-tag hof-lv">LV.99</span>
                     <div class="hof-rank">S3 CHAMPION</div>
                     <div class="hof-avatar"></div>
                     <h4>xRacer_Pro</h4>
@@ -310,6 +321,7 @@
                 </div>
                 <div class="hof-card">
                     <div class="hof-trophy">&#127941;</div>
+                    <span class="pixel-tag hof-lv">LV.87</span>
                     <div class="hof-rank">TOP RACER</div>
                     <div class="hof-avatar"></div>
                     <h4>SpeedDemon42</h4>
@@ -317,6 +329,7 @@
                 </div>
                 <div class="hof-card">
                     <div class="hof-trophy">&#11088;</div>
+                    <span class="pixel-tag hof-lv">LV.75</span>
                     <div class="hof-rank">MOST ACTIVE</div>
                     <div class="hof-avatar"></div>
                     <h4>PhytasFan_01</h4>
@@ -324,6 +337,7 @@
                 </div>
                 <div class="hof-card">
                     <div class="hof-trophy">&#127909;</div>
+                    <span class="pixel-tag hof-lv">LV.68</span>
                     <div class="hof-rank">BEST CASTER</div>
                     <div class="hof-avatar"></div>
                     <h4>CastKing</h4>
@@ -331,6 +345,7 @@
                 </div>
                 <div class="hof-card">
                     <div class="hof-trophy">&#127775;</div>
+                    <span class="pixel-tag hof-lv">LV.92</span>
                     <div class="hof-rank">S2 CHAMPION</div>
                     <div class="hof-avatar"></div>
                     <h4>NitroBlaze</h4>
