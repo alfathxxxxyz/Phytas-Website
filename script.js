@@ -2,6 +2,47 @@
    PYTHAS COLLECTIVE - TAB-BASED NAVIGATION
    ======================================== */
 
+
+// ========== ROBLOX LIVE DATA CONFIG ==========
+// Map of member display name -> Roblox User ID
+// Avatars auto-update when members change them on Roblox.
+const ROBLOX_USERS = {
+    'MaschPyth':  9096966065,
+    'AerionPyth': 9288648967,
+    'C1eelPyth':  9572496148,
+    'AveyyPyth':  9155450474,
+    'VinnyPyth':  9124999411,
+    'AsbiiPyth':  8877318735,
+    'DellPyth':   8902740169
+};
+
+// Roblox thumbnail endpoint (returns headshot, follows redirects to CDN image)
+function robloxAvatarUrl(userId, size = 420) {
+    return `https://www.roblox.com/headshot-thumbnail/image?userId=${userId}&width=${size}&height=${size}&format=png`;
+}
+
+// Apply Roblox avatars to .member-avatar elements based on the H4 name
+function loadRobloxAvatars() {
+    document.querySelectorAll('.member-card').forEach(card => {
+        const nameEl = card.querySelector('.member-info h4');
+        const avatarDiv = card.querySelector('.member-avatar');
+        if (!nameEl || !avatarDiv) return;
+        const name = nameEl.textContent.trim();
+        const userId = ROBLOX_USERS[name];
+        if (!userId) return;
+        const url = robloxAvatarUrl(userId, 420);
+        avatarDiv.style.backgroundImage = `url("${url}")`;
+        avatarDiv.style.backgroundSize = 'cover';
+        avatarDiv.style.backgroundPosition = 'center';
+        avatarDiv.setAttribute('role', 'img');
+        avatarDiv.setAttribute('aria-label', `${name} Roblox avatar`);
+        avatarDiv.setAttribute('data-roblox-id', String(userId));
+    });
+}
+document.addEventListener('DOMContentLoaded', loadRobloxAvatars);
+
+
+
 // ========== TAB-BASED SECTION SWITCHING ==========
 const sections = document.querySelectorAll('.section-page');
 const navItems = document.querySelectorAll('.nav-links a');
