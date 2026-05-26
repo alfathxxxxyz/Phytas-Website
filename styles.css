@@ -477,7 +477,7 @@ body {
 
 /* ========== STATS SECTION ========== */
 .stats-section {
-    padding: 80px 0;
+    padding: 40px 0;
     background: var(--dark);
     border-top: 1px solid var(--gray-dark);
     border-bottom: 1px solid var(--gray-dark);
@@ -550,7 +550,7 @@ body {
 
 /* ========== ANNOUNCEMENTS SECTION ========== */
 .announcements-section {
-    padding: 120px 0;
+    padding: 40px 0;
     background: var(--black);
     display: flex;
     align-items: center;
@@ -645,7 +645,7 @@ body {
 
 /* ========== GAMES SECTION ========== */
 .games-section {
-    padding: 120px 0;
+    padding: 40px 0;
     background: linear-gradient(180deg, var(--dark) 0%, var(--black) 100%);
     display: flex;
     align-items: center;
@@ -741,7 +741,7 @@ body {
 
 /* ========== EVENTS SECTION ========== */
 .events-section {
-    padding: 120px 0;
+    padding: 40px 0;
     background: var(--black);
     position: relative;
     display: flex;
@@ -893,7 +893,7 @@ body {
 
 /* ========== HALL OF FAME ========== */
 .halloffame-section {
-    padding: 120px 0;
+    padding: 40px 0;
     background: linear-gradient(180deg, var(--black) 0%, var(--dark) 50%, var(--black) 100%);
     display: flex;
     align-items: center;
@@ -981,7 +981,7 @@ body {
 
 /* ========== COMMUNITY SECTION ========== */
 .community-section {
-    padding: 120px 0;
+    padding: 40px 0;
     background: var(--dark);
     display: flex;
     align-items: center;
@@ -1121,7 +1121,7 @@ body {
 
 /* ========== MOMENTS / MEDIA SECTION ========== */
 .moments-section {
-    padding: 120px 0;
+    padding: 40px 0;
     background: var(--black);
     display: flex;
     align-items: center;
@@ -1206,7 +1206,7 @@ body {
 
 /* ========== SHOP SECTION ========== */
 .shop-section {
-    padding: 120px 0;
+    padding: 40px 0;
     background: linear-gradient(180deg, var(--dark) 0%, var(--black) 100%);
     display: flex;
     align-items: center;
@@ -1338,7 +1338,7 @@ body {
 
 /* ========== PARTNERS SECTION ========== */
 .partners-section {
-    padding: 100px 0;
+    padding: 40px 0;
     background: var(--black);
     border-top: 1px solid var(--gray-dark);
     display: flex;
