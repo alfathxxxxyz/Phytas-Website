@@ -1,5 +1,5 @@
 /* ========================================
-   PHYTAS COMMUNITY - TAB-BASED NAVIGATION
+   PYTHAS COLLECTIVE - TAB-BASED NAVIGATION
    ======================================== */
 
 // ========== TAB-BASED SECTION SWITCHING ==========
