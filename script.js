@@ -339,43 +339,89 @@ if (tagline) {
 
 
 
-// 3D Cube interactive with cursor
+// 3D Cube - drag to rotate with velocity/momentum
 const cube3d = document.getElementById('cube3d');
 const scene3d = document.getElementById('hero3d');
 
 if (cube3d && scene3d) {
     let rotX = -15, rotY = 25;
-    let autoRotate = true;
-    let autoRotateId = null;
+    let velX = 0, velY = 0.3; // initial slow auto-spin
+    let isDragging = false;
+    let lastMouseX = 0, lastMouseY = 0;
+    const friction = 0.97; // momentum decay
 
-    // Auto rotate slowly
-    function startAutoRotate() {
-        autoRotate = true;
-        autoRotateId = setInterval(() => {
-            if (autoRotate) {
-                rotY += 0.3;
-                cube3d.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+    // Animation loop - always running
+    function animateCube() {
+        if (!isDragging) {
+            rotX += velX;
+            rotY += velY;
+            velX *= friction;
+            velY *= friction;
+
+            // Keep a minimum slow spin if velocity is too low
+            if (Math.abs(velY) < 0.05 && Math.abs(velX) < 0.05) {
+                velY = 0.15;
             }
-        }, 30);
-    }
-
-    startAutoRotate();
-
-    // Mouse move on scene = control cube rotation
-    scene3d.addEventListener('mousemove', (e) => {
-        autoRotate = false;
-        const rect = scene3d.getBoundingClientRect();
-        const x = e.clientX - rect.left - rect.width / 2;
-        const y = e.clientY - rect.top - rect.height / 2;
-        rotY = x * 0.4;
-        rotX = -y * 0.3;
+        }
         cube3d.style.animation = 'none';
         cube3d.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+        requestAnimationFrame(animateCube);
+    }
+    animateCube();
+
+    // Mouse down = start drag
+    scene3d.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        lastMouseX = e.clientX;
+        lastMouseY = e.clientY;
+        velX = 0;
+        velY = 0;
+        scene3d.style.cursor = 'grabbing';
     });
 
-    // Mouse leave = resume auto rotate
-    scene3d.addEventListener('mouseleave', () => {
-        autoRotate = true;
-        cube3d.style.animation = '';
+    // Mouse move = rotate cube while dragging
+    window.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        const dx = e.clientX - lastMouseX;
+        const dy = e.clientY - lastMouseY;
+        rotY += dx * 0.5;
+        rotX -= dy * 0.3;
+        velY = dx * 0.3;
+        velX = -dy * 0.2;
+        lastMouseX = e.clientX;
+        lastMouseY = e.clientY;
+    });
+
+    // Mouse up = release with velocity
+    window.addEventListener('mouseup', () => {
+        if (isDragging) {
+            isDragging = false;
+            scene3d.style.cursor = 'grab';
+        }
+    });
+
+    // Touch support
+    scene3d.addEventListener('touchstart', (e) => {
+        isDragging = true;
+        lastMouseX = e.touches[0].clientX;
+        lastMouseY = e.touches[0].clientY;
+        velX = 0;
+        velY = 0;
+    });
+
+    window.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        const dx = e.touches[0].clientX - lastMouseX;
+        const dy = e.touches[0].clientY - lastMouseY;
+        rotY += dx * 0.5;
+        rotX -= dy * 0.3;
+        velY = dx * 0.3;
+        velX = -dy * 0.2;
+        lastMouseX = e.touches[0].clientX;
+        lastMouseY = e.touches[0].clientY;
+    });
+
+    window.addEventListener('touchend', () => {
+        isDragging = false;
     });
 }
