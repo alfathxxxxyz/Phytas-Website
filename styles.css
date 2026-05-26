@@ -1249,7 +1249,7 @@ body {
 /* ========== SHOP SECTION ========== */
 .shop-section {
     padding: 40px 0;
-    background: linear-gradient(180deg, var(--dark) 0%, var(--black) 100%);
+    background: var(--black);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1258,7 +1258,7 @@ body {
 .shop-featured-banner {
     display: grid;
     grid-template-columns: 2fr 1fr;
-    background: linear-gradient(135deg, var(--dark-panel) 0%, rgba(255, 0, 128, 0.08) 100%);
+    background: var(--dark-panel);
     border: 1px solid rgba(255, 0, 128, 0.2);
     margin-bottom: 48px;
     overflow: hidden;
