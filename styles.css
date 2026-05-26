@@ -1487,3 +1487,326 @@ body {
 .nav-links.mobile-open a {
     font-size: 24px;
 }
+
+
+
+/* ========== ENHANCED ANIMATIONS ========== */
+
+/* Text glitch/flicker on hover for section titles */
+.section-title:hover .accent-text {
+    animation: textGlitch 0.4s ease;
+}
+
+@keyframes textGlitch {
+    0% { transform: translate(0); opacity: 1; }
+    20% { transform: translate(-2px, 2px); opacity: 0.8; }
+    40% { transform: translate(2px, -1px); opacity: 0.9; }
+    60% { transform: translate(-1px, -2px); opacity: 0.7; }
+    80% { transform: translate(1px, 1px); opacity: 0.9; }
+    100% { transform: translate(0); opacity: 1; }
+}
+
+.section-title .accent-text {
+    display: inline-block;
+    transition: var(--transition);
+}
+
+/* Neon glow pulse on stat numbers */
+.stat-number {
+    transition: text-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.stat-card:hover .stat-number {
+    text-shadow: 0 0 10px rgba(170, 255, 0, 0.6), 0 0 30px rgba(170, 255, 0, 0.4), 0 0 60px rgba(170, 255, 0, 0.2);
+    transform: scale(1.1);
+}
+
+.stat-card:hover .stat-label {
+    color: var(--lime);
+    letter-spacing: 3px;
+    transition: all 0.3s ease;
+}
+
+/* Badge bounce on hover */
+.announcement-badge,
+.game-status,
+.event-status,
+.event-featured-badge,
+.member-role,
+.hof-rank {
+    transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55), box-shadow 0.3s ease;
+}
+
+.announcement-card:hover .announcement-badge,
+.game-card:hover .game-status,
+.event-card:hover .event-status,
+.member-card:hover .member-role {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 4px 15px rgba(170, 255, 0, 0.3);
+}
+
+/* Card title slide-in underline on hover */
+.announcement-card h3,
+.game-info h3,
+.event-card h4,
+.event-featured-content h3,
+.hof-card h4,
+.member-info h4,
+.product-info h4 {
+    position: relative;
+    display: inline-block;
+    transition: color 0.3s ease;
+}
+
+.announcement-card h3::after,
+.game-info h3::after,
+.event-card h4::after,
+.hof-card h4::after,
+.member-info h4::after,
+.product-info h4::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--lime);
+    transition: width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.announcement-card:hover h3::after,
+.game-card:hover .game-info h3::after,
+.event-card:hover h4::after,
+.hof-card:hover h4::after,
+.member-card:hover .member-info h4::after,
+.product-card:hover .product-info h4::after {
+    width: 100%;
+}
+
+/* Typing cursor effect on hero tagline */
+.hero-tagline {
+    border-right: 2px solid var(--lime);
+    animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+    50% { border-color: transparent; }
+}
+
+/* Hero title letter spacing animation */
+.hero-title {
+    transition: letter-spacing 0.6s ease;
+}
+
+.hero-title:hover {
+    letter-spacing: 2px;
+}
+
+/* Button shine sweep effect */
+.btn-primary,
+.btn-magenta {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary::after,
+.btn-magenta::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -60%;
+    width: 40%;
+    height: 200%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transform: skewX(-20deg);
+    transition: left 0.6s ease;
+}
+
+.btn-primary:hover::after,
+.btn-magenta:hover::after {
+    left: 120%;
+}
+
+/* Nav link bounce on hover */
+.nav-links a {
+    transition: color 0.3s ease, transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.nav-links a:hover {
+    transform: translateY(-3px);
+}
+
+/* Logo heartbeat */
+.nav-logo .logo-mark {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.nav-logo:hover .logo-mark {
+    transform: scale(1.15) rotate(10deg);
+    box-shadow: 0 0 20px rgba(170, 255, 0, 0.5);
+}
+
+/* Hero graphic pulse */
+.graphic-core {
+    animation: corePulse 3s ease-in-out infinite;
+}
+
+@keyframes corePulse {
+    0%, 100% { text-shadow: 0 0 60px rgba(170, 255, 0, 0.3); transform: scale(1); }
+    50% { text-shadow: 0 0 100px rgba(170, 255, 0, 0.6), 0 0 150px rgba(170, 255, 0, 0.2); transform: scale(1.05); }
+}
+
+/* Product card image zoom on hover */
+.product-card:hover .product-image {
+    background: var(--dark-panel);
+}
+
+.product-image span {
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.product-card:hover .product-image span {
+    transform: scale(1.3) rotate(-5deg);
+}
+
+/* Price color shift on hover */
+.product-card:hover .product-price {
+    color: var(--white);
+    text-shadow: 0 0 10px rgba(170, 255, 0, 0.5);
+}
+
+/* Partner card icon glow */
+.partner-card:hover .partner-logo {
+    color: var(--lime);
+    text-shadow: 0 0 10px rgba(170, 255, 0, 0.4);
+}
+
+/* Hall of Fame trophy bounce */
+.hof-card:hover .hof-trophy {
+    animation: trophyBounce 0.6s ease;
+}
+
+@keyframes trophyBounce {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    25% { transform: translateY(-8px) rotate(-5deg); }
+    50% { transform: translateY(-4px) rotate(5deg); }
+    75% { transform: translateY(-6px) rotate(-3deg); }
+}
+
+/* Community avatar ring glow on hover */
+.member-card:hover .member-avatar {
+    border-color: var(--lime);
+    box-shadow: 0 0 15px rgba(170, 255, 0, 0.4);
+    transform: scale(1.1);
+    transition: all 0.3s ease;
+}
+
+.spotlight-card:hover .spotlight-avatar {
+    border-color: var(--white);
+    box-shadow: 0 0 15px rgba(255, 0, 128, 0.5);
+    transform: scale(1.15);
+    transition: all 0.3s ease;
+}
+
+/* Masonry item content reveal */
+.masonry-placeholder span {
+    transition: transform 0.3s ease, color 0.3s ease, letter-spacing 0.3s ease;
+}
+
+.masonry-item:hover .masonry-placeholder span {
+    transform: translateY(-5px);
+    color: var(--lime);
+    letter-spacing: 3px;
+}
+
+/* Footer link arrow on hover */
+.footer-col a {
+    position: relative;
+    padding-left: 0;
+    transition: color 0.3s ease, padding-left 0.3s ease, transform 0.3s ease;
+}
+
+.footer-col a:hover {
+    padding-left: 12px;
+}
+
+.footer-col a::before {
+    content: '>';
+    position: absolute;
+    left: 0;
+    opacity: 0;
+    color: var(--lime);
+    font-family: var(--font-heading);
+    font-size: 11px;
+    transition: opacity 0.3s ease;
+}
+
+.footer-col a:hover::before {
+    opacity: 1;
+}
+
+/* Section tag slide-in from left */
+.section-tag {
+    transition: padding-left 0.3s ease, border-left-width 0.3s ease;
+}
+
+.section-header:hover .section-tag {
+    padding-left: 24px;
+    border-left-width: 6px;
+}
+
+/* Scroll reveal bounce for fade-in elements */
+.fade-in.visible {
+    animation: fadeInBounce 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes fadeInBounce {
+    0% { opacity: 0; transform: translateY(30px); }
+    60% { opacity: 1; transform: translateY(-5px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Event featured card border animation */
+.event-featured {
+    position: relative;
+}
+
+.event-featured::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 0;
+    height: 3px;
+    background: var(--magenta);
+    transition: width 0.6s ease;
+}
+
+.event-featured:hover::after {
+    width: 100%;
+}
+
+/* Announcement icon spin on hover */
+.announcement-card:hover .announcement-icon {
+    animation: iconSpin 0.6s ease;
+}
+
+@keyframes iconSpin {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(1.2); }
+    100% { transform: rotate(360deg) scale(1); }
+}
+
+/* Game thumbnail overlay gradient shift */
+.game-thumbnail::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(170, 255, 0, 0) 0%, rgba(170, 255, 0, 0) 100%);
+    transition: background 0.4s ease;
+    pointer-events: none;
+}
+
+.game-card:hover .game-thumbnail::after {
+    background: linear-gradient(135deg, rgba(170, 255, 0, 0.05) 0%, rgba(255, 0, 128, 0.05) 100%);
+}

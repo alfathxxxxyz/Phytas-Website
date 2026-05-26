@@ -141,3 +141,114 @@ document.querySelectorAll('.hof-grid .hof-card').forEach((card, i) => {
 document.querySelectorAll('.masonry-grid .masonry-item').forEach((item, i) => {
     item.style.transitionDelay = `${i * 0.05}s`;
 });
+
+
+
+// Tilt effect on cards
+document.querySelectorAll('.game-card, .hof-card, .product-card, .stat-card').forEach(card => {
+    card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const rotateX = (y - centerY) / 20;
+        const rotateY = (centerX - x) / 20;
+        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+    });
+    card.addEventListener('mouseleave', () => {
+        card.style.transform = '';
+    });
+});
+
+// Magnetic effect on buttons
+document.querySelectorAll('.btn').forEach(btn => {
+    btn.addEventListener('mousemove', (e) => {
+        const rect = btn.getBoundingClientRect();
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+        btn.style.transform = `translate(${x * 0.2}px, ${y * 0.2}px) translateY(-2px)`;
+    });
+    btn.addEventListener('mouseleave', () => {
+        btn.style.transform = '';
+    });
+});
+
+// Text scramble effect on hover for section titles
+class TextScramble {
+    constructor(el) {
+        this.el = el;
+        this.chars = '!<>-_\\/[]{}#$%^&*+=~';
+        this.originalText = el.textContent;
+    }
+    scramble() {
+        const length = this.originalText.length;
+        let iterations = 0;
+        const interval = setInterval(() => {
+            this.el.textContent = this.originalText.split('').map((char, idx) => {
+                if (idx < iterations) return this.originalText[idx];
+                return this.chars[Math.floor(Math.random() * this.chars.length)];
+            }).join('');
+            iterations += 1;
+            if (iterations > length) {
+                clearInterval(interval);
+                this.el.textContent = this.originalText;
+            }
+        }, 30);
+    }
+}
+
+document.querySelectorAll('.hof-card h4, .member-info h4, .spotlight-card h5').forEach(el => {
+    const scrambler = new TextScramble(el);
+    el.parentElement.closest('[class*="card"]')?.addEventListener('mouseenter', () => {
+        scrambler.scramble();
+    });
+});
+
+// Ripple effect on buttons
+document.querySelectorAll('.btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+        const ripple = document.createElement('span');
+        const rect = this.getBoundingClientRect();
+        ripple.style.cssText = `
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.4);
+            width: 100px;
+            height: 100px;
+            left: ${e.clientX - rect.left - 50}px;
+            top: ${e.clientY - rect.top - 50}px;
+            transform: scale(0);
+            animation: ripple 0.6s ease-out;
+            pointer-events: none;
+        `;
+        this.style.position = 'relative';
+        this.style.overflow = 'hidden';
+        this.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 600);
+    });
+});
+
+// Add ripple keyframe
+const style = document.createElement('style');
+style.textContent = `@keyframes ripple { to { transform: scale(4); opacity: 0; } }`;
+document.head.appendChild(style);
+
+// Typing effect for hero tagline
+const tagline = document.querySelector('.hero-tagline');
+if (tagline) {
+    const text = tagline.textContent;
+    tagline.textContent = '';
+    tagline.style.borderRight = '2px solid #AAFF00';
+    let i = 0;
+    function typeWriter() {
+        if (i < text.length) {
+            tagline.textContent += text.charAt(i);
+            i++;
+            setTimeout(typeWriter, 40);
+        } else {
+            setTimeout(() => { tagline.style.borderRight = 'none'; }, 1500);
+        }
+    }
+    setTimeout(typeWriter, 800);
+}
