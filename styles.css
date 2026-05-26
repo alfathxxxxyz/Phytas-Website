@@ -54,7 +54,7 @@ body {
 /* ========== TAB-BASED SECTION LAYOUT ========== */
 #sections-container {
     position: relative;
-    margin-top: 80px; /* account for fixed navbar */
+    margin-top: 120px; /* account for fixed navbar + breathing room */
 }
 
 .section-page {
@@ -62,8 +62,9 @@ body {
     opacity: 0;
     transform: translateY(10px);
     transition: opacity 0.4s ease, transform 0.4s ease;
-    min-height: calc(100vh - 160px);
+    min-height: calc(100vh - 200px);
     width: 100%;
+    padding-top: 40px;
 }
 
 .section-page.section-active {
