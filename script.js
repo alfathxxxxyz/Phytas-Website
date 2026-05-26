@@ -16,30 +16,88 @@ const ROBLOX_USERS = {
     'DellPyth':   8902740169
 };
 
-// Roblox thumbnail endpoint (returns headshot, follows redirects to CDN image)
-function robloxAvatarUrl(userId, size = 420) {
-    return `https://www.roblox.com/headshot-thumbnail/image?userId=${userId}&width=${size}&height=${size}&format=png`;
+// Map of game name (matches H3 in .game-card) -> Roblox Place ID
+const ROBLOX_GAMES = {
+    'MOUNT AGORA': 124216358732636,
+    'MOUNT AZTEC': 79000051805057
+};
+
+// Fetch Roblox avatar headshots in one batch from the official thumbnails API.
+// API supports CORS; returns JSON with imageUrl pointing to tr.rbxcdn.com.
+async function loadRobloxAvatars() {
+    const userIds = Object.values(ROBLOX_USERS);
+    if (userIds.length === 0) return;
+    try {
+        const url = `https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userIds.join(',')}&size=420x420&format=Png&isCircular=false`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Roblox thumbnails API ' + res.status);
+        const json = await res.json();
+        const byId = {};
+        (json.data || []).forEach(item => {
+            if (item.state === 'Completed' && item.imageUrl) {
+                byId[item.targetId] = item.imageUrl;
+            }
+        });
+        document.querySelectorAll('.member-card').forEach(card => {
+            const nameEl = card.querySelector('.member-info h4');
+            const avatarDiv = card.querySelector('.member-avatar');
+            if (!nameEl || !avatarDiv) return;
+            const name = nameEl.textContent.trim();
+            const userId = ROBLOX_USERS[name];
+            const imgUrl = userId && byId[userId];
+            if (!imgUrl) return;
+            avatarDiv.style.backgroundImage = `url("${imgUrl}")`;
+            avatarDiv.style.backgroundSize = 'cover';
+            avatarDiv.style.backgroundPosition = 'center';
+            avatarDiv.setAttribute('role', 'img');
+            avatarDiv.setAttribute('aria-label', `${name} Roblox avatar`);
+            avatarDiv.setAttribute('data-roblox-id', String(userId));
+        });
+    } catch (err) {
+        console.warn('[Roblox avatars] failed to load:', err);
+    }
 }
 
-// Apply Roblox avatars to .member-avatar elements based on the H4 name
-function loadRobloxAvatars() {
-    document.querySelectorAll('.member-card').forEach(card => {
-        const nameEl = card.querySelector('.member-info h4');
-        const avatarDiv = card.querySelector('.member-avatar');
-        if (!nameEl || !avatarDiv) return;
-        const name = nameEl.textContent.trim();
-        const userId = ROBLOX_USERS[name];
-        if (!userId) return;
-        const url = robloxAvatarUrl(userId, 420);
-        avatarDiv.style.backgroundImage = `url("${url}")`;
-        avatarDiv.style.backgroundSize = 'cover';
-        avatarDiv.style.backgroundPosition = 'center';
-        avatarDiv.setAttribute('role', 'img');
-        avatarDiv.setAttribute('aria-label', `${name} Roblox avatar`);
-        avatarDiv.setAttribute('data-roblox-id', String(userId));
-    });
+// Fetch Roblox game icons by placeId from official thumbnails API.
+async function loadRobloxGameIcons() {
+    const placeIds = Object.values(ROBLOX_GAMES);
+    if (placeIds.length === 0) return;
+    try {
+        const url = `https://thumbnails.roblox.com/v1/places/gameicons?placeIds=${placeIds.join(',')}&size=512x512&format=Png&isCircular=false&returnPolicy=PlaceHolder`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Roblox game icons API ' + res.status);
+        const json = await res.json();
+        const byPlaceId = {};
+        (json.data || []).forEach(item => {
+            if (item.state === 'Completed' && item.imageUrl) {
+                byPlaceId[item.targetId] = item.imageUrl;
+            }
+        });
+        document.querySelectorAll('.game-card').forEach(card => {
+            const titleEl = card.querySelector('.game-info h3');
+            const thumbEl = card.querySelector('.game-thumbnail');
+            const placeholderEl = card.querySelector('.game-thumb-placeholder');
+            if (!titleEl || !thumbEl) return;
+            const title = titleEl.textContent.trim().toUpperCase();
+            const placeId = ROBLOX_GAMES[title];
+            const imgUrl = placeId && byPlaceId[placeId];
+            if (!imgUrl) return;
+            thumbEl.style.backgroundImage = `url("${imgUrl}")`;
+            thumbEl.style.backgroundSize = 'cover';
+            thumbEl.style.backgroundPosition = 'center';
+            // Hide the emoji placeholder once the real icon is loaded
+            if (placeholderEl) placeholderEl.style.display = 'none';
+            thumbEl.setAttribute('data-place-id', String(placeId));
+        });
+    } catch (err) {
+        console.warn('[Roblox game icons] failed to load:', err);
+    }
 }
-document.addEventListener('DOMContentLoaded', loadRobloxAvatars);
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadRobloxAvatars();
+    loadRobloxGameIcons();
+});
 
 
 
