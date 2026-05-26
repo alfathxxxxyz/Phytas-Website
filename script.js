@@ -100,8 +100,30 @@ navItems.forEach(link => {
         const targetId = link.getAttribute('data-section');
         if (targetId) {
             showSection(targetId);
+            history.pushState({ section: targetId }, '', '#' + targetId);
         }
     });
+    // Keyboard support: Enter/Space triggers section switch
+    link.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            const targetId = link.getAttribute('data-section');
+            if (targetId) {
+                showSection(targetId);
+                history.pushState({ section: targetId }, '', '#' + targetId);
+            }
+        }
+    });
+});
+
+// Handle browser back/forward navigation
+window.addEventListener('popstate', (e) => {
+    if (e.state && e.state.section) {
+        showSection(e.state.section, false);
+    } else {
+        const hash = window.location.hash.substring(1);
+        showSection(hash || 'hero', false);
+    }
 });
 
 // Also handle hero buttons that link to sections
@@ -128,13 +150,21 @@ document.querySelectorAll('.footer-col a[href^="#"]').forEach(anchor => {
     });
 });
 
-// Initialize: show hero section by default on page load
+// Initialize: show hero section by default on page load, or hash section
 document.addEventListener('DOMContentLoaded', () => {
     sections.forEach(section => {
         if (!section.classList.contains('section-active')) {
             section.style.display = 'none';
         }
     });
+
+    // Load section from URL hash if present
+    const hash = window.location.hash.substring(1);
+    if (hash && hash !== 'hero') {
+        showSection(hash, true);
+    }
+    // Replace initial state so popstate works correctly
+    history.replaceState({ section: hash || 'hero' }, '', window.location.href);
 });
 
 
@@ -144,6 +174,8 @@ const navLinks = document.querySelector('.nav-links');
 hamburger.addEventListener('click', () => {
     navLinks.classList.toggle('mobile-open');
     hamburger.classList.toggle('active');
+    const isOpen = navLinks.classList.contains('mobile-open');
+    hamburger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
 });
 
 // Close mobile nav on link click

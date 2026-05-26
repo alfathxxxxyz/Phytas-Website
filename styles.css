@@ -7,6 +7,9 @@
     --lime-dark: #88CC00;
     --magenta: #FF0080;
     --magenta-dark: #CC0066;
+    --blue: #4A90E2;
+    --orange: #F5A623;
+    --purple: #7B61FF;
     --black: #0A0A0A;
     --dark: #111111;
     --dark-panel: #1A1A1A;
@@ -121,10 +124,7 @@ body {
 }
 
 .navbar.scrolled {
-    background: rgba(10, 10, 10, 0.95);
-    backdrop-filter: blur(20px);
-    padding: 14px 0;
-    border-bottom: 1px solid rgba(170, 255, 0, 0.1);
+    padding: 10px 0;
 }
 
 .nav-container {
@@ -211,6 +211,9 @@ body {
     flex-direction: column;
     gap: 5px;
     cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
 }
 
 .hamburger span {
@@ -611,9 +614,9 @@ body {
 }
 
 .announcement-badge.event-badge { background: var(--magenta); color: var(--white); }
-.announcement-badge.game-badge { background: #4A90E2; color: var(--white); }
-.announcement-badge.shop-badge { background: #F5A623; color: var(--black); }
-.announcement-badge.community-badge { background: #7B61FF; color: var(--white); }
+.announcement-badge.game-badge { background: var(--blue); color: var(--white); }
+.announcement-badge.shop-badge { background: var(--orange); color: var(--black); }
+.announcement-badge.community-badge { background: var(--purple); color: var(--white); }
 
 .announcement-icon {
     font-size: 28px;
@@ -715,7 +718,7 @@ body {
 }
 
 .game-status.event-only {
-    background: #F5A623;
+    background: var(--orange);
     color: var(--black);
 }
 
@@ -770,6 +773,34 @@ body {
 
 .events-game-filter {
     grid-column: 1 / -1;
+    display: flex;
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.game-filter-card {
+    flex: 1;
+    background: var(--dark-panel);
+    border: 1px solid var(--gray-dark);
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    font-family: var(--font-heading);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    color: var(--gray-light);
+    transition: all 0.3s ease;
+}
+
+.game-filter-card.active {
+    border: 2px solid var(--lime);
+    color: var(--lime);
+}
+
+.game-filter-card--upcoming {
+    border-style: dashed;
+    color: var(--gray);
 }
 
 .game-filter-card:hover {
@@ -1058,10 +1089,10 @@ body {
     margin-bottom: 14px;
 }
 
-.member-role.dev { background: #4A90E2; color: var(--white); }
+.member-role.dev { background: var(--blue); color: var(--white); }
 .member-role.event { background: var(--magenta); color: var(--white); }
-.member-role.caster { background: #F5A623; color: var(--black); }
-.member-role.mod { background: #7B61FF; color: var(--white); }
+.member-role.caster { background: var(--orange); color: var(--black); }
+.member-role.mod { background: var(--purple); color: var(--white); }
 .member-role.racer { background: var(--lime); color: var(--black); }
 
 .member-info h4 {

@@ -4,37 +4,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PHYTAS - Roblox Community</title>
+    <meta name="description" content="PHYTAS is a Roblox community built for racers, creators, and players. Join events, compete in tournaments, and connect with fellow gamers.">
+    <meta property="og:title" content="PHYTAS - Roblox Community">
+    <meta property="og:description" content="A Roblox community built for racers, creators, and players. Join events, compete in tournaments, and connect with fellow gamers.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://phytas.gg">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23000'/><text x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-size='20' font-weight='bold' fill='%23AAFF00'>P</text></svg>">
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Images should use loading="lazy" for performance when added -->
 </head>
 <body>
     <!-- NAVIGATION -->
-    <nav class="navbar" id="navbar">
+    <nav class="navbar" id="navbar" role="navigation" aria-label="Main navigation">
         <div class="nav-container">
             <div class="nav-logo">
                 <div class="logo-mark">P</div>
                 <span class="logo-text">PHYTAS</span>
             </div>
-            <ul class="nav-links">
-                <li><a href="#hero" data-section="hero" class="active">HOME</a></li>
-                <li><a href="#games" data-section="games">GAMES</a></li>
-                <li><a href="#events" data-section="events">EVENTS</a></li>
-                <li><a href="#community" data-section="community">COMMUNITY</a></li>
-                <li><a href="#moments" data-section="moments">MOMENTS</a></li>
-                <li><a href="#shop" data-section="shop">SHOP</a></li>
+            <ul class="nav-links" role="menubar">
+                <li role="none"><a href="#hero" data-section="hero" class="active" role="menuitem" aria-label="Navigate to Home section">HOME</a></li>
+                <li role="none"><a href="#games" data-section="games" role="menuitem" aria-label="Navigate to Games section">GAMES</a></li>
+                <li role="none"><a href="#events" data-section="events" role="menuitem" aria-label="Navigate to Events section">EVENTS</a></li>
+                <li role="none"><a href="#community" data-section="community" role="menuitem" aria-label="Navigate to Community section">COMMUNITY</a></li>
+                <li role="none"><a href="#moments" data-section="moments" role="menuitem" aria-label="Navigate to Moments section">MOMENTS</a></li>
+                <li role="none"><a href="#shop" data-section="shop" role="menuitem" aria-label="Navigate to Shop section">SHOP</a></li>
             </ul>
             <div class="nav-cta">
-                <a href="#" class="btn btn-accent btn-sm">JOIN US</a>
+                <a href="#" class="btn btn-accent btn-sm" aria-label="Join the PHYTAS community">JOIN US</a>
             </div>
-            <div class="hamburger" id="hamburger">
+            <button class="hamburger" id="hamburger" aria-label="Toggle mobile navigation menu" aria-expanded="false">
                 <span></span><span></span><span></span>
-            </div>
+            </button>
         </div>
     </nav>
 
 
     <!-- SECTIONS CONTAINER -->
-    <div id="sections-container">
+    <main id="sections-container" role="main">
 
     <!-- HERO SECTION -->
     <section class="hero section-page section-active" id="hero">
@@ -47,9 +54,9 @@
                 <h1 class="hero-title">PHYTAS<br><span class="accent-text">COMMUNITY</span></h1>
                 <p class="hero-tagline">A Roblox community built for racers, creators, and players.</p>
                 <div class="hero-buttons">
-                    <a href="#" class="btn btn-primary">JOIN DISCORD</a>
-                    <a href="#events" class="btn btn-outline">EXPLORE EVENTS</a>
-                    <a href="#games" class="btn btn-magenta">VIEW GAMES</a>
+                    <a href="#" class="btn btn-primary" aria-label="Join PHYTAS Discord server">JOIN DISCORD</a>
+                    <a href="#events" class="btn btn-outline" aria-label="Explore upcoming events">EXPLORE EVENTS</a>
+                    <a href="#games" class="btn btn-magenta" aria-label="View available games">VIEW GAMES</a>
                 </div>
             </div>
             <div class="hero-visual">
@@ -224,10 +231,10 @@
             </div>
             <div class="events-layout">
                 <!-- Game Filter -->
-                <div class="events-game-filter" style="grid-column: span 2; display: flex; gap: 16px; margin-bottom: 32px;">
-                    <div class="game-filter-card active" style="flex: 1; background: var(--dark-panel); border: 2px solid var(--lime); padding: 20px; text-align: center; cursor: pointer; font-family: var(--font-heading); font-size: 14px; font-weight: 600; letter-spacing: 1.5px; color: var(--lime); transition: all 0.3s ease;">MOUNT AGORA</div>
-                    <div class="game-filter-card" style="flex: 1; background: var(--dark-panel); border: 1px solid var(--gray-dark); padding: 20px; text-align: center; cursor: pointer; font-family: var(--font-heading); font-size: 14px; font-weight: 600; letter-spacing: 1.5px; color: var(--gray-light); transition: all 0.3s ease;">MOUNT AZTEC</div>
-                    <div class="game-filter-card" style="flex: 1; background: var(--dark-panel); border: 1px dashed var(--gray-dark); padding: 20px; text-align: center; cursor: pointer; font-family: var(--font-heading); font-size: 14px; font-weight: 600; letter-spacing: 1.5px; color: var(--gray); transition: all 0.3s ease;">???</div>
+                <div class="events-game-filter">
+                    <div class="game-filter-card active">MOUNT AGORA</div>
+                    <div class="game-filter-card">MOUNT AZTEC</div>
+                    <div class="game-filter-card game-filter-card--upcoming">???</div>
                 </div>
                 <div class="event-featured">
                     <div class="event-featured-badge">NEXT EVENT</div>
@@ -618,10 +625,10 @@
     </section>
 
 
-    </div><!-- END SECTIONS CONTAINER -->
+    </main><!-- END SECTIONS CONTAINER -->
 
     <!-- CONTACT / FOOTER -->
-    <footer class="footer-section" id="contact">
+    <footer class="footer-section" id="contact" role="contentinfo">
         <div class="container">
             <div class="footer-top">
                 <div class="footer-brand">
