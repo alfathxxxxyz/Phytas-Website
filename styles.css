@@ -64,7 +64,7 @@ body {
     transition: opacity 0.4s ease, transform 0.4s ease;
     min-height: calc(100vh - 140px);
     width: 100%;
-    padding-top: 30px;
+    padding-top: 10px;
 }
 
 .section-page.hero {
