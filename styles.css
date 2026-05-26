@@ -29,7 +29,7 @@
 }
 
 html {
-    scroll-behavior: smooth;
+    /* scroll-behavior removed for tab-based layout */
 }
 
 body {
@@ -51,6 +51,56 @@ body {
 }
 
 
+/* ========== TAB-BASED SECTION LAYOUT ========== */
+#sections-container {
+    position: relative;
+    margin-top: 80px; /* account for fixed navbar */
+}
+
+.section-page {
+    display: none;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    min-height: calc(100vh - 160px);
+    width: 100%;
+}
+
+.section-page.section-active {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+    animation: sectionFadeIn 0.4s ease forwards;
+}
+
+@keyframes sectionFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.section-page.section-fade-out {
+    display: block;
+    animation: sectionFadeOut 0.3s ease forwards;
+}
+
+@keyframes sectionFadeOut {
+    0% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
+
 /* ========== NAVIGATION ========== */
 .navbar {
     position: fixed;
@@ -58,9 +108,11 @@ body {
     left: 0;
     width: 100%;
     z-index: 1000;
-    padding: 20px 0;
+    padding: 14px 0;
     transition: var(--transition);
-    background: transparent;
+    background: rgba(10, 10, 10, 0.95);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(170, 255, 0, 0.1);
 }
 
 .navbar.scrolled {
@@ -242,9 +294,10 @@ body {
 
 /* ========== HERO SECTION ========== */
 .hero {
-    min-height: 100vh;
+    min-height: calc(100vh - 160px);
     display: flex;
     align-items: center;
+    justify-content: center;
     position: relative;
     overflow: hidden;
     background: linear-gradient(135deg, var(--black) 0%, var(--dark) 50%, #0D0D0D 100%);
@@ -389,36 +442,7 @@ body {
     to { transform: rotate(360deg); }
 }
 
-.hero-scroll-indicator {
-    position: absolute;
-    bottom: 40px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    z-index: 2;
-}
-
-.hero-scroll-indicator span {
-    font-family: var(--font-heading);
-    font-size: 11px;
-    letter-spacing: 3px;
-    color: var(--gray-light);
-}
-
-.scroll-line {
-    width: 1px;
-    height: 40px;
-    background: linear-gradient(to bottom, var(--lime), transparent);
-    animation: scrollPulse 2s ease-in-out infinite;
-}
-
-@keyframes scrollPulse {
-    0%, 100% { opacity: 1; transform: scaleY(1); }
-    50% { opacity: 0.5; transform: scaleY(0.6); }
-}
+/* Scroll indicator removed for tab layout */
 
 
 /* ========== SECTION COMMON ========== */
@@ -452,6 +476,9 @@ body {
     background: var(--dark);
     border-top: 1px solid var(--gray-dark);
     border-bottom: 1px solid var(--gray-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .stats-grid {
@@ -520,6 +547,9 @@ body {
 .announcements-section {
     padding: 120px 0;
     background: var(--black);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .announcements-grid {
@@ -612,6 +642,9 @@ body {
 .games-section {
     padding: 120px 0;
     background: linear-gradient(180deg, var(--dark) 0%, var(--black) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .games-grid {
@@ -706,6 +739,9 @@ body {
     padding: 120px 0;
     background: var(--black);
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .events-section::before {
@@ -854,6 +890,9 @@ body {
 .halloffame-section {
     padding: 120px 0;
     background: linear-gradient(180deg, var(--black) 0%, var(--dark) 50%, var(--black) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .hof-grid {
@@ -939,6 +978,9 @@ body {
 .community-section {
     padding: 120px 0;
     background: var(--dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .community-grid {
@@ -1076,6 +1118,9 @@ body {
 .moments-section {
     padding: 120px 0;
     background: var(--black);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .masonry-grid {
@@ -1158,6 +1203,9 @@ body {
 .shop-section {
     padding: 120px 0;
     background: linear-gradient(180deg, var(--dark) 0%, var(--black) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .shop-featured-banner {
@@ -1288,6 +1336,9 @@ body {
     padding: 100px 0;
     background: var(--black);
     border-top: 1px solid var(--gray-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .partners-grid {

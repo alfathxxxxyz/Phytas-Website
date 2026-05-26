@@ -16,13 +16,13 @@
                 <span class="logo-text">PHYTAS</span>
             </div>
             <ul class="nav-links">
-                <li><a href="#hero" class="active">HOME</a></li>
-                <li><a href="#games">GAMES</a></li>
-                <li><a href="#events">EVENTS</a></li>
-                <li><a href="#community">COMMUNITY</a></li>
-                <li><a href="#moments">MOMENTS</a></li>
-                <li><a href="#shop">SHOP</a></li>
-                <li><a href="#contact">CONTACT</a></li>
+                <li><a href="#hero" data-section="hero" class="active">HOME</a></li>
+                <li><a href="#games" data-section="games">GAMES</a></li>
+                <li><a href="#events" data-section="events">EVENTS</a></li>
+                <li><a href="#community" data-section="community">COMMUNITY</a></li>
+                <li><a href="#moments" data-section="moments">MOMENTS</a></li>
+                <li><a href="#shop" data-section="shop">SHOP</a></li>
+                <li><a href="#contact" data-section="contact">CONTACT</a></li>
             </ul>
             <div class="nav-cta">
                 <a href="#" class="btn btn-accent btn-sm">JOIN US</a>
@@ -34,8 +34,11 @@
     </nav>
 
 
+    <!-- SECTIONS CONTAINER -->
+    <div id="sections-container">
+
     <!-- HERO SECTION -->
-    <section class="hero" id="hero">
+    <section class="hero section-page section-active" id="hero">
         <div class="hero-bg-shape"></div>
         <div class="hero-grain"></div>
         <div class="hero-watermark">P</div>
@@ -58,15 +61,11 @@
                 </div>
             </div>
         </div>
-        <div class="hero-scroll-indicator">
-            <span>SCROLL</span>
-            <div class="scroll-line"></div>
-        </div>
     </section>
 
 
     <!-- LIVE COMMUNITY STATS -->
-    <section class="stats-section" id="stats">
+    <section class="stats-section section-page" id="stats">
         <div class="container">
             <div class="stats-grid">
                 <div class="stat-card">
@@ -100,7 +99,7 @@
 
 
     <!-- LATEST ANNOUNCEMENTS -->
-    <section class="announcements-section" id="announcements">
+    <section class="announcements-section section-page" id="announcements">
         <div class="container">
             <div class="section-header">
                 <div class="section-tag">UPDATES</div>
@@ -148,7 +147,7 @@
 
 
     <!-- GAMES SECTION -->
-    <section class="games-section" id="games">
+    <section class="games-section section-page" id="games">
         <div class="container">
             <div class="section-header">
                 <div class="section-tag">PLAY</div>
@@ -213,7 +212,7 @@
 
 
     <!-- EVENTS SECTION -->
-    <section class="events-section" id="events">
+    <section class="events-section section-page" id="events">
         <div class="container">
             <div class="section-header">
                 <div class="section-tag">COMPETE</div>
@@ -278,7 +277,7 @@
 
 
     <!-- HALL OF FAME -->
-    <section class="halloffame-section" id="halloffame">
+    <section class="halloffame-section section-page" id="halloffame">
         <div class="container">
             <div class="section-header">
                 <div class="section-tag">LEGENDS</div>
@@ -326,7 +325,7 @@
 
 
     <!-- COMMUNITY SECTION -->
-    <section class="community-section" id="community">
+    <section class="community-section section-page" id="community">
         <div class="container">
             <div class="section-header">
                 <div class="section-tag">TEAM</div>
@@ -438,7 +437,7 @@
 
 
     <!-- MOMENTS / MEDIA SECTION -->
-    <section class="moments-section" id="moments">
+    <section class="moments-section section-page" id="moments">
         <div class="container">
             <div class="section-header">
                 <div class="section-tag">GALLERY</div>
@@ -499,7 +498,7 @@
 
 
     <!-- SHOP SECTION -->
-    <section class="shop-section" id="shop">
+    <section class="shop-section section-page" id="shop">
         <div class="container">
             <div class="section-header">
                 <div class="section-tag">STORE</div>
@@ -577,7 +576,7 @@
 
 
     <!-- PARTNERS SECTION -->
-    <section class="partners-section" id="partners">
+    <section class="partners-section section-page" id="partners">
         <div class="container">
             <div class="section-header">
                 <div class="section-tag">PARTNERS</div>
@@ -608,6 +607,8 @@
         </div>
     </section>
 
+
+    </div><!-- END SECTIONS CONTAINER -->
 
     <!-- CONTACT / FOOTER -->
     <footer class="footer-section" id="contact">

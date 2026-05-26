@@ -1,18 +1,144 @@
 /* ========================================
-   PHYTAS COMMUNITY - INTERACTIVE JS
+   PHYTAS COMMUNITY - TAB-BASED NAVIGATION
    ======================================== */
 
-// Navbar scroll effect
+// ========== TAB-BASED SECTION SWITCHING ==========
+const sections = document.querySelectorAll('.section-page');
+const navItems = document.querySelectorAll('.nav-links a');
 const navbar = document.getElementById('navbar');
-window.addEventListener('scroll', () => {
-    if (window.scrollY > 80) {
-        navbar.classList.add('scrolled');
-    } else {
-        navbar.classList.remove('scrolled');
+let currentSection = document.querySelector('.section-page.section-active');
+let isTransitioning = false;
+
+// Map of nav href to section IDs (handle "contact" which is footer, not a section-page)
+function showSection(targetId, skipAnimation) {
+    if (isTransitioning) return;
+
+    // "contact" target means scroll to footer (it's always visible)
+    if (targetId === 'contact') {
+        // Hide all sections content, show a minimal state or just scroll to footer
+        // Actually for contact, we'll hide all section-pages and let footer show
+        if (currentSection) {
+            isTransitioning = true;
+            currentSection.classList.add('section-fade-out');
+            currentSection.classList.remove('section-active');
+            setTimeout(() => {
+                currentSection.classList.remove('section-fade-out');
+                currentSection.style.display = 'none';
+                currentSection = null;
+                isTransitioning = false;
+                window.scrollTo({ top: 0, behavior: 'instant' });
+            }, skipAnimation ? 0 : 300);
+        }
+        updateActiveNav(targetId);
+        return;
     }
+
+    const targetSection = document.getElementById(targetId);
+    if (!targetSection || targetSection === currentSection) return;
+
+    isTransitioning = true;
+
+    // Fade out current section
+    if (currentSection) {
+        currentSection.classList.add('section-fade-out');
+        currentSection.classList.remove('section-active');
+
+        setTimeout(() => {
+            currentSection.classList.remove('section-fade-out');
+            currentSection.style.display = 'none';
+
+            // Fade in new section
+            targetSection.style.display = 'block';
+            // Force reflow
+            void targetSection.offsetHeight;
+            targetSection.classList.add('section-active');
+            currentSection = targetSection;
+            isTransitioning = false;
+
+            // Trigger counter animations if stats section
+            if (targetId === 'stats') {
+                triggerCounterAnimations();
+            }
+
+            // Trigger fade-in animations for elements in the new section
+            triggerFadeInAnimations(targetSection);
+
+            // Scroll to top of page
+            window.scrollTo({ top: 0, behavior: 'instant' });
+        }, skipAnimation ? 0 : 300);
+    } else {
+        // No current section (e.g., coming from contact view)
+        targetSection.style.display = 'block';
+        void targetSection.offsetHeight;
+        targetSection.classList.add('section-active');
+        currentSection = targetSection;
+        isTransitioning = false;
+
+        if (targetId === 'stats') {
+            triggerCounterAnimations();
+        }
+        triggerFadeInAnimations(targetSection);
+        window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+
+    updateActiveNav(targetId);
+}
+
+function updateActiveNav(targetId) {
+    navItems.forEach(item => {
+        item.classList.remove('active');
+        if (item.getAttribute('data-section') === targetId) {
+            item.classList.add('active');
+        }
+    });
+}
+
+// Nav link click handler
+navItems.forEach(link => {
+    link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const targetId = link.getAttribute('data-section');
+        if (targetId) {
+            showSection(targetId);
+        }
+    });
 });
 
-// Mobile hamburger toggle
+// Also handle hero buttons that link to sections
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+        const href = this.getAttribute('href');
+        if (href && href !== '#' && !this.hasAttribute('data-section')) {
+            e.preventDefault();
+            const targetId = href.substring(1);
+            showSection(targetId);
+        }
+    });
+});
+
+// Footer nav links
+document.querySelectorAll('.footer-col a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        const href = this.getAttribute('href');
+        if (href && href !== '#') {
+            const targetId = href.substring(1);
+            showSection(targetId);
+        }
+    });
+});
+
+// Initialize: show hero section by default on page load
+document.addEventListener('DOMContentLoaded', () => {
+    sections.forEach(section => {
+        if (!section.classList.contains('section-active')) {
+            section.style.display = 'none';
+        }
+    });
+});
+
+
+// ========== MOBILE HAMBURGER TOGGLE ==========
 const hamburger = document.getElementById('hamburger');
 const navLinks = document.querySelector('.nav-links');
 hamburger.addEventListener('click', () => {
@@ -28,28 +154,10 @@ document.querySelectorAll('.nav-links a').forEach(link => {
     });
 });
 
-// Active nav link on scroll
-const sections = document.querySelectorAll('section, footer');
-const navItems = document.querySelectorAll('.nav-links a');
 
-window.addEventListener('scroll', () => {
-    let current = '';
-    sections.forEach(section => {
-        const sectionTop = section.offsetTop - 120;
-        if (window.scrollY >= sectionTop) {
-            current = section.getAttribute('id');
-        }
-    });
-    navItems.forEach(item => {
-        item.classList.remove('active');
-        if (item.getAttribute('href') === '#' + current) {
-            item.classList.add('active');
-        }
-    });
-});
-
-// Animated counter for stats
+// ========== ANIMATED COUNTER FOR STATS ==========
 const statNumbers = document.querySelectorAll('.stat-number');
+let countersAnimated = false;
 
 function animateCounter(el) {
     const target = parseInt(el.getAttribute('data-target'));
@@ -70,66 +178,39 @@ function animateCounter(el) {
     requestAnimationFrame(update);
 }
 
-// Intersection Observer for fade-in and counter animations
-const observerOptions = {
-    threshold: 0.2,
-    rootMargin: '0px 0px -50px 0px'
-};
+function triggerCounterAnimations() {
+    if (!countersAnimated) {
+        statNumbers.forEach(el => animateCounter(el));
+        countersAnimated = true;
+    }
+}
 
-const fadeObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-            fadeObserver.unobserve(entry.target);
-        }
+
+// ========== FADE-IN ANIMATIONS FOR SECTION CONTENT ==========
+function triggerFadeInAnimations(section) {
+    const fadeElements = section.querySelectorAll('.fade-in:not(.visible)');
+    fadeElements.forEach((el, index) => {
+        setTimeout(() => {
+            el.classList.add('visible');
+        }, index * 80);
     });
-}, observerOptions);
+}
 
-const counterObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            animateCounter(entry.target);
-            counterObserver.unobserve(entry.target);
-        }
-    });
-}, { threshold: 0.5 });
-
-// Apply fade-in to sections
+// Apply fade-in class to elements
 document.querySelectorAll('.section-header, .stat-card, .announcement-card, .game-card, .event-featured, .event-card, .hof-card, .member-card, .spotlight-card, .masonry-item, .product-card, .partner-card').forEach(el => {
     el.classList.add('fade-in');
-    fadeObserver.observe(el);
 });
 
-// Apply counter animation
-statNumbers.forEach(el => counterObserver.observe(el));
-
-// Smooth scroll for anchor links
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function(e) {
-        const href = this.getAttribute('href');
-        if (href !== '#') {
-            e.preventDefault();
-            const target = document.querySelector(href);
-            if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
-        }
-    });
-});
-
-// Parallax effect on hero watermark
-const heroWatermark = document.querySelector('.hero-watermark');
-window.addEventListener('scroll', () => {
-    if (heroWatermark) {
-        const scrolled = window.scrollY;
-        heroWatermark.style.transform = `translateY(calc(-50% + ${scrolled * 0.2}px))`;
+// Trigger fade-in for the initial active section (hero)
+setTimeout(() => {
+    const heroSection = document.getElementById('hero');
+    if (heroSection) {
+        triggerFadeInAnimations(heroSection);
     }
-});
+}, 100);
 
-// Add staggered animation delays
+
+// ========== STAGGERED ANIMATION DELAYS ==========
 document.querySelectorAll('.stats-grid .stat-card').forEach((card, i) => {
     card.style.transitionDelay = `${i * 0.1}s`;
 });
@@ -143,8 +224,7 @@ document.querySelectorAll('.masonry-grid .masonry-item').forEach((item, i) => {
 });
 
 
-
-// Tilt effect on cards
+// ========== TILT EFFECT ON CARDS ==========
 document.querySelectorAll('.game-card, .hof-card, .product-card, .stat-card').forEach(card => {
     card.addEventListener('mousemove', (e) => {
         const rect = card.getBoundingClientRect();
@@ -161,7 +241,8 @@ document.querySelectorAll('.game-card, .hof-card, .product-card, .stat-card').fo
     });
 });
 
-// Magnetic effect on buttons
+
+// ========== MAGNETIC EFFECT ON BUTTONS ==========
 document.querySelectorAll('.btn').forEach(btn => {
     btn.addEventListener('mousemove', (e) => {
         const rect = btn.getBoundingClientRect();
@@ -174,7 +255,8 @@ document.querySelectorAll('.btn').forEach(btn => {
     });
 });
 
-// Text scramble effect on hover for section titles
+
+// ========== TEXT SCRAMBLE EFFECT ==========
 class TextScramble {
     constructor(el) {
         this.el = el;
@@ -205,7 +287,8 @@ document.querySelectorAll('.hof-card h4, .member-info h4, .spotlight-card h5').f
     });
 });
 
-// Ripple effect on buttons
+
+// ========== RIPPLE EFFECT ON BUTTONS ==========
 document.querySelectorAll('.btn').forEach(btn => {
     btn.addEventListener('click', function(e) {
         const ripple = document.createElement('span');
@@ -234,7 +317,8 @@ const style = document.createElement('style');
 style.textContent = `@keyframes ripple { to { transform: scale(4); opacity: 0; } }`;
 document.head.appendChild(style);
 
-// Typing effect for hero tagline
+
+// ========== TYPING EFFECT FOR HERO TAGLINE ==========
 const tagline = document.querySelector('.hero-tagline');
 if (tagline) {
     const text = tagline.textContent;
