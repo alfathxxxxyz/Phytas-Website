@@ -2236,6 +2236,60 @@ body,
     --gray: #B0B0B0;
     --gray-light: #555555;
     --white: #1A1A1A;
+    /* Tone down the neon lime so it reads well on a white background
+       while still feeling related to the dark-mode neon green. */
+    --lime: #5FA800;
+    --lime-dark: #4A8500;
+}
+
+/* Replace bright neon-lime glows/shadows with the toned-down olive lime
+   for a softer feel on light backgrounds. */
+[data-theme="light"] .btn-primary:hover {
+    box-shadow: 0 8px 30px rgba(95, 168, 0, 0.3);
+}
+
+[data-theme="light"] .game-card:hover {
+    border-color: var(--lime);
+    box-shadow: 0 20px 60px rgba(95, 168, 0, 0.15);
+}
+
+[data-theme="light"] .nav-logo:hover .logo-mark {
+    box-shadow: 0 0 20px rgba(95, 168, 0, 0.45);
+}
+
+[data-theme="light"] .stat-card:hover .stat-number {
+    text-shadow: 0 0 10px rgba(95, 168, 0, 0.45),
+                 0 0 30px rgba(95, 168, 0, 0.25),
+                 0 0 60px rgba(95, 168, 0, 0.15);
+}
+
+[data-theme="light"] .graphic-core,
+[data-theme="light"] .cube-face {
+    text-shadow: 0 0 30px rgba(95, 168, 0, 0.4);
+}
+
+[data-theme="light"] .pixel-tag {
+    text-shadow: 0 0 6px rgba(95, 168, 0, 0.35);
+}
+
+[data-theme="light"] .retro-grid {
+    background-image:
+        linear-gradient(rgba(95, 168, 0, 0.22) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(95, 168, 0, 0.22) 1px, transparent 1px);
+}
+
+[data-theme="light"] .retro-grid::before {
+    background: var(--lime);
+    box-shadow: 0 0 12px var(--lime), 0 0 24px rgba(95, 168, 0, 0.5);
+}
+
+[data-theme="light"] .member-card:hover .member-avatar {
+    box-shadow: 0 0 15px rgba(95, 168, 0, 0.4);
+}
+
+[data-theme="light"] .member-wall-grid span:hover {
+    background: rgba(95, 168, 0, 0.08);
+    box-shadow: 0 6px 20px rgba(95, 168, 0, 0.15);
 }
 
 [data-theme="light"] body {
