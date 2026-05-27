@@ -7,17 +7,22 @@ function initHero3D() {
     const canvas = document.getElementById('hero3dCanvas');
     const container = document.getElementById('hero3d');
 
-    if (!canvas || !container) return;
+    if (!canvas || !container) {
+        console.error('[Hero3D] Canvas or container not found');
+        return;
+    }
 
     const containerWidth = container.clientWidth || 350;
     const containerHeight = container.clientHeight || 350;
+
+    console.log('[Hero3D] Init. Container size:', containerWidth, 'x', containerHeight);
 
     // Scene
     const scene = new THREE.Scene();
 
     // Camera
     const camera = new THREE.PerspectiveCamera(50, containerWidth / containerHeight, 0.01, 1000);
-    camera.position.set(0, 1, 8);
+    camera.position.set(0, 0.5, 5);
 
     // Renderer
     const renderer = new THREE.WebGLRenderer({
@@ -31,9 +36,8 @@ function initHero3D() {
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.5;
 
-    // Lighting - strong neon
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
-    scene.add(ambientLight);
+    // Lighting
+    scene.add(new THREE.AmbientLight(0xffffff, 1.0));
 
     const keyLight = new THREE.DirectionalLight(0xAAFF00, 2.5);
     keyLight.position.set(3, 4, 5);
@@ -47,9 +51,7 @@ function initHero3D() {
     rimLight.position.set(0, -3, -4);
     scene.add(rimLight);
 
-    const pointLight = new THREE.PointLight(0xFFFFFF, 2, 20);
-    pointLight.position.set(0, 3, 5);
-    scene.add(pointLight);
+    scene.add(new THREE.PointLight(0xFFFFFF, 2, 20).copy ? new THREE.PointLight(0xFFFFFF, 2, 20) : new THREE.PointLight(0xFFFFFF, 2));
 
     // Orbit Controls
     const controls = new OrbitControls(camera, canvas);
@@ -59,93 +61,97 @@ function initHero3D() {
     controls.enablePan = false;
     controls.autoRotate = true;
     controls.autoRotateSpeed = 2.0;
+    controls.target.set(0, 0, 0);
+
+    // Resolve model path relative to the HTML file
+    const modelPath = new URL('models/untitled.glb', window.location.href).href;
+    console.log('[Hero3D] Loading model from:', modelPath);
 
     // Load GLB model
     const loader = new GLTFLoader();
 
     loader.load(
-        'models/untitled.glb',
+        modelPath,
         (gltf) => {
+            console.log('[Hero3D] GLB loaded successfully');
             const model = gltf.scene;
 
-            // Remove the shadow plane (first node "plain light background shadow plane")
+            // Remove shadow plane / background objects
             const toRemove = [];
             model.traverse((child) => {
-                if (child.name && child.name.toLowerCase().includes('shadow plane')) {
-                    toRemove.push(child);
-                }
-                if (child.name && child.name.toLowerCase().includes('background')) {
+                if (child.name && (child.name.toLowerCase().includes('plane') || child.name.toLowerCase().includes('background'))) {
                     toRemove.push(child);
                 }
             });
-            toRemove.forEach(obj => {
-                if (obj.parent) obj.parent.remove(obj);
-            });
+            toRemove.forEach(obj => { if (obj.parent) obj.parent.remove(obj); });
+            console.log('[Hero3D] Removed', toRemove.length, 'background objects');
 
-            // Replace transparent/transmission materials with solid neon materials
-            // since Three.js doesn't handle KHR_materials_transmission well without env maps
+            // Force all remaining meshes to use visible solid materials
+            let meshCount = 0;
             model.traverse((child) => {
                 if (child.isMesh) {
-                    const matName = child.material ? child.material.name : '';
-
-                    if (matName.toLowerCase().includes('magenta') || matName.toLowerCase().includes('front')) {
-                        // Saturated magenta acrylic - make it solid neon magenta
-                        child.material = new THREE.MeshStandardMaterial({
-                            color: 0xFF0066,
-                            metalness: 0.3,
-                            roughness: 0.15,
-                            emissive: 0xFF0066,
-                            emissiveIntensity: 0.3,
-                            side: THREE.DoubleSide
-                        });
-                    } else if (matName.toLowerCase().includes('pink') || matName.toLowerCase().includes('glass') || matName.toLowerCase().includes('bevel')) {
-                        // Hot pink glass bevel - semi-transparent pink
-                        child.material = new THREE.MeshStandardMaterial({
-                            color: 0xFF3399,
-                            metalness: 0.2,
-                            roughness: 0.1,
-                            emissive: 0xFF0080,
-                            emissiveIntensity: 0.2,
-                            transparent: true,
-                            opacity: 0.75,
-                            side: THREE.DoubleSide
-                        });
-                    } else if (matName.toLowerCase().includes('plain') || matName.toLowerCase().includes('studio')) {
-                        // Remove studio background material entirely
-                        child.visible = false;
-                    }
-
-                    child.castShadow = true;
-                    child.receiveShadow = true;
+                    meshCount++;
+                    // Override ALL materials with solid neon - guaranteed visible
+                    child.material = new THREE.MeshPhongMaterial({
+                        color: 0xFF0066,
+                        emissive: 0xFF0066,
+                        emissiveIntensity: 0.4,
+                        shininess: 100,
+                        specular: 0xFFFFFF,
+                        side: THREE.DoubleSide,
+                        transparent: false
+                    });
+                    child.visible = true;
+                    child.frustumCulled = false;
                 }
             });
+            console.log('[Hero3D] Applied materials to', meshCount, 'meshes');
 
-            // Center and scale the model (after removing plane)
+            // Center and scale
             const box = new THREE.Box3().setFromObject(model);
-            const center = box.getCenter(new THREE.Vector3());
             const size = box.getSize(new THREE.Vector3());
+            const center = box.getCenter(new THREE.Vector3());
             const maxDim = Math.max(size.x, size.y, size.z);
+            console.log('[Hero3D] Model size:', size, 'maxDim:', maxDim);
 
-            const scale = 3.0 / maxDim;
-            model.scale.setScalar(scale);
-
-            // Re-center
-            const scaledBox = new THREE.Box3().setFromObject(model);
-            const scaledCenter = scaledBox.getCenter(new THREE.Vector3());
-            model.position.sub(scaledCenter);
+            if (maxDim > 0) {
+                const scale = 2.5 / maxDim;
+                model.scale.setScalar(scale);
+                // Re-center
+                const newBox = new THREE.Box3().setFromObject(model);
+                const newCenter = newBox.getCenter(new THREE.Vector3());
+                model.position.sub(newCenter);
+            }
 
             scene.add(model);
-
-            // Position camera to see model
-            camera.position.set(0, 0.5, 5);
-            controls.target.set(0, 0, 0);
             controls.update();
-
-            console.log('[Hero3D] Model loaded. Meshes visible.');
+            console.log('[Hero3D] Model added to scene');
         },
-        undefined,
+        (progress) => {
+            if (progress.total) {
+                console.log('[Hero3D] Loading:', Math.round(progress.loaded / progress.total * 100) + '%');
+            }
+        },
         (error) => {
-            console.error('[Hero3D] Failed to load model:', error);
+            console.error('[Hero3D] LOAD ERROR:', error);
+            // Fallback: show a simple rotating cube so user knows Three.js works
+            console.log('[Hero3D] Showing fallback cube');
+            const geo = new THREE.BoxGeometry(1.5, 1.5, 1.5);
+            const mat = new THREE.MeshPhongMaterial({
+                color: 0xAAFF00,
+                emissive: 0xAAFF00,
+                emissiveIntensity: 0.3,
+                wireframe: false
+            });
+            const cube = new THREE.Mesh(geo, mat);
+            scene.add(cube);
+
+            // Also add wireframe overlay
+            const wire = new THREE.LineSegments(
+                new THREE.EdgesGeometry(geo),
+                new THREE.LineBasicMaterial({ color: 0xFF0080 })
+            );
+            scene.add(wire);
         }
     );
 
@@ -157,21 +163,19 @@ function initHero3D() {
     }
     animate();
 
-    // Handle resize
+    // Resize handler
     function onResize() {
-        const width = container.clientWidth || 350;
-        const height = container.clientHeight || 350;
-        camera.aspect = width / height;
+        const w = container.clientWidth || 350;
+        const h = container.clientHeight || 350;
+        camera.aspect = w / h;
         camera.updateProjectionMatrix();
-        renderer.setSize(width, height);
+        renderer.setSize(w, h);
     }
-
     window.addEventListener('resize', onResize);
-    const observer = new ResizeObserver(() => onResize());
-    observer.observe(container);
+    new ResizeObserver(onResize).observe(container);
 }
 
-// Wait for DOM
+// Init
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initHero3D);
 } else {
