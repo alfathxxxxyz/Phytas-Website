@@ -9,16 +9,15 @@ function initHero3D() {
 
     if (!canvas || !container) return;
 
-    // Make sure container has actual dimensions
-    const containerWidth = container.clientWidth || 300;
-    const containerHeight = container.clientHeight || 300;
+    const containerWidth = container.clientWidth || 350;
+    const containerHeight = container.clientHeight || 350;
 
     // Scene
     const scene = new THREE.Scene();
 
-    // Camera - closer to catch small models
+    // Camera
     const camera = new THREE.PerspectiveCamera(50, containerWidth / containerHeight, 0.01, 1000);
-    camera.position.set(0, 0, 3);
+    camera.position.set(0, 1, 8);
 
     // Renderer
     const renderer = new THREE.WebGLRenderer({
@@ -32,28 +31,27 @@ function initHero3D() {
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.5;
 
-    // Lighting - strong neon/dark theme friendly
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+    // Lighting - strong neon
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
     scene.add(ambientLight);
 
-    const keyLight = new THREE.DirectionalLight(0xAAFF00, 2.0); // accent green
-    keyLight.position.set(2, 3, 4);
+    const keyLight = new THREE.DirectionalLight(0xAAFF00, 2.5);
+    keyLight.position.set(3, 4, 5);
     scene.add(keyLight);
 
-    const fillLight = new THREE.DirectionalLight(0x7B2FFF, 1.2); // purple fill
-    fillLight.position.set(-3, 1, -2);
+    const fillLight = new THREE.DirectionalLight(0x7B2FFF, 1.5);
+    fillLight.position.set(-4, 2, -3);
     scene.add(fillLight);
 
-    const rimLight = new THREE.DirectionalLight(0xFF00AA, 1.0); // magenta rim
-    rimLight.position.set(0, -2, -3);
+    const rimLight = new THREE.DirectionalLight(0xFF00AA, 1.5);
+    rimLight.position.set(0, -3, -4);
     scene.add(rimLight);
 
-    // Extra point light for glow effect
-    const pointLight = new THREE.PointLight(0xAAFF00, 1.5, 10);
-    pointLight.position.set(0, 2, 2);
+    const pointLight = new THREE.PointLight(0xFFFFFF, 2, 20);
+    pointLight.position.set(0, 3, 5);
     scene.add(pointLight);
 
-    // Orbit Controls (drag to rotate)
+    // Orbit Controls
     const controls = new OrbitControls(camera, canvas);
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
@@ -70,54 +68,82 @@ function initHero3D() {
         (gltf) => {
             const model = gltf.scene;
 
-            // Center and scale the model to fit the viewport
-            const box = new THREE.Box3().setFromObject(model);
-            const center = box.getCenter(new THREE.Vector3());
-            const size = box.getSize(new THREE.Vector3());
-            const maxDim = Math.max(size.x, size.y, size.z);
+            // Remove the shadow plane (first node "plain light background shadow plane")
+            const toRemove = [];
+            model.traverse((child) => {
+                if (child.name && child.name.toLowerCase().includes('shadow plane')) {
+                    toRemove.push(child);
+                }
+                if (child.name && child.name.toLowerCase().includes('background')) {
+                    toRemove.push(child);
+                }
+            });
+            toRemove.forEach(obj => {
+                if (obj.parent) obj.parent.remove(obj);
+            });
 
-            // Scale model to fit nicely (fill ~2 units)
-            const scale = 2.0 / maxDim;
-            model.scale.setScalar(scale);
-
-            // Re-center after scaling
-            const scaledBox = new THREE.Box3().setFromObject(model);
-            const scaledCenter = scaledBox.getCenter(new THREE.Vector3());
-            model.position.sub(scaledCenter);
-
-            // If model has no materials, add a default neon material
+            // Replace transparent/transmission materials with solid neon materials
+            // since Three.js doesn't handle KHR_materials_transmission well without env maps
             model.traverse((child) => {
                 if (child.isMesh) {
-                    if (!child.material || (child.material.color && child.material.color.getHex() === 0xffffff && !child.material.map)) {
+                    const matName = child.material ? child.material.name : '';
+
+                    if (matName.toLowerCase().includes('magenta') || matName.toLowerCase().includes('front')) {
+                        // Saturated magenta acrylic - make it solid neon magenta
                         child.material = new THREE.MeshStandardMaterial({
-                            color: 0x222222,
-                            metalness: 0.7,
-                            roughness: 0.3,
-                            emissive: 0xAAFF00,
-                            emissiveIntensity: 0.1
+                            color: 0xFF0066,
+                            metalness: 0.3,
+                            roughness: 0.15,
+                            emissive: 0xFF0066,
+                            emissiveIntensity: 0.3,
+                            side: THREE.DoubleSide
                         });
+                    } else if (matName.toLowerCase().includes('pink') || matName.toLowerCase().includes('glass') || matName.toLowerCase().includes('bevel')) {
+                        // Hot pink glass bevel - semi-transparent pink
+                        child.material = new THREE.MeshStandardMaterial({
+                            color: 0xFF3399,
+                            metalness: 0.2,
+                            roughness: 0.1,
+                            emissive: 0xFF0080,
+                            emissiveIntensity: 0.2,
+                            transparent: true,
+                            opacity: 0.75,
+                            side: THREE.DoubleSide
+                        });
+                    } else if (matName.toLowerCase().includes('plain') || matName.toLowerCase().includes('studio')) {
+                        // Remove studio background material entirely
+                        child.visible = false;
                     }
-                    // Enable shadows and ensure visibility
+
                     child.castShadow = true;
                     child.receiveShadow = true;
                 }
             });
 
+            // Center and scale the model (after removing plane)
+            const box = new THREE.Box3().setFromObject(model);
+            const center = box.getCenter(new THREE.Vector3());
+            const size = box.getSize(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z);
+
+            const scale = 3.0 / maxDim;
+            model.scale.setScalar(scale);
+
+            // Re-center
+            const scaledBox = new THREE.Box3().setFromObject(model);
+            const scaledCenter = scaledBox.getCenter(new THREE.Vector3());
+            model.position.sub(scaledCenter);
+
             scene.add(model);
 
-            // Adjust camera distance based on model size
-            const distance = maxDim * 2.5;
-            camera.position.set(0, 0, Math.max(distance, 3));
+            // Position camera to see model
+            camera.position.set(0, 0.5, 5);
+            controls.target.set(0, 0, 0);
             controls.update();
 
-            console.log('[Hero3D] Model loaded successfully. Size:', size);
+            console.log('[Hero3D] Model loaded. Meshes visible.');
         },
-        (progress) => {
-            if (progress.total > 0) {
-                const pct = Math.round((progress.loaded / progress.total) * 100);
-                console.log(`[Hero3D] Loading: ${pct}%`);
-            }
-        },
+        undefined,
         (error) => {
             console.error('[Hero3D] Failed to load model:', error);
         }
@@ -133,23 +159,19 @@ function initHero3D() {
 
     // Handle resize
     function onResize() {
-        const width = container.clientWidth || 300;
-        const height = container.clientHeight || 300;
+        const width = container.clientWidth || 350;
+        const height = container.clientHeight || 350;
         camera.aspect = width / height;
         camera.updateProjectionMatrix();
         renderer.setSize(width, height);
     }
 
     window.addEventListener('resize', onResize);
-
-    // Watch for container visibility changes (tab switching)
-    const observer = new ResizeObserver(() => {
-        onResize();
-    });
+    const observer = new ResizeObserver(() => onResize());
     observer.observe(container);
 }
 
-// Wait for DOM to be ready
+// Wait for DOM
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initHero3D);
 } else {
