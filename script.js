@@ -556,3 +556,36 @@ if (cube3d && scene3d) {
         isDragging = false;
     });
 }
+
+
+
+
+// ========== THEME TOGGLE (DARK / LIGHT MODE) ==========
+(function setupThemeToggle() {
+    const STORAGE_KEY = 'pythas-theme';
+    const root = document.documentElement;
+
+    // Apply saved theme on load (run before DOMContentLoaded for no FOUC)
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved === 'light') {
+        root.setAttribute('data-theme', 'light');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const toggle = document.getElementById('themeToggle');
+        if (!toggle) return;
+
+        toggle.addEventListener('click', () => {
+            const isLight = root.getAttribute('data-theme') === 'light';
+            if (isLight) {
+                root.removeAttribute('data-theme');
+                localStorage.setItem(STORAGE_KEY, 'dark');
+                toggle.setAttribute('aria-label', 'Switch to light mode');
+            } else {
+                root.setAttribute('data-theme', 'light');
+                localStorage.setItem(STORAGE_KEY, 'light');
+                toggle.setAttribute('aria-label', 'Switch to dark mode');
+            }
+        });
+    });
+})();

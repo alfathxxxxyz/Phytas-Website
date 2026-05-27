@@ -2207,3 +2207,211 @@ body {
     .retro-grid { animation: none; }
     .pixel-tag.blink::after { animation: none; }
 }
+
+
+
+/* ========================================
+   THEME TOGGLE (DARK / LIGHT MODE)
+   ======================================== */
+
+/* Smooth color transition when switching themes */
+body,
+.navbar,
+.member-card, .stat-card, .announcement-card, .game-card,
+.event-card, .event-featured, .hof-card, .spotlight-card,
+.product-card, .partner-card, .game-filter-card,
+.member-wall-grid span, .footer-section, .shop-featured-banner,
+.cube-face {
+    transition: background 0.4s ease, background-color 0.4s ease,
+                color 0.4s ease, border-color 0.4s ease,
+                box-shadow 0.4s ease;
+}
+
+/* ----- LIGHT MODE OVERRIDES ----- */
+[data-theme="light"] {
+    --black: #F5F5F5;
+    --dark: #FFFFFF;
+    --dark-panel: #FFFFFF;
+    --gray-dark: #E5E5E5;
+    --gray: #B0B0B0;
+    --gray-light: #555555;
+    --white: #1A1A1A;
+}
+
+[data-theme="light"] body {
+    background: var(--black);
+    color: var(--white);
+}
+
+/* Navbar: lighten background, soften border */
+[data-theme="light"] .navbar {
+    background: rgba(255, 255, 255, 0.95);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* Hero gradient: lighten */
+[data-theme="light"] .hero {
+    background: linear-gradient(135deg, #F5F5F5 0%, #FFFFFF 50%, #FAFAFA 100%);
+}
+
+/* CRT scanlines: invert color so they're visible on light bg */
+[data-theme="light"] .crt-scanlines {
+    background: repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 2px,
+        rgba(0, 0, 0, 0.025) 3px,
+        rgba(0, 0, 0, 0.025) 4px
+    );
+}
+
+/* Cube faces: lighter background */
+[data-theme="light"] .cube-face {
+    background: rgba(255, 255, 255, 0.85);
+    color: var(--lime-dark);
+    text-shadow: 0 0 30px rgba(136, 204, 0, 0.4);
+}
+
+[data-theme="light"] .cube-face.front {
+    background: rgba(170, 255, 0, 0.1);
+}
+
+[data-theme="light"] .cube-face.back {
+    background: rgba(255, 0, 128, 0.08);
+}
+
+/* Card panels: subtle shadow instead of dark bg */
+[data-theme="light"] .stat-card,
+[data-theme="light"] .announcement-card,
+[data-theme="light"] .game-card,
+[data-theme="light"] .event-card,
+[data-theme="light"] .event-featured,
+[data-theme="light"] .hof-card,
+[data-theme="light"] .member-card,
+[data-theme="light"] .spotlight-card,
+[data-theme="light"] .product-card,
+[data-theme="light"] .partner-card,
+[data-theme="light"] .game-filter-card,
+[data-theme="light"] .shop-featured-banner {
+    background: var(--dark-panel);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    border-color: var(--gray-dark);
+}
+
+[data-theme="light"] .stat-card:hover,
+[data-theme="light"] .announcement-card:hover,
+[data-theme="light"] .game-card:hover,
+[data-theme="light"] .event-card:hover,
+[data-theme="light"] .hof-card:hover,
+[data-theme="light"] .member-card:hover,
+[data-theme="light"] .product-card:hover,
+[data-theme="light"] .partner-card:hover {
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.1);
+    background: var(--dark-panel);
+}
+
+/* Featured/highlighted cards in light: keep subtle lime tint */
+[data-theme="light"] .announcement-card.featured,
+[data-theme="light"] .event-featured,
+[data-theme="light"] .member-card.founder,
+[data-theme="light"] .hof-card.champion {
+    background: linear-gradient(135deg, #FFFFFF 0%, rgba(170, 255, 0, 0.08) 100%);
+}
+
+/* Button outline in light mode */
+[data-theme="light"] .btn-outline {
+    color: var(--white);
+    border-color: var(--white);
+}
+
+[data-theme="light"] .btn-outline:hover {
+    background: var(--white);
+    color: var(--dark-panel);
+}
+
+/* Member wall pills */
+[data-theme="light"] .member-wall-grid span {
+    background: var(--dark-panel);
+    border-color: var(--gray-dark);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+/* Masonry placeholders */
+[data-theme="light"] .masonry-placeholder {
+    background: var(--dark-panel);
+    border: 1px solid var(--gray-dark);
+}
+
+/* Footer */
+[data-theme="light"] .footer-section {
+    background: #FAFAFA;
+    border-top: 1px solid var(--gray-dark);
+}
+
+/* Game filter active state */
+[data-theme="light"] .game-filter-card.active {
+    background: rgba(170, 255, 0, 0.08);
+}
+
+/* Logo mark stays lime (high contrast on both themes) - no override needed */
+
+/* ----- THEME TOGGLE BUTTON ----- */
+.theme-toggle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: transparent;
+    border: 1px solid var(--gray-dark);
+    color: var(--white);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    line-height: 1;
+    margin-right: 14px;
+    padding: 0;
+    transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55),
+                border-color 0.3s ease,
+                color 0.3s ease,
+                background 0.3s ease;
+}
+
+.theme-toggle:hover {
+    border-color: var(--lime);
+    color: var(--lime);
+    transform: rotate(20deg) scale(1.1);
+    box-shadow: 0 0 12px rgba(170, 255, 0, 0.3);
+}
+
+.theme-toggle:active {
+    transform: rotate(40deg) scale(0.95);
+}
+
+.theme-toggle .theme-icon {
+    display: none;
+}
+
+/* Default (dark mode): show moon */
+.theme-toggle .moon-icon {
+    display: block;
+}
+
+/* Light mode: show sun */
+[data-theme="light"] .theme-toggle .moon-icon {
+    display: none;
+}
+
+[data-theme="light"] .theme-toggle .sun-icon {
+    display: block;
+}
+
+/* Mobile: keep toggle visible even when hamburger is shown */
+@media (max-width: 768px) {
+    .theme-toggle {
+        margin-right: 8px;
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+    }
+}
