@@ -12,6 +12,15 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23000'/><text x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-size='20' font-weight='bold' fill='%23AAFF00'>P</text></svg>">
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <!-- Three.js for 3D model -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
     <!-- Images should use loading="lazy" for performance when added -->
 </head>
 <body>
@@ -70,14 +79,7 @@
             </div>
             <div class="hero-visual">
                 <div class="hero-3d-scene" id="hero3d">
-                    <div class="cube" id="cube3d">
-                        <div class="cube-face front">P</div>
-                        <div class="cube-face back">P</div>
-                        <div class="cube-face left">P</div>
-                        <div class="cube-face right">P</div>
-                        <div class="cube-face top">P</div>
-                        <div class="cube-face bottom">P</div>
-                    </div>
+                    <canvas id="hero3dCanvas"></canvas>
                 </div>
             </div>
         </div>
@@ -693,5 +695,6 @@
     </footer>
 
     <script src="script.js"></script>
+    <script type="module" src="hero3d.js"></script>
 </body>
 </html>
