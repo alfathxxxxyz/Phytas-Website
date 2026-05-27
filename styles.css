@@ -2005,8 +2005,8 @@ body {
 
 /* ========== 3D MODEL (THREE.JS) ========== */
 .hero-3d-scene {
-    width: 350px;
-    height: 350px;
+    width: 500px;
+    height: 500px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2027,8 +2027,8 @@ body {
 
 @media (max-width: 1200px) {
     .hero-3d-scene {
-        width: 280px;
-        height: 280px;
+        width: 400px;
+        height: 400px;
     }
 }
 

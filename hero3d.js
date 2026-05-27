@@ -22,7 +22,7 @@ function initHero3D() {
 
     // Camera
     const camera = new THREE.PerspectiveCamera(50, containerWidth / containerHeight, 0.01, 1000);
-    camera.position.set(0, 0.5, 5);
+    camera.position.set(0, 0.5, 9);
 
     // Renderer
     const renderer = new THREE.WebGLRenderer({
@@ -115,7 +115,7 @@ function initHero3D() {
             console.log('[Hero3D] Model size:', size, 'maxDim:', maxDim);
 
             if (maxDim > 0) {
-                const scale = 2.5 / maxDim;
+                const scale = 6.25 / maxDim;
                 model.scale.setScalar(scale);
                 // Re-center
                 const newBox = new THREE.Box3().setFromObject(model);
