@@ -577,15 +577,27 @@ if (cube3d && scene3d) {
 
         toggle.addEventListener('click', () => {
             const isLight = root.getAttribute('data-theme') === 'light';
-            if (isLight) {
-                root.removeAttribute('data-theme');
-                localStorage.setItem(STORAGE_KEY, 'dark');
-                toggle.setAttribute('aria-label', 'Switch to light mode');
-            } else {
-                root.setAttribute('data-theme', 'light');
-                localStorage.setItem(STORAGE_KEY, 'light');
-                toggle.setAttribute('aria-label', 'Switch to dark mode');
-            }
+
+            // Trigger glitch animation
+            document.body.classList.add('theme-glitching');
+
+            // Swap theme mid-glitch so the color flip feels like part of the static
+            setTimeout(() => {
+                if (isLight) {
+                    root.removeAttribute('data-theme');
+                    localStorage.setItem(STORAGE_KEY, 'dark');
+                    toggle.setAttribute('aria-label', 'Switch to light mode');
+                } else {
+                    root.setAttribute('data-theme', 'light');
+                    localStorage.setItem(STORAGE_KEY, 'light');
+                    toggle.setAttribute('aria-label', 'Switch to dark mode');
+                }
+            }, 130);
+
+            // End glitch
+            setTimeout(() => {
+                document.body.classList.remove('theme-glitching');
+            }, 550);
         });
     });
 })();

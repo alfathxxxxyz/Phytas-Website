@@ -2469,3 +2469,107 @@ body,
         font-size: 16px;
     }
 }
+
+
+
+
+/* ========================================
+   THEME GLITCH EFFECT (on toggle click)
+   ======================================== */
+
+/* During glitch, snap colors instantly so the swap feels like part of the chaos */
+body.theme-glitching,
+body.theme-glitching *,
+body.theme-glitching *::before,
+body.theme-glitching *::after {
+    transition: none !important;
+}
+
+/* Whole-page filter + shake glitch */
+body.theme-glitching {
+    animation: themeGlitch 0.55s steps(20, end);
+}
+
+@keyframes themeGlitch {
+    0%   { filter: none; transform: translate(0, 0); }
+    7%   { filter: hue-rotate(45deg) saturate(1.8) contrast(1.2); transform: translate(-3px, 2px); }
+    14%  { filter: hue-rotate(-40deg) saturate(0.4) contrast(1.4); transform: translate(4px, -3px); }
+    21%  { filter: invert(0.12) hue-rotate(180deg); transform: translate(-2px, 3px); }
+    28%  { filter: hue-rotate(70deg) brightness(1.2); transform: translate(3px, 0); }
+    35%  { filter: none; transform: translate(0, 1px); }
+    42%  { filter: hue-rotate(-70deg) saturate(1.6); transform: translate(-2px, -2px); }
+    50%  { filter: brightness(1.4) contrast(1.5); transform: translate(2px, 2px); }
+    57%  { filter: hue-rotate(120deg); transform: translate(-3px, 0); }
+    64%  { filter: invert(0.05) brightness(0.85); transform: translate(2px, -1px); }
+    71%  { filter: hue-rotate(-30deg) saturate(1.3); transform: translate(0, 2px); }
+    80%  { filter: none; transform: translate(1px, 0); }
+    100% { filter: none; transform: translate(0, 0); }
+}
+
+/* Scanline flicker overlay during glitch (sits above .crt-scanlines) */
+body.theme-glitching::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    pointer-events: none;
+    background:
+        repeating-linear-gradient(
+            to bottom,
+            transparent 0,
+            transparent 2px,
+            rgba(255, 255, 255, 0.07) 3px,
+            rgba(255, 255, 255, 0.07) 4px
+        );
+    mix-blend-mode: difference;
+    animation: glitchScanlines 0.55s steps(18, end);
+}
+
+@keyframes glitchScanlines {
+    0%, 100% { opacity: 0; transform: translateY(0); }
+    10%      { opacity: 1; transform: translateY(-3px); }
+    25%      { opacity: 0.4; transform: translateY(4px); }
+    40%      { opacity: 1; transform: translateY(-2px); }
+    55%      { opacity: 0.6; transform: translateY(3px); }
+    70%      { opacity: 1; transform: translateY(-1px); }
+    85%      { opacity: 0.3; transform: translateY(0); }
+}
+
+/* RGB split on big headings during glitch for extra retro flavor */
+body.theme-glitching .hero-title,
+body.theme-glitching .section-title,
+body.theme-glitching .logo-text {
+    animation: rgbSplit 0.55s steps(12, end);
+}
+
+@keyframes rgbSplit {
+    0%, 100% { text-shadow: none; }
+    20%      { text-shadow: 2px 0 #FF0080, -2px 0 #00E5FF; }
+    40%      { text-shadow: -3px 1px #FF0080, 3px -1px #00E5FF; }
+    60%      { text-shadow: 1px -1px #FF0080, -1px 1px #00E5FF; }
+    80%      { text-shadow: -2px 0 #FF0080, 2px 0 #AAFF00; }
+}
+
+/* Toggle button itself spins extra during glitch */
+body.theme-glitching .theme-toggle {
+    animation: toggleSpin 0.55s ease-out;
+}
+
+@keyframes toggleSpin {
+    0%   { transform: rotate(0) scale(1); }
+    50%  { transform: rotate(180deg) scale(1.15); }
+    100% { transform: rotate(360deg) scale(1); }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    body.theme-glitching,
+    body.theme-glitching::after,
+    body.theme-glitching .hero-title,
+    body.theme-glitching .section-title,
+    body.theme-glitching .logo-text,
+    body.theme-glitching .theme-toggle {
+        animation: none;
+    }
+    body.theme-glitching::after { opacity: 0; }
+}
