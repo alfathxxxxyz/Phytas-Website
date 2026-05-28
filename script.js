@@ -516,3 +516,560 @@ if (tagline) {
         });
     });
 })();
+
+
+
+/* ========================================
+   DATA-DRIVEN CONTENT — JSON LOADING & RENDERING
+   ======================================== */
+
+// ========== UTILITY: Load JSON with graceful fallback ==========
+async function loadJSON(path) {
+    try {
+        const res = await fetch(path);
+        if (!res.ok) throw new Error(`HTTP ${res.status} loading ${path}`);
+        return await res.json();
+    } catch (err) {
+        console.warn(`[loadJSON] Failed to load ${path}:`, err);
+        return null;
+    }
+}
+
+// ========== FORMAT HELPERS ==========
+function formatDate(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr + 'T00:00:00');
+    return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+}
+
+function formatTime12(timeStr) {
+    if (!timeStr) return '';
+    const [h, m] = timeStr.split(':');
+    const hour = parseInt(h);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const h12 = hour % 12 || 12;
+    return `${h12}:${m} ${ampm}`;
+}
+
+function getStatusLabel(status) {
+    const map = {
+        'live': 'LIVE',
+        'upcoming': 'UPCOMING',
+        'finished': 'FINISHED',
+        'coming-soon': 'COMING SOON'
+    };
+    return map[status] || status.toUpperCase();
+}
+
+
+// ========== EVENTS: Render from JSON ==========
+let eventsData = [];
+
+async function renderEvents() {
+    const container = document.getElementById('eventsLayout');
+    const fallback = document.getElementById('eventsFallback');
+    if (!container) return;
+
+    const data = await loadJSON('data/events.json');
+    if (!data || data.length === 0) {
+        // Keep fallback visible
+        if (fallback) fallback.style.display = '';
+        return;
+    }
+
+    eventsData = data;
+    // Hide fallback, show dynamic content
+    if (fallback) fallback.style.display = 'none';
+
+    // Sort: live first, then upcoming by date, then finished
+    const statusOrder = { 'live': 0, 'upcoming': 1, 'coming-soon': 2, 'finished': 3 };
+    const sorted = [...data].sort((a, b) => {
+        const sa = statusOrder[a.status] ?? 9;
+        const sb = statusOrder[b.status] ?? 9;
+        if (sa !== sb) return sa - sb;
+        return new Date(a.date) - new Date(b.date);
+    });
+
+    // First event = featured
+    const featured = sorted[0];
+    const upcoming = sorted.slice(1);
+
+    let html = '';
+
+    // Featured event
+    html += `
+        <div class="event-featured clickable" data-event-id="${featured.id}">
+            <div class="event-featured-badge">${featured.status === 'live' ? 'LIVE NOW' : 'NEXT EVENT'}</div>
+            <div class="event-featured-content">
+                <h3>${featured.title}</h3>
+                <p>${featured.description}</p>
+                <div class="event-meta">
+                    <div class="meta-item"><span class="meta-label">DATE</span><span class="meta-value">${formatDate(featured.date)}</span></div>
+                    <div class="meta-item"><span class="meta-label">TIME</span><span class="meta-value">${formatTime12(featured.time)} ${featured.timezone}</span></div>
+                    <div class="meta-item"><span class="meta-label">PRIZE</span><span class="meta-value">${featured.prize}</span></div>
+                    <div class="meta-item"><span class="meta-label">TYPE</span><span class="meta-value">${featured.type}</span></div>
+                </div>
+                ${featured.registrationLink
+                    ? `<a href="${featured.registrationLink}" target="_blank" rel="noopener" class="btn btn-primary">REGISTER NOW</a>`
+                    : `<span class="btn btn-outline disabled">REGISTRATION CLOSED</span>`
+                }
+            </div>
+        </div>
+    `;
+
+    // Upcoming event cards
+    html += '<div class="events-upcoming">';
+    upcoming.forEach(evt => {
+        const statusClass = evt.status === 'live' ? 'live' : evt.status === 'finished' ? 'closed' : 'upcoming';
+        const btnText = evt.status === 'finished' ? 'ENDED' : (evt.registrationLink ? 'DETAILS' : 'COMING SOON');
+        const btnDisabled = evt.status === 'finished' ? ' disabled' : '';
+        html += `
+            <div class="event-card clickable" data-event-id="${evt.id}">
+                <div class="event-status ${statusClass}">${getStatusLabel(evt.status)}</div>
+                <h4>${evt.title}</h4>
+                <div class="event-details">
+                    <span>${formatDate(evt.date)} &bull; ${formatTime12(evt.time)} ${evt.timezone}</span>
+                    <span>Prize: ${evt.prize}</span>
+                </div>
+                <span class="btn btn-outline btn-sm${btnDisabled}">${btnText}</span>
+            </div>
+        `;
+    });
+    html += '</div>';
+
+    container.innerHTML = html;
+
+    // Attach click handlers for modal
+    container.querySelectorAll('[data-event-id]').forEach(card => {
+        card.addEventListener('click', (e) => {
+            // Don't open modal if clicking a real link/button
+            if (e.target.closest('a[href]:not([href="#"])')) return;
+            e.preventDefault();
+            const id = card.getAttribute('data-event-id');
+            const event = eventsData.find(ev => ev.id === id);
+            if (event) renderEventModal(event);
+        });
+    });
+
+    // Re-apply fade-in classes
+    container.querySelectorAll('.event-featured, .event-card').forEach(el => {
+        el.classList.add('fade-in', 'visible');
+    });
+}
+
+
+// ========== EVENT MODAL: Render & Controls ==========
+function renderEventModal(event) {
+    const overlay = document.getElementById('eventModalOverlay');
+    const body = document.getElementById('eventModalBody');
+    if (!overlay || !body) return;
+
+    const statusClass = event.status === 'live' ? 'live'
+        : event.status === 'finished' ? 'finished'
+        : event.status === 'coming-soon' ? 'coming-soon'
+        : 'upcoming';
+
+    let html = `
+        <h2 id="eventModalTitle">${event.title}</h2>
+        <div class="modal-game">${event.game} &bull; ${event.type}</div>
+        <div class="modal-status-badge ${statusClass}">${getStatusLabel(event.status)}</div>
+        <div class="modal-meta-grid">
+            <div class="modal-meta-item"><span class="label">DATE</span><span class="value">${formatDate(event.date)}</span></div>
+            <div class="modal-meta-item"><span class="label">TIME</span><span class="value">${formatTime12(event.time)} ${event.timezone}</span></div>
+            <div class="modal-meta-item"><span class="label">PRIZE</span><span class="value">${event.prize}</span></div>
+            <div class="modal-meta-item"><span class="label">CASTER</span><span class="value">${event.caster || 'TBA'}</span></div>
+        </div>
+        <p class="modal-description">${event.description}</p>
+    `;
+
+    // Rules
+    if (event.rules && event.rules.length > 0) {
+        html += `<div class="modal-section-title">RULES</div><ul class="modal-rules">`;
+        event.rules.forEach(rule => {
+            html += `<li>${rule}</li>`;
+        });
+        html += `</ul>`;
+    }
+
+    // Sessions
+    if (event.sessions && event.sessions.length > 0) {
+        html += `<div class="modal-section-title">SESSIONS</div><div class="modal-sessions">`;
+        event.sessions.forEach(s => {
+            html += `
+                <div class="modal-session-item">
+                    <span class="session-name">${s.name}</span>
+                    <span class="session-info">${s.time} &bull; ${s.slots} slots</span>
+                </div>
+            `;
+        });
+        html += `</div>`;
+    }
+
+    // Tags
+    if (event.tags && event.tags.length > 0) {
+        html += `<div class="modal-tags">`;
+        event.tags.forEach(tag => {
+            html += `<span class="modal-tag">#${tag}</span>`;
+        });
+        html += `</div>`;
+    }
+
+    // CTA
+    html += `<div class="modal-cta">`;
+    if (event.registrationLink && event.status !== 'finished') {
+        html += `<a href="${event.registrationLink}" target="_blank" rel="noopener" class="btn btn-primary">REGISTER NOW</a>`;
+    } else if (event.status === 'finished') {
+        html += `<span class="btn btn-outline disabled">EVENT ENDED</span>`;
+    } else {
+        html += `<span class="btn btn-outline disabled">COMING SOON</span>`;
+    }
+    html += `</div>`;
+
+    body.innerHTML = html;
+
+    // Show modal
+    overlay.classList.add('active');
+    overlay.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeEventModal() {
+    const overlay = document.getElementById('eventModalOverlay');
+    if (!overlay) return;
+    overlay.classList.remove('active');
+    overlay.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+}
+
+// Modal close handlers
+document.addEventListener('DOMContentLoaded', () => {
+    const overlay = document.getElementById('eventModalOverlay');
+    const closeBtn = document.getElementById('eventModalClose');
+
+    if (closeBtn) closeBtn.addEventListener('click', closeEventModal);
+
+    if (overlay) {
+        overlay.addEventListener('click', (e) => {
+            // Close if clicking outside the modal content
+            if (e.target === overlay) closeEventModal();
+        });
+    }
+
+    // Close with Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeEventModal();
+    });
+});
+
+
+// ========== LEADERBOARD: Render from JSON ==========
+let leaderboardData = [];
+let lbCurrentFilter = 'all';
+let lbCurrentSort = 'rank';
+
+async function renderLeaderboard() {
+    const data = await loadJSON('data/leaderboard.json');
+    if (!data || data.length === 0) {
+        showLeaderboardEmpty(true);
+        return;
+    }
+    leaderboardData = data;
+    applyLeaderboardView();
+}
+
+function applyLeaderboardView() {
+    let filtered = [...leaderboardData];
+
+    // Apply filter
+    if (lbCurrentFilter !== 'all') {
+        filtered = filtered.filter(item => {
+            return item.category === lbCurrentFilter || item.map === lbCurrentFilter;
+        });
+    }
+
+    // Apply sort
+    if (lbCurrentSort === 'time') {
+        filtered.sort((a, b) => a.time.localeCompare(b.time));
+    } else if (lbCurrentSort === 'date') {
+        filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+    } else {
+        filtered.sort((a, b) => a.rank - b.rank);
+    }
+
+    if (filtered.length === 0) {
+        showLeaderboardEmpty(true);
+        document.getElementById('lbPodium').innerHTML = '';
+        document.getElementById('lbTableWrapper').innerHTML = '';
+        return;
+    }
+
+    showLeaderboardEmpty(false);
+    renderPodium(filtered.slice(0, 3));
+    renderLeaderboardTable(filtered.slice(3));
+}
+
+function renderPodium(top3) {
+    const podium = document.getElementById('lbPodium');
+    if (!podium) return;
+
+    if (top3.length === 0) { podium.innerHTML = ''; return; }
+
+    // Reorder for visual: [2nd, 1st, 3rd]
+    const ordered = [];
+    if (top3[1]) ordered.push({ ...top3[1], displayRank: 2 });
+    if (top3[0]) ordered.push({ ...top3[0], displayRank: 1 });
+    if (top3[2]) ordered.push({ ...top3[2], displayRank: 3 });
+
+    let html = '';
+    ordered.forEach(p => {
+        const rankClass = `rank-${p.displayRank}`;
+        html += `
+            <div class="lb-podium-card ${rankClass}">
+                <div class="lb-podium-rank">#${p.displayRank}</div>
+                <div class="lb-podium-avatar">&#127942;</div>
+                <div class="lb-podium-name">${p.playerName}</div>
+                <div class="lb-podium-time">${p.time}</div>
+                <div class="lb-podium-details">${p.map} &bull; ${p.device}<br>${p.eventName}</div>
+                ${p.badge ? `<span class="lb-podium-badge">${p.badge}</span>` : ''}
+            </div>
+        `;
+    });
+
+    podium.innerHTML = html;
+}
+
+function renderLeaderboardTable(rows) {
+    const wrapper = document.getElementById('lbTableWrapper');
+    if (!wrapper) return;
+
+    if (rows.length === 0) { wrapper.innerHTML = ''; return; }
+
+    let html = `
+        <table class="lb-table">
+            <thead>
+                <tr>
+                    <th>RANK</th>
+                    <th>PLAYER</th>
+                    <th>TIME</th>
+                    <th>MAP</th>
+                    <th>EVENT</th>
+                    <th>DEVICE</th>
+                    <th>DATE</th>
+                    <th>BADGE</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    rows.forEach(row => {
+        html += `
+            <tr>
+                <td class="td-rank">#${row.rank}</td>
+                <td class="td-player">${row.playerName}</td>
+                <td class="td-time">${row.time}</td>
+                <td>${row.map}</td>
+                <td>${row.eventName}</td>
+                <td>${row.device}</td>
+                <td>${formatDate(row.date)}</td>
+                <td>${row.badge ? `<span class="td-badge">${row.badge}</span>` : '—'}</td>
+            </tr>
+        `;
+    });
+
+    html += '</tbody></table>';
+    wrapper.innerHTML = html;
+}
+
+function showLeaderboardEmpty(show) {
+    const empty = document.getElementById('lbEmpty');
+    const podium = document.getElementById('lbPodium');
+    const table = document.getElementById('lbTableWrapper');
+    if (empty) empty.style.display = show ? 'block' : 'none';
+    if (show) {
+        if (podium) podium.style.display = 'none';
+        if (table) table.style.display = 'none';
+    } else {
+        if (podium) podium.style.display = '';
+        if (table) table.style.display = '';
+    }
+}
+
+// Leaderboard filter & sort event handlers
+document.addEventListener('DOMContentLoaded', () => {
+    const filtersContainer = document.getElementById('leaderboardFilters');
+    const sortSelect = document.getElementById('lbSortSelect');
+
+    if (filtersContainer) {
+        filtersContainer.addEventListener('click', (e) => {
+            const btn = e.target.closest('.lb-filter');
+            if (!btn) return;
+            filtersContainer.querySelectorAll('.lb-filter').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            lbCurrentFilter = btn.getAttribute('data-filter');
+            applyLeaderboardView();
+        });
+    }
+
+    if (sortSelect) {
+        sortSelect.addEventListener('change', () => {
+            lbCurrentSort = sortSelect.value;
+            applyLeaderboardView();
+        });
+    }
+});
+
+
+// ========== MEDIA KIT: Render from JSON ==========
+async function renderMediaKit() {
+    const data = await loadJSON('data/mediaKit.json');
+    if (!data) return;
+
+    renderMkIntro(data);
+    renderMkStrengths(data);
+    renderMkPackages(data);
+    renderMkAssets(data);
+    renderMkCta(data);
+}
+
+function renderMkIntro(data) {
+    const el = document.getElementById('mkIntro');
+    if (!el) return;
+
+    const audience = data.audience || {};
+    el.innerHTML = `
+        <h3>ABOUT <span class="accent-text">${data.communityName || 'PYTHAS'}</span></h3>
+        <p>${data.shortDescription || ''}</p>
+        <div class="mk-stats-row">
+            <div class="mk-stat"><div class="mk-stat-value">${audience.discordMembers || '—'}</div><div class="mk-stat-label">DISCORD</div></div>
+            <div class="mk-stat"><div class="mk-stat-value">${audience.robloxGroupMembers || '—'}</div><div class="mk-stat-label">ROBLOX GROUP</div></div>
+            <div class="mk-stat"><div class="mk-stat-value">${audience.totalEventsHosted || '—'}</div><div class="mk-stat-label">EVENTS HOSTED</div></div>
+            <div class="mk-stat"><div class="mk-stat-value">${audience.averageEventParticipants || '—'}</div><div class="mk-stat-label">AVG PARTICIPANTS</div></div>
+        </div>
+    `;
+}
+
+function renderMkStrengths(data) {
+    const el = document.getElementById('mkStrengths');
+    if (!el || !data.strengths || data.strengths.length === 0) return;
+
+    let html = `<h3>WHY <span class="accent-text">PARTNER</span> WITH US</h3><div class="mk-strengths-grid">`;
+    data.strengths.forEach(str => {
+        html += `
+            <div class="mk-strength-item">
+                <span class="mk-strength-icon">&#9889;</span>
+                <span class="mk-strength-text">${str}</span>
+            </div>
+        `;
+    });
+    html += '</div>';
+    el.innerHTML = html;
+}
+
+function renderMkPackages(data) {
+    const el = document.getElementById('mkPackages');
+    if (!el || !data.sponsorPackages || data.sponsorPackages.length === 0) return;
+
+    let html = `<h3>SPONSOR <span class="accent-text">PACKAGES</span></h3><div class="mk-packages-grid">`;
+    data.sponsorPackages.forEach(pkg => {
+        const tierClass = pkg.name.toLowerCase();
+        html += `
+            <div class="mk-package-card ${tierClass}">
+                <div class="mk-package-name">${pkg.name}</div>
+                <div class="mk-package-price">${pkg.price}</div>
+                <ul class="mk-package-benefits">
+                    ${pkg.benefits.map(b => `<li>${b}</li>`).join('')}
+                </ul>
+            </div>
+        `;
+    });
+    html += '</div>';
+    el.innerHTML = html;
+}
+
+function renderMkAssets(data) {
+    const el = document.getElementById('mkAssets');
+    if (!el) return;
+
+    let html = `<h3>BRAND <span class="accent-text">ASSETS</span></h3>`;
+
+    // Asset cards
+    if (data.brandAssets && data.brandAssets.length > 0) {
+        html += '<div class="mk-assets-grid">';
+        const icons = { 'Logo': '&#127912;', 'Template': '&#128196;', 'Banner': '&#127988;', 'Guidelines': '&#127912;' };
+        data.brandAssets.forEach(asset => {
+            const icon = icons[asset.type] || '&#128193;';
+            html += `
+                <div class="mk-asset-card">
+                    <div class="mk-asset-icon">${icon}</div>
+                    <h5>${asset.name}</h5>
+                    <span>${asset.format}</span>
+                </div>
+            `;
+        });
+        html += '</div>';
+    }
+
+    // Color Palette
+    if (data.colorPalette && data.colorPalette.length > 0) {
+        html += '<div class="mk-palette">';
+        data.colorPalette.forEach(c => {
+            html += `
+                <div class="mk-palette-swatch">
+                    <div class="mk-swatch-color" style="background:${c.hex};"></div>
+                    <span class="mk-swatch-label">${c.name}</span>
+                </div>
+            `;
+        });
+        html += '</div>';
+    }
+
+    el.innerHTML = html;
+}
+
+function renderMkCta(data) {
+    const el = document.getElementById('mkCta');
+    if (!el) return;
+
+    const email = data.contactEmail || '';
+    const discord = (data.socialLinks && data.socialLinks.discord) || '#';
+
+    el.innerHTML = `
+        <h3>INTERESTED IN <span class="accent-text">PARTNERING?</span></h3>
+        <p>We'd love to collaborate. Reach out to discuss a package that fits your brand.</p>
+        <div class="mk-cta-buttons">
+            <a href="mailto:${email}" class="btn btn-primary">CONTACT FOR PARTNERSHIP</a>
+            <a href="${discord}" target="_blank" rel="noopener" class="btn btn-outline">JOIN DISCORD</a>
+        </div>
+    `;
+}
+
+
+// ========== PARTNERS: Render from JSON ==========
+async function renderPartners() {
+    const data = await loadJSON('data/partners.json');
+    const grid = document.getElementById('partnersGrid');
+    if (!data || data.length === 0 || !grid) return;
+
+    let html = '';
+    data.forEach(partner => {
+        const packageBadge = partner.package ? `<div class="partner-package-badge">${partner.package}</div>` : '';
+        html += `
+            <div class="partner-card">
+                ${packageBadge}
+                <div class="partner-logo">${partner.name}</div>
+                <span>${partner.type}</span>
+            </div>
+        `;
+    });
+    grid.innerHTML = html;
+}
+
+
+// ========== INITIALIZE ALL DATA-DRIVEN CONTENT ==========
+document.addEventListener('DOMContentLoaded', () => {
+    // Load all JSON-driven sections
+    renderEvents();
+    renderLeaderboard();
+    renderMediaKit();
+    renderPartners();
+});

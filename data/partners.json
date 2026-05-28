@@ -1,0 +1,42 @@
+[
+  {
+    "name": "RoSpeed Studios",
+    "type": "Official Partner",
+    "logo": "",
+    "description": "Premium Roblox racing game developers and event sponsors.",
+    "link": "https://roblox.com",
+    "package": "Gold"
+  },
+  {
+    "name": "TopUpID",
+    "type": "Top-Up Partner",
+    "logo": "",
+    "description": "Digital currency and Robux top-up services for the community.",
+    "link": "#",
+    "package": "Silver"
+  },
+  {
+    "name": "GameCast Network",
+    "type": "Media Partner",
+    "logo": "",
+    "description": "Content network covering Roblox esports and community events.",
+    "link": "#",
+    "package": "Silver"
+  },
+  {
+    "name": "NeonGFX",
+    "type": "Creative Partner",
+    "logo": "",
+    "description": "Graphic design and poster creation for PYTHAS events.",
+    "link": "#",
+    "package": "Bronze"
+  },
+  {
+    "name": "SpeedCrew Collective",
+    "type": "Collaboration",
+    "logo": "",
+    "description": "Fellow Roblox racing collective — joint events and cross-promotion.",
+    "link": "#",
+    "package": "Bronze"
+  }
+]

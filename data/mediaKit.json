@@ -1,0 +1,80 @@
+{
+  "communityName": "PYTHAS Collective",
+  "shortDescription": "Indonesia's premier Roblox racing collective — organizing competitive events, building custom race maps, and growing a passionate community of racers and creators.",
+  "audience": {
+    "discordMembers": "2,800+",
+    "robloxGroupMembers": "5,100+",
+    "totalEventsHosted": "84+",
+    "averageEventParticipants": "30–50",
+    "primaryAge": "13–21",
+    "regions": ["Indonesia", "Southeast Asia", "Global"]
+  },
+  "strengths": [
+    "Active and engaged Discord community",
+    "Regular weekly and seasonal racing events",
+    "Custom-built Roblox racing maps (Mount Agora, Mount Aztec)",
+    "Professional event production with live casters",
+    "Growing social media presence (TikTok, Instagram)",
+    "Experienced team of admins and event organizers"
+  ],
+  "sponsorPackages": [
+    {
+      "name": "Bronze",
+      "price": "Free / Barter",
+      "color": "#CD7F32",
+      "benefits": [
+        "Logo on event poster",
+        "Small shoutout during event stream",
+        "Listed on website partners section",
+        "Thank-you post on Discord"
+      ]
+    },
+    {
+      "name": "Silver",
+      "price": "Negotiable",
+      "color": "#C0C0C0",
+      "benefits": [
+        "Everything in Bronze",
+        "Logo on event poster + winner card branding",
+        "Event mention by caster during livestream",
+        "Featured in event recap post",
+        "Social media shoutout (1x)"
+      ]
+    },
+    {
+      "name": "Gold",
+      "price": "Premium",
+      "color": "#FFD700",
+      "benefits": [
+        "Everything in Silver",
+        "Event naming rights (e.g., 'Sponsored by X')",
+        "Major shoutout + dedicated segment during stream",
+        "Logo on all event materials (posters, banners, recap)",
+        "Featured partner card on website",
+        "Social media campaign (3x posts)",
+        "Custom collaboration opportunities"
+      ]
+    }
+  ],
+  "brandAssets": [
+    { "name": "PYTHAS Logo (Dark)", "type": "Logo", "format": "PNG/SVG" },
+    { "name": "PYTHAS Logo (Light)", "type": "Logo", "format": "PNG/SVG" },
+    { "name": "Event Poster Template", "type": "Template", "format": "PSD/Figma" },
+    { "name": "Community Banner", "type": "Banner", "format": "PNG" },
+    { "name": "Color Palette", "type": "Guidelines", "format": "PDF" }
+  ],
+  "colorPalette": [
+    { "name": "Neon Lime", "hex": "#AAFF00" },
+    { "name": "Magenta", "hex": "#FF0080" },
+    { "name": "Deep Black", "hex": "#0A0A0A" },
+    { "name": "Panel Dark", "hex": "#1A1A1A" },
+    { "name": "White", "hex": "#FFFFFF" }
+  ],
+  "socialLinks": {
+    "discord": "https://discord.gg/pythas",
+    "robloxGroup": "https://www.roblox.com/groups/pythas",
+    "tiktok": "https://tiktok.com/@pythas",
+    "instagram": "https://instagram.com/pythas.gg"
+  },
+  "contactEmail": "partnerships@pythas.gg"
+}

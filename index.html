@@ -41,6 +41,8 @@
                 <li role="none"><a href="#community" data-section="community" role="menuitem" aria-label="Navigate to Community section">COMMUNITY</a></li>
                 <li role="none"><a href="#moments" data-section="moments" role="menuitem" aria-label="Navigate to Moments section">MOMENTS</a></li>
                 <li role="none"><a href="#shop" data-section="shop" role="menuitem" aria-label="Navigate to Shop section">SHOP</a></li>
+                <li role="none"><a href="#leaderboard" data-section="leaderboard" role="menuitem" aria-label="Navigate to Leaderboard section">LEADERBOARD</a></li>
+                <li role="none"><a href="#mediakit" data-section="mediakit" role="menuitem" aria-label="Navigate to Media Kit section">MEDIA KIT</a></li>
             </ul>
             <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark/light mode" type="button">
                 <span class="theme-icon sun-icon" aria-hidden="true">&#9728;</span>
@@ -228,7 +230,10 @@
                 <div class="section-tag">COMPETE</div>
                 <h2 class="section-title">UPCOMING <span class="accent-text">EVENTS</span></h2>
             </div>
-            <div class="events-layout">
+            <div class="events-layout" id="eventsLayout">
+                <!-- Rendered dynamically by JS from data/events.json -->
+                <!-- Fallback static content shown if JSON fails -->
+                <div class="events-fallback" id="eventsFallback">
                 <!-- Game Filter -->
                 <div class="events-game-filter">
                     <div class="game-filter-card active">MOUNT AGORA</div>
@@ -287,6 +292,7 @@
                         <a href="#" class="btn btn-outline btn-sm disabled">ENDED</a>
                     </div>
                 </div>
+                </div><!-- end fallback -->
             </div>
         </div>
     </section>
@@ -617,7 +623,8 @@
                 <div class="section-tag">PARTNERS</div>
                 <h2 class="section-title">OUR <span class="accent-text">PARTNERS</span></h2>
             </div>
-            <div class="partners-grid">
+            <div class="partners-grid" id="partnersGrid">
+                <!-- Rendered dynamically by JS; fallback below -->
                 <div class="partner-card">
                     <div class="partner-logo">OFFICIAL<br>PARTNER</div>
                     <span>Gaming Studio</span>
@@ -643,7 +650,88 @@
     </section>
 
 
+    <!-- RACE LEADERBOARD SECTION -->
+    <section class="leaderboard-section section-page" id="leaderboard">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-tag">RECORDS</div>
+                <h2 class="section-title">RACE <span class="accent-text">LEADERBOARD</span></h2>
+            </div>
+            <!-- Filters -->
+            <div class="leaderboard-filters" id="leaderboardFilters">
+                <button class="lb-filter active" data-filter="all">All</button>
+                <button class="lb-filter" data-filter="Mobile">Mobile</button>
+                <button class="lb-filter" data-filter="PC">PC</button>
+                <button class="lb-filter" data-filter="Mixed">Mixed</button>
+                <button class="lb-filter" data-filter="Mount Agora">Mount Agora</button>
+                <button class="lb-filter" data-filter="Mount Aztec">Mount Aztec</button>
+            </div>
+            <!-- Sort -->
+            <div class="leaderboard-sort" id="leaderboardSort">
+                <label class="lb-sort-label">Sort:</label>
+                <select class="lb-sort-select" id="lbSortSelect">
+                    <option value="rank">Rank</option>
+                    <option value="time">Fastest Time</option>
+                    <option value="date">Latest Record</option>
+                </select>
+            </div>
+            <!-- Top 3 Podium -->
+            <div class="lb-podium" id="lbPodium"></div>
+            <!-- Full Table -->
+            <div class="lb-table-wrapper" id="lbTableWrapper">
+                <!-- Rendered by JS -->
+            </div>
+            <!-- Empty State -->
+            <div class="lb-empty" id="lbEmpty" style="display:none;">
+                <span class="lb-empty-icon">&#127942;</span>
+                <p>No race records yet. Be the first champion.</p>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- MEDIA KIT / SPONSOR KIT SECTION -->
+    <section class="mediakit-section section-page" id="mediakit">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-tag">PARTNER</div>
+                <h2 class="section-title">PARTNER WITH <span class="accent-text">PYTHAS</span></h2>
+            </div>
+            <!-- Intro -->
+            <div class="mk-intro" id="mkIntro">
+                <!-- Rendered by JS -->
+            </div>
+            <!-- Why Partner -->
+            <div class="mk-strengths" id="mkStrengths">
+                <!-- Rendered by JS -->
+            </div>
+            <!-- Sponsor Packages -->
+            <div class="mk-packages" id="mkPackages">
+                <!-- Rendered by JS -->
+            </div>
+            <!-- Brand Assets -->
+            <div class="mk-assets" id="mkAssets">
+                <!-- Rendered by JS -->
+            </div>
+            <!-- CTA -->
+            <div class="mk-cta" id="mkCta">
+                <!-- Rendered by JS -->
+            </div>
+        </div>
+    </section>
+
+
     </main><!-- END SECTIONS CONTAINER -->
+
+    <!-- EVENT DETAIL MODAL (outside main for overlay) -->
+    <div class="event-modal-overlay" id="eventModalOverlay" aria-hidden="true">
+        <div class="event-modal" id="eventModal" role="dialog" aria-labelledby="eventModalTitle">
+            <button class="event-modal-close" id="eventModalClose" aria-label="Close modal">&times;</button>
+            <div class="event-modal-body" id="eventModalBody">
+                <!-- Rendered by JS -->
+            </div>
+        </div>
+    </div>
 
     <!-- CONTACT / FOOTER -->
     <footer class="footer-section" id="contact" role="contentinfo">
@@ -668,8 +756,8 @@
                         <h5>MORE</h5>
                         <a href="#moments">Moments</a>
                         <a href="#shop">Shop</a>
-                        <a href="#partners">Partners</a>
-                        <a href="#halloffame">Hall of Fame</a>
+                        <a href="#leaderboard">Leaderboard</a>
+                        <a href="#mediakit">Media Kit</a>
                     </div>
                     <div class="footer-col">
                         <h5>CONNECT</h5>
