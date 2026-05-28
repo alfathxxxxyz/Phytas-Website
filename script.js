@@ -230,6 +230,8 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function(e) {
         const href = this.getAttribute('href');
         if (href && href !== '#' && !this.hasAttribute('data-section')) {
+            // Don't switch section if the link is inside event modal or event cards
+            if (this.closest('.event-modal') || this.closest('[data-event-id]')) return;
             e.preventDefault();
             const targetId = href.substring(1);
             showSection(targetId);
@@ -596,7 +598,16 @@ async function renderEvents() {
 
     let html = '';
 
-    // Featured event
+    // Game filter row (same layout as original)
+    const maps = [...new Set(data.map(e => e.game))];
+    html += `<div class="events-game-filter">`;
+    maps.forEach(m => {
+        html += `<div class="game-filter-card">${m.toUpperCase()}</div>`;
+    });
+    html += `<div class="game-filter-card game-filter-card--upcoming">???</div>`;
+    html += `</div>`;
+
+    // Featured event (left column)
     html += `
         <div class="event-featured clickable" data-event-id="${featured.id}">
             <div class="event-featured-badge">${featured.status === 'live' ? 'LIVE NOW' : 'NEXT EVENT'}</div>
@@ -610,18 +621,18 @@ async function renderEvents() {
                     <div class="meta-item"><span class="meta-label">TYPE</span><span class="meta-value">${featured.type}</span></div>
                 </div>
                 ${featured.registrationLink
-                    ? `<a href="${featured.registrationLink}" target="_blank" rel="noopener" class="btn btn-primary">REGISTER NOW</a>`
+                    ? `<a href="${featured.registrationLink}" target="_blank" rel="noopener" class="btn btn-primary" onclick="event.stopPropagation()">REGISTER NOW</a>`
                     : `<span class="btn btn-outline disabled">REGISTRATION CLOSED</span>`
                 }
             </div>
         </div>
     `;
 
-    // Upcoming event cards
+    // Upcoming event cards (right column)
     html += '<div class="events-upcoming">';
     upcoming.forEach(evt => {
         const statusClass = evt.status === 'live' ? 'live' : evt.status === 'finished' ? 'closed' : 'upcoming';
-        const btnText = evt.status === 'finished' ? 'ENDED' : (evt.registrationLink ? 'DETAILS' : 'COMING SOON');
+        const btnText = evt.status === 'finished' ? 'ENDED' : 'VIEW DETAILS';
         const btnDisabled = evt.status === 'finished' ? ' disabled' : '';
         html += `
             <div class="event-card clickable" data-event-id="${evt.id}">
@@ -642,9 +653,12 @@ async function renderEvents() {
     // Attach click handlers for modal
     container.querySelectorAll('[data-event-id]').forEach(card => {
         card.addEventListener('click', (e) => {
-            // Don't open modal if clicking a real link/button
-            if (e.target.closest('a[href]:not([href="#"])')) return;
+            // Don't open modal if clicking a real external link
+            const anchor = e.target.closest('a');
+            if (anchor && anchor.getAttribute('href') && anchor.getAttribute('href') !== '#') return;
+            // Prevent the click from bubbling to section-switcher
             e.preventDefault();
+            e.stopPropagation();
             const id = card.getAttribute('data-event-id');
             const event = eventsData.find(ev => ev.id === id);
             if (event) renderEventModal(event);
@@ -717,7 +731,7 @@ function renderEventModal(event) {
     // CTA
     html += `<div class="modal-cta">`;
     if (event.registrationLink && event.status !== 'finished') {
-        html += `<a href="${event.registrationLink}" target="_blank" rel="noopener" class="btn btn-primary">REGISTER NOW</a>`;
+        html += `<a href="${event.registrationLink}" target="_blank" rel="noopener" class="btn btn-primary" onclick="event.stopPropagation()">REGISTER NOW</a>`;
     } else if (event.status === 'finished') {
         html += `<span class="btn btn-outline disabled">EVENT ENDED</span>`;
     } else {
