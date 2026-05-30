@@ -5,6 +5,9 @@
 // ============================================================
 (function setupRegistration() {
     let currentEvent = { id: '', title: '' };
+    let isSubmitting = false;
+    const REG_COOLDOWN_MS = 60000; // 1 registration per minute (client-side anti-spam)
+    const REG_COOLDOWN_KEY = 'pythas_last_registration';
 
     function showMsg(text, type) {
         const msg = document.getElementById('regMessage');
@@ -73,6 +76,9 @@
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
+            // Prevent double-submit while a request is already in flight
+            if (isSubmitting) return;
+
             // Honeypot: real users never fill this hidden field. Bots do.
             const hp = document.getElementById('regWebsite');
             if (hp && hp.value) { closeRegModal(); return; }
@@ -88,12 +94,22 @@
                 return;
             }
 
+            // Client-side rate limit: max 1 registration per minute (anti-spam / double-click)
+            const last = parseInt(localStorage.getItem(REG_COOLDOWN_KEY) || '0', 10);
+            const elapsed = Date.now() - last;
+            if (last && elapsed < REG_COOLDOWN_MS) {
+                const wait = Math.ceil((REG_COOLDOWN_MS - elapsed) / 1000);
+                showMsg('You just registered. Please wait ' + wait + 's before submitting again.', 'error');
+                return;
+            }
+
             if (!supabaseClient) {
                 showMsg('Registration is not available right now. Please try again later.', 'error');
                 return;
             }
 
             const submit = document.getElementById('regSubmit');
+            isSubmitting = true;
             submit.disabled = true;
             submit.textContent = 'SUBMITTING…';
 
@@ -112,8 +128,13 @@
                 showMsg('Something went wrong. Please try again in a moment.', 'error');
                 submit.disabled = false;
                 submit.textContent = 'SUBMIT REGISTRATION';
+                isSubmitting = false;
                 return;
             }
+
+            // Record successful submission time so the cooldown kicks in
+            localStorage.setItem(REG_COOLDOWN_KEY, String(Date.now()));
+            isSubmitting = false;
 
             showMsg('Registration successful! See you on the track. 🏁', 'success');
             submit.textContent = 'REGISTERED ✓';
