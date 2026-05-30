@@ -819,6 +819,57 @@ body {
     box-shadow: 0 6px 20px rgba(170, 255, 0, 0.15);
 }
 
+/* The "???" coming-soon card is not interactive */
+.game-filter-card--upcoming,
+.game-filter-card[aria-disabled="true"] {
+    cursor: default;
+}
+
+.game-filter-card--upcoming:hover {
+    border-color: var(--gray-dark) !important;
+    color: var(--gray) !important;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Empty state when a game has no events yet */
+.events-empty {
+    grid-column: 1 / -1;
+    background: var(--dark-panel);
+    border: 1px dashed var(--gray-dark);
+    padding: 64px 32px;
+    text-align: center;
+}
+
+.events-empty-icon {
+    font-size: 36px;
+    color: var(--lime);
+    margin-bottom: 16px;
+}
+
+.events-empty h3 {
+    font-family: var(--font-heading);
+    letter-spacing: 1.5px;
+    color: var(--light);
+    margin-bottom: 8px;
+}
+
+.events-empty p {
+    color: var(--gray-light);
+    font-size: 14px;
+}
+
+/* Placeholder shown in the upcoming column when only a featured event exists */
+.events-upcoming-empty {
+    background: var(--dark-panel);
+    border: 1px dashed var(--gray-dark);
+    padding: 24px;
+    text-align: center;
+    color: var(--gray-light);
+    font-size: 13px;
+    letter-spacing: 0.5px;
+}
+
 .event-featured {
     background: linear-gradient(135deg, var(--dark-panel) 0%, rgba(170, 255, 0, 0.05) 100%);
     border: 1px solid rgba(170, 255, 0, 0.2);

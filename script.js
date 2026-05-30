@@ -566,6 +566,8 @@ function getStatusLabel(status) {
 
 // ========== EVENTS: Render from JSON ==========
 let eventsData = [];
+let eventGames = [];
+let currentGameFilter = null;
 
 async function renderEvents() {
     const container = document.getElementById('eventsLayout');
@@ -583,31 +585,63 @@ async function renderEvents() {
     // Hide fallback, show dynamic content
     if (fallback) fallback.style.display = 'none';
 
+    // Available games, in the order they first appear in the data
+    eventGames = [...new Set(data.map(e => e.game))];
+
+    // Default to the first game; keep current selection if it's still valid
+    if (!currentGameFilter || !eventGames.includes(currentGameFilter)) {
+        currentGameFilter = eventGames[0];
+    }
+
+    renderEventsLayout();
+}
+
+// Build the game filter row + featured/upcoming events for the active game.
+function renderEventsLayout() {
+    const container = document.getElementById('eventsLayout');
+    if (!container) return;
+
+    // Only events for the currently selected game
+    const gameEvents = eventsData.filter(e => e.game === currentGameFilter);
+
     // Sort: live first, then upcoming by date, then finished
     const statusOrder = { 'live': 0, 'upcoming': 1, 'coming-soon': 2, 'finished': 3 };
-    const sorted = [...data].sort((a, b) => {
+    const sorted = [...gameEvents].sort((a, b) => {
         const sa = statusOrder[a.status] ?? 9;
         const sb = statusOrder[b.status] ?? 9;
         if (sa !== sb) return sa - sb;
         return new Date(a.date) - new Date(b.date);
     });
 
-    // First event = featured
+    let html = '';
+
+    // ---- Game filter row (clickable) ----
+    html += `<div class="events-game-filter">`;
+    eventGames.forEach(m => {
+        const isActive = m === currentGameFilter;
+        html += `<div class="game-filter-card${isActive ? ' active' : ''}" data-game="${m}" role="button" tabindex="0" aria-pressed="${isActive}">${m.toUpperCase()}</div>`;
+    });
+    html += `<div class="game-filter-card game-filter-card--upcoming" aria-disabled="true">???</div>`;
+    html += `</div>`;
+
+    if (sorted.length === 0) {
+        // No events scheduled for this game yet
+        html += `
+            <div class="events-empty">
+                <div class="events-empty-icon">&#9670;</div>
+                <h3>NO EVENTS YET</h3>
+                <p>There are no events scheduled for ${currentGameFilter} right now. Check back soon!</p>
+            </div>
+        `;
+        container.innerHTML = html;
+        attachGameFilterHandlers();
+        return;
+    }
+
+    // ---- Featured event (left column) ----
     const featured = sorted[0];
     const upcoming = sorted.slice(1);
 
-    let html = '';
-
-    // Game filter row (same layout as original)
-    const maps = [...new Set(data.map(e => e.game))];
-    html += `<div class="events-game-filter">`;
-    maps.forEach(m => {
-        html += `<div class="game-filter-card">${m.toUpperCase()}</div>`;
-    });
-    html += `<div class="game-filter-card game-filter-card--upcoming">???</div>`;
-    html += `</div>`;
-
-    // Featured event (left column)
     html += `
         <div class="event-featured clickable" data-event-id="${featured.id}">
             <div class="event-featured-badge">${featured.status === 'live' ? 'LIVE NOW' : 'NEXT EVENT'}</div>
@@ -628,29 +662,66 @@ async function renderEvents() {
         </div>
     `;
 
-    // Upcoming event cards (right column)
+    // ---- Upcoming event cards (right column) ----
     html += '<div class="events-upcoming">';
-    upcoming.forEach(evt => {
-        const statusClass = evt.status === 'live' ? 'live' : evt.status === 'finished' ? 'closed' : 'upcoming';
-        const btnText = evt.status === 'finished' ? 'ENDED' : 'VIEW DETAILS';
-        const btnDisabled = evt.status === 'finished' ? ' disabled' : '';
-        html += `
-            <div class="event-card clickable" data-event-id="${evt.id}">
-                <div class="event-status ${statusClass}">${getStatusLabel(evt.status)}</div>
-                <h4>${evt.title}</h4>
-                <div class="event-details">
-                    <span>${formatDate(evt.date)} &bull; ${formatTime12(evt.time)} ${evt.timezone}</span>
-                    <span>Prize: ${evt.prize}</span>
+    if (upcoming.length === 0) {
+        html += `<div class="events-upcoming-empty">More ${currentGameFilter} events coming soon.</div>`;
+    } else {
+        upcoming.forEach(evt => {
+            const statusClass = evt.status === 'live' ? 'live' : evt.status === 'finished' ? 'closed' : 'upcoming';
+            const btnText = evt.status === 'finished' ? 'ENDED' : 'VIEW DETAILS';
+            const btnDisabled = evt.status === 'finished' ? ' disabled' : '';
+            html += `
+                <div class="event-card clickable" data-event-id="${evt.id}">
+                    <div class="event-status ${statusClass}">${getStatusLabel(evt.status)}</div>
+                    <h4>${evt.title}</h4>
+                    <div class="event-details">
+                        <span>${formatDate(evt.date)} &bull; ${formatTime12(evt.time)} ${evt.timezone}</span>
+                        <span>Prize: ${evt.prize}</span>
+                    </div>
+                    <span class="btn btn-outline btn-sm${btnDisabled}">${btnText}</span>
                 </div>
-                <span class="btn btn-outline btn-sm${btnDisabled}">${btnText}</span>
-            </div>
-        `;
-    });
+            `;
+        });
+    }
     html += '</div>';
 
     container.innerHTML = html;
 
-    // Attach click handlers for modal
+    attachGameFilterHandlers();
+    attachEventCardHandlers();
+
+    // Re-apply fade-in classes
+    container.querySelectorAll('.event-featured, .event-card').forEach(el => {
+        el.classList.add('fade-in', 'visible');
+    });
+}
+
+// Wire up the game filter cards so each game shows its own events.
+function attachGameFilterHandlers() {
+    const container = document.getElementById('eventsLayout');
+    if (!container) return;
+    container.querySelectorAll('.game-filter-card[data-game]').forEach(card => {
+        const selectGame = () => {
+            const game = card.getAttribute('data-game');
+            if (!game || game === currentGameFilter) return;
+            currentGameFilter = game;
+            renderEventsLayout();
+        };
+        card.addEventListener('click', selectGame);
+        card.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                selectGame();
+            }
+        });
+    });
+}
+
+// Wire up event cards to open the detail modal.
+function attachEventCardHandlers() {
+    const container = document.getElementById('eventsLayout');
+    if (!container) return;
     container.querySelectorAll('[data-event-id]').forEach(card => {
         card.addEventListener('click', (e) => {
             // Don't open modal if clicking a real external link
@@ -663,11 +734,6 @@ async function renderEvents() {
             const event = eventsData.find(ev => ev.id === id);
             if (event) renderEventModal(event);
         });
-    });
-
-    // Re-apply fade-in classes
-    container.querySelectorAll('.event-featured, .event-card').forEach(el => {
-        el.classList.add('fade-in', 'visible');
     });
 }
 
