@@ -495,7 +495,7 @@ if (tagline) {
         toggle.addEventListener('click', () => {
             const isLight = root.getAttribute('data-theme') === 'light';
 
-            // Trigger glitch animation
+            // Trigger subtle glitch animation
             document.body.classList.add('theme-glitching');
 
             // Swap theme mid-glitch so the color flip feels like part of the static
@@ -509,12 +509,12 @@ if (tagline) {
                     localStorage.setItem(STORAGE_KEY, 'light');
                     toggle.setAttribute('aria-label', 'Switch to dark mode');
                 }
-            }, 130);
+            }, 80);
 
             // End glitch
             setTimeout(() => {
                 document.body.classList.remove('theme-glitching');
-            }, 550);
+            }, 300);
         });
     });
 })();
