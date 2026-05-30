@@ -2505,8 +2505,14 @@ body.theme-glitching *::after {
     transition: none !important;
 }
 
-/* Whole-page filter + shake glitch */
-body.theme-glitching {
+/* Content filter + shake glitch.
+   NOTE: applied to the content wrapper (NOT <body>) on purpose. A transform
+   or filter on an ancestor of a position:fixed element makes that fixed
+   element re-position to the ancestor's box — which made the fixed navbar
+   visibly "drop" during the theme switch, then snap back. Scoping the effect
+   to #sections-container / footer keeps the navbar perfectly still. */
+body.theme-glitching #sections-container,
+body.theme-glitching .footer-section {
     animation: themeGlitch 0.3s steps(10, end);
 }
 
@@ -2571,7 +2577,8 @@ body.theme-glitching .theme-toggle {
 
 /* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
-    body.theme-glitching,
+    body.theme-glitching #sections-container,
+    body.theme-glitching .footer-section,
     body.theme-glitching::after,
     body.theme-glitching .hero-title,
     body.theme-glitching .section-title,
