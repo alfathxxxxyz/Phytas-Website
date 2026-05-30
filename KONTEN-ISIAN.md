@@ -19,9 +19,9 @@ ke website (file HTML & JSON). Kamu **tidak perlu** ngoding apa pun.
 Saat ini tombol "JOIN DISCORD", "JOIN US", dan ikon sosial media masih mengarah ke `#` (kosong).
 
 - Link **Discord** (invite permanen):
-  `>> `
+  `>> https://discord.gg/sqfbJYMDhW` ✅ SUDAH DIPASANG
 - Link **Roblox Group** PYTHAS:
-  `>> `
+  `>> https://www.roblox.com/communities/1028722282/Pythas-Collective#!/about` ✅ SUDAH DIPASANG
 - Link **TikTok**:
   `>> `
 - Link **Instagram**:
