@@ -850,7 +850,7 @@ body {
 .events-empty h3 {
     font-family: var(--font-heading);
     letter-spacing: 1.5px;
-    color: var(--light);
+    color: var(--white);
     margin-bottom: 8px;
 }
 
@@ -3508,4 +3508,165 @@ body.theme-glitching .theme-toggle {
 
 [data-theme="light"] .event-modal-overlay {
     background: rgba(255, 255, 255, 0.85);
+}
+
+
+
+/* ========================================
+   EVENT REGISTRATION MODAL
+   ======================================== */
+.reg-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10001;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+    padding: 24px;
+}
+
+.reg-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.reg-modal {
+    background: var(--dark-panel);
+    border: 1px solid var(--gray-dark);
+    border-radius: 4px;
+    max-width: 480px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    transform: translateY(12px);
+    transition: transform 0.25s ease;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+}
+
+.reg-modal-overlay.active .reg-modal {
+    transform: translateY(0);
+}
+
+.reg-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    background: transparent;
+    border: none;
+    color: var(--gray-light);
+    font-size: 28px;
+    line-height: 1;
+    cursor: pointer;
+    z-index: 2;
+    transition: color 0.2s ease;
+}
+.reg-modal-close:hover { color: var(--lime); }
+
+.reg-modal-body {
+    padding: 32px 28px 28px;
+}
+
+.reg-modal-tag {
+    display: inline-block;
+    font-family: var(--font-heading);
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--dark);
+    background: var(--lime);
+    padding: 3px 10px;
+    margin-bottom: 12px;
+}
+
+.reg-modal-body h2 {
+    font-family: var(--font-heading);
+    font-size: 24px;
+    letter-spacing: 1px;
+    color: var(--white);
+    margin-bottom: 4px;
+}
+
+.reg-event-name {
+    color: var(--lime);
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 22px;
+    min-height: 18px;
+}
+
+.reg-form .reg-field { margin-bottom: 16px; }
+
+.reg-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.reg-form label {
+    display: block;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    color: var(--gray-light);
+    margin-bottom: 6px;
+}
+.reg-form label .req { color: var(--magenta); }
+
+.reg-form input,
+.reg-form select,
+.reg-form textarea {
+    width: 100%;
+    background: var(--dark);
+    border: 1px solid var(--gray-dark);
+    border-radius: 4px;
+    color: var(--white);
+    padding: 11px 12px;
+    font-size: 14px;
+    font-family: var(--font-body);
+    transition: border-color 0.2s ease;
+}
+.reg-form input:focus,
+.reg-form select:focus,
+.reg-form textarea:focus {
+    outline: none;
+    border-color: var(--lime);
+}
+.reg-form textarea { resize: vertical; }
+
+/* Honeypot anti-spam field — hidden from real users */
+.reg-hp {
+    position: absolute !important;
+    left: -9999px !important;
+    top: -9999px !important;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.reg-message {
+    font-size: 13px;
+    min-height: 18px;
+    margin: 4px 0 10px;
+}
+.reg-message.error { color: var(--magenta); }
+.reg-message.success { color: var(--lime); }
+
+.reg-submit { width: 100%; }
+
+.reg-privacy {
+    font-size: 11px;
+    color: var(--gray);
+    margin-top: 14px;
+    line-height: 1.5;
+    text-align: center;
+}
+
+@media (max-width: 480px) {
+    .reg-row { grid-template-columns: 1fr; }
+    .reg-modal-body { padding: 28px 20px 22px; }
 }

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>PYTHAS — Admin · Registrations</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23000'/><text x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-size='20' font-weight='bold' fill='%23AAFF00'>P</text></svg>">
+    <style>
+        :root {
+            --lime: #AAFF00;
+            --magenta: #FF0080;
+            --bg: #0A0A0A;
+            --panel: #161616;
+            --panel-2: #1f1f1f;
+            --border: #2a2a2a;
+            --text: #f2f2f2;
+            --muted: #9a9a9a;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+        a { color: var(--lime); }
+
+        /* ---- Login ---- */
+        .login-wrap {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .login-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 36px 32px;
+            width: 100%;
+            max-width: 380px;
+        }
+        .brand {
+            display: flex; align-items: center; gap: 10px;
+            margin-bottom: 24px;
+        }
+        .brand .mark {
+            width: 34px; height: 34px; border-radius: 7px;
+            background: var(--lime); color: #000;
+            font-weight: 800; display: grid; place-items: center;
+            font-size: 18px;
+        }
+        .brand h1 { font-size: 16px; letter-spacing: 2px; font-weight: 700; }
+        .brand span { color: var(--muted); font-size: 12px; display: block; letter-spacing: 1px; }
+
+        label { display: block; font-size: 12px; color: var(--muted); margin: 14px 0 6px; letter-spacing: .5px; }
+        input, select, textarea {
+            width: 100%;
+            background: var(--panel-2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            padding: 11px 12px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        input:focus, select:focus { outline: none; border-color: var(--lime); }
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            gap: 6px;
+            background: var(--lime); color: #000;
+            border: none; border-radius: 8px;
+            padding: 11px 16px; font-weight: 700; font-size: 13px;
+            letter-spacing: .5px; cursor: pointer;
+            text-decoration: none;
+        }
+        .btn:hover { filter: brightness(1.05); }
+        .btn:disabled { opacity: .55; cursor: not-allowed; }
+        .btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
+        .btn-ghost:hover { border-color: var(--lime); color: var(--lime); }
+        .btn-danger { background: transparent; color: #ff6b6b; border: 1px solid #4a2222; padding: 6px 10px; font-size: 12px; }
+        .btn-danger:hover { background: #2a1515; }
+        .full { width: 100%; margin-top: 20px; }
+        .msg { font-size: 13px; margin-top: 14px; min-height: 18px; }
+        .msg.error { color: #ff6b6b; }
+        .msg.success { color: var(--lime); }
+
+        /* ---- Dashboard ---- */
+        .topbar {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 16px; padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+            background: var(--panel);
+            position: sticky; top: 0; z-index: 5;
+            flex-wrap: wrap;
+        }
+        .topbar .who { font-size: 12px; color: var(--muted); }
+        .container { padding: 20px 24px 60px; max-width: 1200px; margin: 0 auto; }
+
+        .toolbar {
+            display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+            margin-bottom: 18px;
+        }
+        .toolbar .grow { flex: 1; min-width: 180px; }
+        .toolbar select, .toolbar input { padding: 9px 11px; }
+        .count-pill {
+            background: var(--panel-2); border: 1px solid var(--border);
+            border-radius: 999px; padding: 6px 14px; font-size: 13px;
+            color: var(--lime); font-weight: 600; white-space: nowrap;
+        }
+
+        .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 760px; }
+        th, td { text-align: left; padding: 11px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+        th { background: var(--panel-2); color: var(--muted); font-weight: 600; letter-spacing: .5px; position: sticky; top: 0; }
+        tbody tr:hover { background: #131313; }
+        td.empty, td.loading { text-align: center; color: var(--muted); padding: 32px; }
+        .hint { color: var(--muted); font-size: 12px; margin-top: 14px; }
+        .hidden { display: none !important; }
+        .nowrap { white-space: nowrap; }
+    </style>
+</head>
+<body>
+
+    <!-- LOGIN VIEW -->
+    <div class="login-wrap" id="loginView">
+        <form class="login-card" id="loginForm">
+            <div class="brand">
+                <div class="mark">P</div>
+                <div>
+                    <h1>PYTHAS ADMIN</h1>
+                    <span>Event Registrations</span>
+                </div>
+            </div>
+            <label for="email">Email</label>
+            <input type="email" id="email" autocomplete="username" required placeholder="admin@email.com">
+            <label for="password">Password</label>
+            <input type="password" id="password" autocomplete="current-password" required placeholder="••••••••">
+            <button type="submit" class="btn full" id="loginBtn">LOG IN</button>
+            <div class="msg" id="loginMsg" role="status"></div>
+        </form>
+    </div>
+
+    <!-- DASHBOARD VIEW -->
+    <div id="dashView" class="hidden">
+        <div class="topbar">
+            <div class="brand" style="margin:0">
+                <div class="mark">P</div>
+                <div>
+                    <h1>REGISTRATIONS</h1>
+                    <span class="who" id="userEmail"></span>
+                </div>
+            </div>
+            <button class="btn btn-ghost" id="logoutBtn">LOG OUT</button>
+        </div>
+
+        <div class="container">
+            <div class="toolbar">
+                <select id="eventFilter" title="Filter by event"></select>
+                <input type="search" id="searchInput" class="grow" placeholder="Search name, discord, notes…">
+                <span class="count-pill"><span id="regCount">0</span> entries</span>
+                <button class="btn btn-ghost" id="refreshBtn">↻ Refresh</button>
+                <button class="btn btn-ghost" id="exportBtn">⬇ Export CSV</button>
+                <label class="btn btn-ghost" style="margin:0" for="importInput">⬆ Import CSV</label>
+                <input type="file" id="importInput" accept=".csv,text/csv" class="hidden">
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="nowrap">Submitted</th>
+                            <th>Event</th>
+                            <th>Roblox</th>
+                            <th>Discord</th>
+                            <th>Device</th>
+                            <th>Map</th>
+                            <th>Notes</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="regTableBody">
+                        <tr><td colspan="8" class="loading">Loading…</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="hint">Export gives a CSV you can open in Google Sheets / Excel. Import expects the same column headers as the export.</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>

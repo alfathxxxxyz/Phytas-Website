@@ -654,9 +654,9 @@ function renderEventsLayout() {
                     <div class="meta-item"><span class="meta-label">PRIZE</span><span class="meta-value">${featured.prize}</span></div>
                     <div class="meta-item"><span class="meta-label">TYPE</span><span class="meta-value">${featured.type}</span></div>
                 </div>
-                ${featured.registrationLink
-                    ? `<a href="${featured.registrationLink}" target="_blank" rel="noopener" class="btn btn-primary" onclick="event.stopPropagation()">REGISTER NOW</a>`
-                    : `<span class="btn btn-outline disabled">REGISTRATION CLOSED</span>`
+                ${featured.status === 'finished'
+                    ? `<span class="btn btn-outline disabled">REGISTRATION CLOSED</span>`
+                    : `<button type="button" class="btn btn-primary js-register-btn">REGISTER NOW</button>`
                 }
             </div>
         </div>
@@ -724,6 +724,16 @@ function attachEventCardHandlers() {
     if (!container) return;
     container.querySelectorAll('[data-event-id]').forEach(card => {
         card.addEventListener('click', (e) => {
+            // Register button -> open the on-site registration form
+            const regBtn = e.target.closest('.js-register-btn');
+            if (regBtn) {
+                e.preventDefault();
+                e.stopPropagation();
+                const id = card.getAttribute('data-event-id');
+                const ev = eventsData.find(x => x.id === id);
+                if (ev && window.openRegModal) window.openRegModal(ev.id, ev.title);
+                return;
+            }
             // Don't open modal if clicking a real external link
             const anchor = e.target.closest('a');
             if (anchor && anchor.getAttribute('href') && anchor.getAttribute('href') !== '#') return;
@@ -796,16 +806,26 @@ function renderEventModal(event) {
 
     // CTA
     html += `<div class="modal-cta">`;
-    if (event.registrationLink && event.status !== 'finished') {
-        html += `<a href="${event.registrationLink}" target="_blank" rel="noopener" class="btn btn-primary" onclick="event.stopPropagation()">REGISTER NOW</a>`;
-    } else if (event.status === 'finished') {
+    if (event.status === 'finished') {
         html += `<span class="btn btn-outline disabled">EVENT ENDED</span>`;
-    } else {
+    } else if (event.status === 'coming-soon') {
         html += `<span class="btn btn-outline disabled">COMING SOON</span>`;
+    } else {
+        html += `<button type="button" class="btn btn-primary js-modal-register">REGISTER NOW</button>`;
     }
     html += `</div>`;
 
     body.innerHTML = html;
+
+    // Wire the modal's register button to open the on-site registration form
+    const modalRegBtn = body.querySelector('.js-modal-register');
+    if (modalRegBtn) {
+        modalRegBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closeEventModal();
+            if (window.openRegModal) window.openRegModal(event.id, event.title);
+        });
+    }
 
     // Show modal
     overlay.classList.add('active');
