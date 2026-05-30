@@ -1,0 +1,21 @@
+# Vercel
+.vercel
+
+# Dependencies (not used now, but safe to ignore)
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# Environment
+.env
+.env.*
+!.env.example
