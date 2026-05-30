@@ -6,8 +6,34 @@
 (function setupRegistration() {
     let currentEvent = { id: '', title: '' };
     let isSubmitting = false;
-    const REG_COOLDOWN_MS = 60000; // 1 registration per minute (client-side anti-spam)
-    const REG_COOLDOWN_KEY = 'pythas_last_registration';
+    const REG_COOLDOWN_MS = 60000; // max 1 registration per minute, PER EVENT (anti-spam)
+    const REG_COOLDOWN_KEY = 'pythas_reg_cooldowns';
+
+    // Stable key identifying the current event
+    function eventKey() {
+        return currentEvent.id || currentEvent.title || 'general';
+    }
+
+    // Read the { eventKey: timestamp } cooldown map from localStorage
+    function getCooldowns() {
+        try {
+            const raw = localStorage.getItem(REG_COOLDOWN_KEY);
+            return raw ? JSON.parse(raw) : {};
+        } catch (e) {
+            return {};
+        }
+    }
+
+    // Save the cooldown for an event, pruning expired entries to stay tidy
+    function setCooldown(key) {
+        const now = Date.now();
+        const map = getCooldowns();
+        Object.keys(map).forEach(k => {
+            if (now - map[k] > REG_COOLDOWN_MS) delete map[k];
+        });
+        map[key] = now;
+        try { localStorage.setItem(REG_COOLDOWN_KEY, JSON.stringify(map)); } catch (e) {}
+    }
 
     function showMsg(text, type) {
         const msg = document.getElementById('regMessage');
@@ -94,12 +120,12 @@
                 return;
             }
 
-            // Client-side rate limit: max 1 registration per minute (anti-spam / double-click)
-            const last = parseInt(localStorage.getItem(REG_COOLDOWN_KEY) || '0', 10);
+            // Client-side rate limit: max 1 registration per minute PER EVENT (anti-spam / double-click)
+            const last = getCooldowns()[eventKey()] || 0;
             const elapsed = Date.now() - last;
             if (last && elapsed < REG_COOLDOWN_MS) {
                 const wait = Math.ceil((REG_COOLDOWN_MS - elapsed) / 1000);
-                showMsg('You just registered. Please wait ' + wait + 's before submitting again.', 'error');
+                showMsg('You just registered for this event. Please wait ' + wait + 's before submitting again.', 'error');
                 return;
             }
 
@@ -132,8 +158,8 @@
                 return;
             }
 
-            // Record successful submission time so the cooldown kicks in
-            localStorage.setItem(REG_COOLDOWN_KEY, String(Date.now()));
+            // Record successful submission time for THIS event so the cooldown kicks in
+            setCooldown(eventKey());
             isSubmitting = false;
 
             showMsg('Registration successful! See you on the track. 🏁', 'success');
