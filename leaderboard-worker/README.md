@@ -13,9 +13,11 @@ Website      --GET  /api/leaderboard/speedrun -->  Worker  --select-->  Supabase
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| POST | `/api/roblox/player-stats` | header `x-roblox-secret` | Upsert one player's stats |
-| GET | `/api/leaderboard/summit` | none | Top 100 by `summit` (desc) |
-| GET | `/api/leaderboard/speedrun` | none | Top 100 by `best_time_ms` (asc, non-null) |
+| POST | `/api/roblox/player-stats` | header `x-roblox-secret` | Upsert one player's stats (body may include `map`) |
+| GET | `/api/leaderboard/summit?map=aztec\|agora` | none | Top 100 by `summit` (desc) for that map |
+| GET | `/api/leaderboard/speedrun?map=aztec\|agora` | none | Top 100 by `best_time_ms` (asc, non-null) for that map |
+
+> `map` defaults to **aztec** if omitted. Valid values: `aztec`, `agora`.
 
 **POST body**
 ```json

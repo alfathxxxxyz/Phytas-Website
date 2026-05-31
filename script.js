@@ -869,8 +869,11 @@ document.addEventListener('DOMContentLoaded', () => {
 const LEADERBOARD_API = WORKER_API;
 
 let lbBoard = 'summit';          // 'summit' | 'speedrun'
-let lbCache = {};                // { summit: [...], speedrun: [...] }
+let lbMap = 'aztec';             // 'aztec' | 'agora'
+let lbCache = {};                // { "<map>:<board>": [...] }
 let lbNameCache = {};            // { user_id: { username, displayName } } resolved from Roblox
+
+function lbCacheKey(map, board) { return map + ':' + board; }
 
 // Format milliseconds -> M:SS.mmm  (e.g. 83470 -> 1:23.470)
 function formatRaceTime(ms) {
@@ -905,22 +908,24 @@ async function loadLeaderboardBoard(board) {
     const statusEl = document.getElementById('lbStatus');
     if (statusEl) statusEl.textContent = 'Loading live data…';
 
+    const key = lbCacheKey(lbMap, board);
+
     // Serve from cache instantly if we already have it
-    if (lbCache[board]) {
-        applyLeaderboardData(lbCache[board]);
+    if (lbCache[key]) {
+        applyLeaderboardData(lbCache[key]);
         if (statusEl) statusEl.textContent = '';
         return;
     }
 
     try {
-        const url = `${LEADERBOARD_API}/api/leaderboard/${board}`;
+        const url = `${LEADERBOARD_API}/api/leaderboard/${board}?map=${encodeURIComponent(lbMap)}`;
         console.log('[leaderboard] fetching', url);
         const res = await fetch(url, { cache: 'no-store' });
         if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + (await res.text()).slice(0, 200));
         const json = await res.json();
         console.log('[leaderboard] response', json);
         const players = (json && json.players) || [];
-        lbCache[board] = players;
+        lbCache[key] = players;
         applyLeaderboardData(players);
         if (statusEl) statusEl.textContent = '';
     } catch (err) {
@@ -969,8 +974,9 @@ async function resolveLeaderboardNames(players) {
             }
         });
         // Re-render the current board with resolved names (avatars already loading)
-        if (changed && lbCache[lbBoard]) {
-            const ranked = lbCache[lbBoard].map((p, i) => ({ ...p, rank: i + 1 }));
+        const key = lbCacheKey(lbMap, lbBoard);
+        if (changed && lbCache[key]) {
+            const ranked = lbCache[key].map((p, i) => ({ ...p, rank: i + 1 }));
             renderPodium(ranked.slice(0, 3));
             renderLeaderboardTable(ranked.slice(3));
             loadLeaderboardAvatars(ranked);
@@ -1113,6 +1119,20 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.classList.add('active');
             lbBoard = board;
             loadLeaderboardBoard(board);
+        });
+    }
+
+    const maps = document.getElementById('leaderboardMaps');
+    if (maps) {
+        maps.addEventListener('click', (e) => {
+            const btn = e.target.closest('.lb-map');
+            if (!btn) return;
+            const map = btn.getAttribute('data-map');
+            if (!map || map === lbMap) return;
+            maps.querySelectorAll('.lb-map').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            lbMap = map;
+            loadLeaderboardBoard(lbBoard);
         });
     }
 });

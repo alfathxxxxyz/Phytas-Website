@@ -2893,6 +2893,39 @@ body.theme-glitching .theme-toggle {
     margin-bottom: 20px;
 }
 
+/* Map selector (Mount Aztec / Mount Agora) — sits above the board tabs */
+.leaderboard-maps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.lb-map {
+    flex: 1;
+    min-width: 140px;
+    padding: 12px 20px;
+    background: var(--dark-panel);
+    border: 1px solid var(--gray-dark);
+    color: var(--gray-light);
+    font-family: var(--font-heading);
+    font-size: 14px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.lb-map:hover {
+    border-color: var(--magenta);
+    color: var(--magenta);
+}
+
+.lb-map.active {
+    background: rgba(255, 0, 128, 0.12);
+    border-color: var(--magenta);
+    color: var(--magenta);
+}
+
 .lb-filter {
     padding: 10px 20px;
     background: var(--dark-panel);

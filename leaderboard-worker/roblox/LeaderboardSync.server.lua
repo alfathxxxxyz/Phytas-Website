@@ -8,17 +8,20 @@
 --
 --  PENTING sebelum dipakai:
 --   1) Studio -> Game Settings -> Security -> "Allow HTTP Requests" = ON
---   2) Ganti WORKER_URL dan SYNC_SECRET di bawah.
+--   2) Ganti WORKER_URL, SYNC_SECRET, dan MAP_NAME di bawah.
+--      -> Di game Mount Aztec  : MAP_NAME = "aztec"
+--      -> Di game Mount Agora  : MAP_NAME = "agora"
 --   3) Panggil PythasLeaderboard.sync(...) dari logika game kamu
 --      saat pemain summit / mencatat waktu (lihat contoh paling bawah).
 -- ============================================================
 
 local HttpService = game:GetService("HttpService")
 
--- ====== 1) CONFIG - GANTI DUA BARIS INI ======
+-- ====== 1) CONFIG - GANTI TIGA BARIS INI ======
 local WORKER_URL  = "https://pythas-leaderboard.XXXX.workers.dev/api/roblox/player-stats"
 local SYNC_SECRET = "PASTE_ROBLOX_SYNC_SECRET_DISINI"
--- =============================================
+local MAP_NAME    = "aztec"  -- "aztec" untuk Mount Aztec, "agora" untuk Mount Agora
+-- ==============================================
 
 --[[
   sync(player, summitTotal, bestTimeMs, eventType)
@@ -28,6 +31,9 @@ local SYNC_SECRET = "PASTE_ROBLOX_SYNC_SECRET_DISINI"
   bestTimeMs  : waktu lari yg baru saja dicatat dlm milidetik (angka), atau nil.
                 -> server hanya menyimpan kalau lebih kecil dari rekor lama
   eventType   : "summit" atau "speedrun" (opsional, penanda saja)
+
+  Catatan: map otomatis diambil dari MAP_NAME di atas, jadi cukup set sekali
+  per game. Tiap game (Aztec / Agora) punya leaderboard terpisah di website.
 ]]
 local function sync(player: Player, summitTotal: number?, bestTimeMs: number?, eventType: string?)
 	local payload = {
@@ -37,6 +43,7 @@ local function sync(player: Player, summitTotal: number?, bestTimeMs: number?, e
 		summit = summitTotal,
 		bestTimeMs = bestTimeMs,
 		eventType = eventType,
+		map = MAP_NAME,
 	}
 
 	local ok, result = pcall(function()
@@ -59,8 +66,8 @@ local function sync(player: Player, summitTotal: number?, bestTimeMs: number?, e
 	if not result.Success then
 		warn(("[PYTHAS] sync gagal (%d): %s"):format(result.StatusCode, tostring(result.Body)))
 	else
-		print(("[PYTHAS] synced %s (summit=%s, time=%s)"):format(
-			player.Name, tostring(summitTotal), tostring(bestTimeMs)))
+		print(("[PYTHAS] synced %s @ %s (summit=%s, time=%s)"):format(
+			player.Name, MAP_NAME, tostring(summitTotal), tostring(bestTimeMs)))
 	end
 end
 

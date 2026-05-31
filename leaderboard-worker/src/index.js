@@ -2,9 +2,10 @@
 //  PYTHAS Leaderboard — Cloudflare Worker
 //
 //  Endpoints:
-//    POST /api/roblox/player-stats   (header: x-roblox-secret)
-//    GET  /api/leaderboard/summit    -> top 100 by summit desc
-//    GET  /api/leaderboard/speedrun  -> top 100 by best_time_ms asc (not null)
+//    POST /api/roblox/player-stats        (header: x-roblox-secret; body may include map)
+//    GET  /api/leaderboard/summit?map=    -> top 100 by summit desc (per map)
+//    GET  /api/leaderboard/speedrun?map=  -> top 100 by best_time_ms asc (per map)
+//    map = "aztec" (default) or "agora"
 //
 //  Env (set as Wrangler secrets, never commit real values):
 //    SUPABASE_URL
@@ -26,6 +27,13 @@ function json(data, status = 200) {
   });
 }
 
+// Normalize the ?map= query param to a known map name. Defaults to Mount Aztec.
+function getMap(request) {
+  const raw = (new URL(request.url).searchParams.get('map') || '').trim().toLowerCase();
+  if (raw === 'agora' || raw === 'mount agora' || raw === 'mount-agora') return 'Mount Agora';
+  return 'Mount Aztec';
+}
+
 export default {
   async fetch(request, env) {
     const { pathname } = new URL(request.url);
@@ -41,10 +49,10 @@ export default {
         return await handlePlayerStats(request, env);
       }
       if (pathname === '/api/leaderboard/summit' && method === 'GET') {
-        return await handleLeaderboard(env, 'summit');
+        return await handleLeaderboard(env, 'summit', getMap(request));
       }
       if (pathname === '/api/leaderboard/speedrun' && method === 'GET') {
-        return await handleLeaderboard(env, 'speedrun');
+        return await handleLeaderboard(env, 'speedrun', getMap(request));
       }
       if (pathname === '/api/roblox/avatars' && method === 'GET') {
         return await handleRobloxAvatars(request);
@@ -90,6 +98,11 @@ async function handlePlayerStats(request, env) {
   const summit = body.summit != null ? Math.trunc(Number(body.summit)) : null;
   const bestTimeMs = body.bestTimeMs != null ? Math.trunc(Number(body.bestTimeMs)) : null;
   const eventType = body.eventType != null ? String(body.eventType) : null;
+  // Map: accept "Mount Agora"/"agora" etc; default to Mount Aztec
+  const rawMap = (body.map != null ? String(body.map) : '').trim().toLowerCase();
+  const map = (rawMap === 'agora' || rawMap === 'mount agora' || rawMap === 'mount-agora')
+    ? 'Mount Agora'
+    : 'Mount Aztec';
 
   if (summit != null && !Number.isFinite(summit)) {
     return json({ error: 'summit must be a number' }, 400);
@@ -112,6 +125,7 @@ async function handlePlayerStats(request, env) {
       p_display_name: displayName,
       p_summit: summit,
       p_best_time_ms: bestTimeMs,
+      p_map: map,
     }),
   });
 
@@ -120,16 +134,17 @@ async function handlePlayerStats(request, env) {
     return json({ error: 'Supabase upsert failed', status: res.status, detail }, 502);
   }
 
-  return json({ ok: true, userId, eventType });
+  return json({ ok: true, userId, map, eventType });
 }
 
 // ---- GET /api/leaderboard/:type ----
-async function handleLeaderboard(env, type) {
+async function handleLeaderboard(env, type, map) {
   const select = 'user_id,username,display_name,summit,best_time_ms,updated_at';
+  const mapFilter = `map=eq.${encodeURIComponent(map)}`;
   const query =
     type === 'summit'
-      ? `select=${select}&order=summit.desc&limit=100`
-      : `select=${select}&best_time_ms=not.is.null&order=best_time_ms.asc&limit=100`;
+      ? `select=${select}&${mapFilter}&summit=gt.0&order=summit.desc&limit=100`
+      : `select=${select}&${mapFilter}&best_time_ms=not.is.null&order=best_time_ms.asc&limit=100`;
 
   const res = await fetch(`${env.SUPABASE_URL}/rest/v1/players?${query}`, {
     headers: {
@@ -150,7 +165,7 @@ async function handleLeaderboard(env, type) {
   // needs to happen once per player.
   players = await fillRealNames(env, players);
 
-  return json({ ok: true, type, count: players.length, players });
+  return json({ ok: true, type, map, count: players.length, players });
 }
 
 // Returns true if a stored name is missing or a placeholder like "User_123".
@@ -179,22 +194,22 @@ async function fillRealNames(env, players) {
     }
   });
 
-  // Persist to Supabase (fire and forget; ignore failures)
+  // Persist to Supabase via RPC (updates names across all maps for these users,
+  // without touching summit/best_time). Fire and forget; ignore failures.
   try {
     const rows = Object.keys(resolved).map(id => ({
       user_id: Number(id),
       username: resolved[id].name,
       display_name: resolved[id].displayName || resolved[id].name,
     }));
-    await fetch(`${env.SUPABASE_URL}/rest/v1/players?on_conflict=user_id`, {
+    await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/upsert_player_names`, {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
         apikey: env.SUPABASE_SERVICE_ROLE_KEY,
         authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
-        prefer: 'resolution=merge-duplicates,return=minimal',
       },
-      body: JSON.stringify(rows),
+      body: JSON.stringify({ p: rows }),
     });
   } catch (_) { /* best effort */ }
 
