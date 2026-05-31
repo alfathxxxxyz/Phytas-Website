@@ -870,6 +870,7 @@ const LEADERBOARD_API = WORKER_API;
 
 let lbBoard = 'summit';          // 'summit' | 'speedrun'
 let lbCache = {};                // { summit: [...], speedrun: [...] }
+let lbNameCache = {};            // { user_id: { username, displayName } } resolved from Roblox
 
 // Format milliseconds -> M:SS.mmm  (e.g. 83470 -> 1:23.470)
 function formatRaceTime(ms) {
@@ -881,8 +882,19 @@ function formatRaceTime(ms) {
     return `${minutes}:${String(seconds).padStart(2, '0')}.${String(millis).padStart(3, '0')}`;
 }
 
+// A stored name is a placeholder if it's missing or looks like "User_123456".
+function isPlaceholderName(name) {
+    return !name || /^user[_ ]?\d+$/i.test(name);
+}
+
 function lbPlayerName(p) {
-    return p.display_name || p.username || ('User ' + p.user_id);
+    // Prefer a freshly-resolved Roblox name if we have one
+    const resolved = lbNameCache[p.user_id];
+    if (resolved && resolved.displayName) return resolved.displayName;
+    if (resolved && resolved.username) return resolved.username;
+    if (!isPlaceholderName(p.display_name)) return p.display_name;
+    if (!isPlaceholderName(p.username)) return p.username;
+    return 'User ' + p.user_id;
 }
 
 async function renderLeaderboard() {
@@ -934,6 +946,38 @@ function applyLeaderboardData(players) {
     renderPodium(ranked.slice(0, 3));
     renderLeaderboardTable(ranked.slice(3));
     loadLeaderboardAvatars(ranked);
+    resolveLeaderboardNames(ranked);
+}
+
+// Look up real Roblox usernames for rows that still have placeholder names,
+// then re-render so the real names replace "User_xxxx".
+async function resolveLeaderboardNames(players) {
+    const needIds = players
+        .filter(p => p.user_id > 0 && !lbNameCache[p.user_id] && isPlaceholderName(p.display_name) && isPlaceholderName(p.username))
+        .map(p => p.user_id);
+    if (needIds.length === 0) return;
+    try {
+        const url = `${WORKER_API}/api/roblox/users?userIds=${needIds.join(',')}`;
+        const res = await fetch(url);
+        if (!res.ok) return;
+        const json = await res.json();
+        let changed = false;
+        (json.data || []).forEach(u => {
+            if (u && u.id) {
+                lbNameCache[u.id] = { username: u.name, displayName: u.displayName || u.name };
+                changed = true;
+            }
+        });
+        // Re-render the current board with resolved names (avatars already loading)
+        if (changed && lbCache[lbBoard]) {
+            const ranked = lbCache[lbBoard].map((p, i) => ({ ...p, rank: i + 1 }));
+            renderPodium(ranked.slice(0, 3));
+            renderLeaderboardTable(ranked.slice(3));
+            loadLeaderboardAvatars(ranked);
+        }
+    } catch (err) {
+        console.warn('[leaderboard] name resolve failed:', err);
+    }
 }
 
 function lbValueLabel(p) {

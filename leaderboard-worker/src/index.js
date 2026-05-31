@@ -52,6 +52,9 @@ export default {
       if (pathname === '/api/roblox/game-icons' && method === 'GET') {
         return await handleRobloxGameIcons(request);
       }
+      if (pathname === '/api/roblox/users' && method === 'GET') {
+        return await handleRobloxUsers(request);
+      }
       if (pathname === '/' || pathname === '/health') {
         return json({ ok: true, service: 'pythas-leaderboard' });
       }
@@ -163,6 +166,30 @@ async function handleRobloxGameIcons(request) {
   const size = (searchParams.get('size') || '512x512').replace(/[^0-9x]/g, '');
   const url = `https://thumbnails.roblox.com/v1/places/gameicons?placeIds=${placeIds}&size=${size}&format=Png&isCircular=false&returnPolicy=PlaceHolder`;
   return await proxyJson(url);
+}
+
+// ---- GET /api/roblox/users?userIds=1,2,3 ----
+// Resolves real Roblox usernames + display names (server-side POST, no CORS).
+async function handleRobloxUsers(request) {
+  const { searchParams } = new URL(request.url);
+  const ids = (searchParams.get('userIds') || '')
+    .split(',')
+    .map(s => parseInt(s.trim(), 10))
+    .filter(n => Number.isFinite(n) && n > 0)
+    .slice(0, 200);
+  if (ids.length === 0) return json({ ok: true, data: [] });
+  try {
+    const res = await fetch('https://users.roblox.com/v1/users', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', accept: 'application/json' },
+      body: JSON.stringify({ userIds: ids, excludeBannedUsers: false }),
+    });
+    if (!res.ok) return json({ ok: false, data: [], status: res.status }, 200);
+    const data = await res.json();
+    return json(data, 200);
+  } catch (err) {
+    return json({ ok: false, data: [], detail: String((err && err.message) || err) }, 200);
+  }
 }
 
 // Fetch a Roblox thumbnails URL from the server side and return its JSON with CORS.
