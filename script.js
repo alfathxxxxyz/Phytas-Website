@@ -898,17 +898,21 @@ async function loadLeaderboardBoard(board) {
     }
 
     try {
-        const res = await fetch(`${LEADERBOARD_API}/api/leaderboard/${board}`, { cache: 'no-store' });
-        if (!res.ok) throw new Error('API ' + res.status);
+        const url = `${LEADERBOARD_API}/api/leaderboard/${board}`;
+        console.log('[leaderboard] fetching', url);
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + (await res.text()).slice(0, 200));
         const json = await res.json();
+        console.log('[leaderboard] response', json);
         const players = (json && json.players) || [];
         lbCache[board] = players;
         applyLeaderboardData(players);
-        if (statusEl) statusEl.textContent = players.length ? '' : '';
-    } catch (err) {
-        console.warn('[leaderboard] failed to load:', err);
         if (statusEl) statusEl.textContent = '';
-        showLeaderboardEmpty(true, 'Leaderboard is taking a break. Please check back soon.');
+    } catch (err) {
+        console.error('[leaderboard] failed to load:', err);
+        if (statusEl) statusEl.textContent = '';
+        // Surface the real reason on-screen so issues are easy to diagnose
+        showLeaderboardEmpty(true, 'Could not load leaderboard: ' + (err && err.message ? err.message : err));
     }
 }
 
