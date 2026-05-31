@@ -1172,6 +1172,7 @@ body {
 .member-role.dev { background: var(--blue); color: var(--white); }
 .member-role.event { background: var(--magenta); color: var(--white); }
 .member-role.caster { background: var(--orange); color: var(--black); }
+.member-role.admin { background: var(--purple); color: var(--white); }
 .member-role.mod { background: var(--purple); color: var(--white); }
 .member-role.racer { background: var(--lime); color: var(--black); }
 
