@@ -652,24 +652,13 @@
                 <div class="section-tag">RECORDS</div>
                 <h2 class="section-title">RACE <span class="accent-text">LEADERBOARD</span></h2>
             </div>
-            <!-- Filters -->
-            <div class="leaderboard-filters" id="leaderboardFilters">
-                <button class="lb-filter active" data-filter="all">All</button>
-                <button class="lb-filter" data-filter="Mobile">Mobile</button>
-                <button class="lb-filter" data-filter="PC">PC</button>
-                <button class="lb-filter" data-filter="Mixed">Mixed</button>
-                <button class="lb-filter" data-filter="Mount Agora">Mount Agora</button>
-                <button class="lb-filter" data-filter="Mount Aztec">Mount Aztec</button>
+            <!-- Leaderboard mode tabs -->
+            <div class="leaderboard-filters" id="leaderboardTabs">
+                <button class="lb-filter active" data-board="summit">&#9968; SUMMIT</button>
+                <button class="lb-filter" data-board="speedrun">&#9201; SPEEDRUN</button>
             </div>
-            <!-- Sort -->
-            <div class="leaderboard-sort" id="leaderboardSort">
-                <label class="lb-sort-label">Sort:</label>
-                <select class="lb-sort-select" id="lbSortSelect">
-                    <option value="rank">Rank</option>
-                    <option value="time">Fastest Time</option>
-                    <option value="date">Latest Record</option>
-                </select>
-            </div>
+            <!-- Live status -->
+            <div class="lb-status" id="lbStatus" aria-live="polite"></div>
             <!-- Top 3 Podium -->
             <div class="lb-podium" id="lbPodium"></div>
             <!-- Full Table -->
@@ -679,7 +668,7 @@
             <!-- Empty State -->
             <div class="lb-empty" id="lbEmpty" style="display:none;">
                 <span class="lb-empty-icon">&#127942;</span>
-                <p>No race records yet. Be the first champion.</p>
+                <p>No records yet. Be the first to reach the top.</p>
             </div>
         </div>
     </section>

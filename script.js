@@ -862,56 +862,85 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-// ========== LEADERBOARD: Render from JSON ==========
-let leaderboardData = [];
-let lbCurrentFilter = 'all';
-let lbCurrentSort = 'rank';
+// ========== LEADERBOARD: Live from Cloudflare Worker ==========
+const LEADERBOARD_API = 'https://pythas-leaderboard.alfathpr18.workers.dev';
 
-async function renderLeaderboard() {
-    const data = await loadJSON('data/leaderboard.json');
-    if (!data || data.length === 0) {
-        showLeaderboardEmpty(true);
-        return;
-    }
-    leaderboardData = data;
-    applyLeaderboardView();
+let lbBoard = 'summit';          // 'summit' | 'speedrun'
+let lbCache = {};                // { summit: [...], speedrun: [...] }
+
+// Format milliseconds -> M:SS.mmm  (e.g. 83470 -> 1:23.470)
+function formatRaceTime(ms) {
+    if (ms == null || isNaN(ms)) return '—';
+    const totalMs = Math.max(0, Math.round(ms));
+    const minutes = Math.floor(totalMs / 60000);
+    const seconds = Math.floor((totalMs % 60000) / 1000);
+    const millis = totalMs % 1000;
+    return `${minutes}:${String(seconds).padStart(2, '0')}.${String(millis).padStart(3, '0')}`;
 }
 
-function applyLeaderboardView() {
-    let filtered = [...leaderboardData];
+function lbPlayerName(p) {
+    return p.display_name || p.username || ('User ' + p.user_id);
+}
 
-    // Apply filter
-    if (lbCurrentFilter !== 'all') {
-        filtered = filtered.filter(item => {
-            return item.category === lbCurrentFilter || item.map === lbCurrentFilter;
-        });
-    }
+async function renderLeaderboard() {
+    await loadLeaderboardBoard(lbBoard);
+}
 
-    // Apply sort
-    if (lbCurrentSort === 'time') {
-        filtered.sort((a, b) => a.time.localeCompare(b.time));
-    } else if (lbCurrentSort === 'date') {
-        filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
-    } else {
-        filtered.sort((a, b) => a.rank - b.rank);
-    }
+async function loadLeaderboardBoard(board) {
+    const statusEl = document.getElementById('lbStatus');
+    if (statusEl) statusEl.textContent = 'Loading live data…';
 
-    if (filtered.length === 0) {
-        showLeaderboardEmpty(true);
-        document.getElementById('lbPodium').innerHTML = '';
-        document.getElementById('lbTableWrapper').innerHTML = '';
+    // Serve from cache instantly if we already have it
+    if (lbCache[board]) {
+        applyLeaderboardData(lbCache[board]);
+        if (statusEl) statusEl.textContent = '';
         return;
     }
 
+    try {
+        const res = await fetch(`${LEADERBOARD_API}/api/leaderboard/${board}`, { cache: 'no-store' });
+        if (!res.ok) throw new Error('API ' + res.status);
+        const json = await res.json();
+        const players = (json && json.players) || [];
+        lbCache[board] = players;
+        applyLeaderboardData(players);
+        if (statusEl) statusEl.textContent = players.length ? '' : '';
+    } catch (err) {
+        console.warn('[leaderboard] failed to load:', err);
+        if (statusEl) statusEl.textContent = '';
+        showLeaderboardEmpty(true, 'Leaderboard is taking a break. Please check back soon.');
+    }
+}
+
+function applyLeaderboardData(players) {
+    if (!players || players.length === 0) {
+        showLeaderboardEmpty(true);
+        const podium = document.getElementById('lbPodium');
+        const table = document.getElementById('lbTableWrapper');
+        if (podium) podium.innerHTML = '';
+        if (table) table.innerHTML = '';
+        return;
+    }
     showLeaderboardEmpty(false);
-    renderPodium(filtered.slice(0, 3));
-    renderLeaderboardTable(filtered.slice(3));
+    // Assign display ranks based on the order returned by the API
+    const ranked = players.map((p, i) => ({ ...p, rank: i + 1 }));
+    renderPodium(ranked.slice(0, 3));
+    renderLeaderboardTable(ranked.slice(3));
+    loadLeaderboardAvatars(ranked);
+}
+
+function lbValueLabel(p) {
+    // Summit board shows summit count; speedrun shows best time
+    return lbBoard === 'speedrun' ? formatRaceTime(p.best_time_ms) : `${p.summit ?? 0}`;
+}
+
+function lbValueCaption() {
+    return lbBoard === 'speedrun' ? 'Best Time' : 'Summits';
 }
 
 function renderPodium(top3) {
     const podium = document.getElementById('lbPodium');
     if (!podium) return;
-
     if (top3.length === 0) { podium.innerHTML = ''; return; }
 
     // Reorder for visual: [2nd, 1st, 3rd]
@@ -922,98 +951,115 @@ function renderPodium(top3) {
 
     let html = '';
     ordered.forEach(p => {
-        const rankClass = `rank-${p.displayRank}`;
+        const name = lbPlayerName(p);
         html += `
-            <div class="lb-podium-card ${rankClass}">
+            <div class="lb-podium-card rank-${p.displayRank}">
                 <div class="lb-podium-rank">#${p.displayRank}</div>
-                <div class="lb-podium-avatar">&#127942;</div>
-                <div class="lb-podium-name">${p.playerName}</div>
-                <div class="lb-podium-time">${p.time}</div>
-                <div class="lb-podium-details">${p.map} &bull; ${p.device}<br>${p.eventName}</div>
-                ${p.badge ? `<span class="lb-podium-badge">${p.badge}</span>` : ''}
+                <div class="lb-podium-avatar" data-uid="${p.user_id}">&#127942;</div>
+                <div class="lb-podium-name">${escapeHtmlLb(name)}</div>
+                <div class="lb-podium-time">${escapeHtmlLb(lbValueLabel(p))}</div>
+                <div class="lb-podium-details">${lbValueCaption()}</div>
             </div>
         `;
     });
-
     podium.innerHTML = html;
 }
 
 function renderLeaderboardTable(rows) {
     const wrapper = document.getElementById('lbTableWrapper');
     if (!wrapper) return;
-
     if (rows.length === 0) { wrapper.innerHTML = ''; return; }
 
+    const valueHead = lbBoard === 'speedrun' ? 'BEST TIME' : 'SUMMITS';
     let html = `
         <table class="lb-table">
             <thead>
                 <tr>
                     <th>RANK</th>
                     <th>PLAYER</th>
-                    <th>TIME</th>
-                    <th>MAP</th>
-                    <th>EVENT</th>
-                    <th>DEVICE</th>
-                    <th>DATE</th>
-                    <th>BADGE</th>
+                    <th>${valueHead}</th>
                 </tr>
             </thead>
             <tbody>
     `;
-
     rows.forEach(row => {
+        const name = lbPlayerName(row);
         html += `
             <tr>
                 <td class="td-rank">#${row.rank}</td>
-                <td class="td-player">${row.playerName}</td>
-                <td class="td-time">${row.time}</td>
-                <td>${row.map}</td>
-                <td>${row.eventName}</td>
-                <td>${row.device}</td>
-                <td>${formatDate(row.date)}</td>
-                <td>${row.badge ? `<span class="td-badge">${row.badge}</span>` : '—'}</td>
+                <td class="td-player">
+                    <span class="lb-row-avatar" data-uid="${row.user_id}"></span>
+                    ${escapeHtmlLb(name)}
+                </td>
+                <td class="td-time">${escapeHtmlLb(lbValueLabel(row))}</td>
             </tr>
         `;
     });
-
     html += '</tbody></table>';
     wrapper.innerHTML = html;
 }
 
-function showLeaderboardEmpty(show) {
-    const empty = document.getElementById('lbEmpty');
-    const podium = document.getElementById('lbPodium');
-    const table = document.getElementById('lbTableWrapper');
-    if (empty) empty.style.display = show ? 'block' : 'none';
-    if (show) {
-        if (podium) podium.style.display = 'none';
-        if (table) table.style.display = 'none';
-    } else {
-        if (podium) podium.style.display = '';
-        if (table) table.style.display = '';
+// Pull Roblox avatars for everyone shown, in one batch
+async function loadLeaderboardAvatars(players) {
+    const ids = players.map(p => p.user_id).filter(Boolean);
+    if (ids.length === 0) return;
+    try {
+        const url = `https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${ids.join(',')}&size=150x150&format=Png&isCircular=true`;
+        const res = await fetch(url);
+        if (!res.ok) return;
+        const json = await res.json();
+        const byId = {};
+        (json.data || []).forEach(item => {
+            if (item.state === 'Completed' && item.imageUrl) byId[item.targetId] = item.imageUrl;
+        });
+        document.querySelectorAll('.lb-podium-avatar[data-uid], .lb-row-avatar[data-uid]').forEach(el => {
+            const uid = Number(el.getAttribute('data-uid'));
+            const img = byId[uid];
+            if (!img) return;
+            el.style.backgroundImage = `url("${img}")`;
+            el.style.backgroundSize = 'cover';
+            el.style.backgroundPosition = 'center';
+            if (el.classList.contains('lb-podium-avatar')) el.innerHTML = '';
+        });
+    } catch (err) {
+        console.warn('[leaderboard avatars] failed:', err);
     }
 }
 
-// Leaderboard filter & sort event handlers
-document.addEventListener('DOMContentLoaded', () => {
-    const filtersContainer = document.getElementById('leaderboardFilters');
-    const sortSelect = document.getElementById('lbSortSelect');
+function showLeaderboardEmpty(show, message) {
+    const empty = document.getElementById('lbEmpty');
+    const podium = document.getElementById('lbPodium');
+    const table = document.getElementById('lbTableWrapper');
+    if (empty) {
+        empty.style.display = show ? 'block' : 'none';
+        if (show && message) {
+            const p = empty.querySelector('p');
+            if (p) p.textContent = message;
+        }
+    }
+    if (podium) podium.style.display = show ? 'none' : '';
+    if (table) table.style.display = show ? 'none' : '';
+}
 
-    if (filtersContainer) {
-        filtersContainer.addEventListener('click', (e) => {
+function escapeHtmlLb(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'
+    }[c]));
+}
+
+// Leaderboard tab switching
+document.addEventListener('DOMContentLoaded', () => {
+    const tabs = document.getElementById('leaderboardTabs');
+    if (tabs) {
+        tabs.addEventListener('click', (e) => {
             const btn = e.target.closest('.lb-filter');
             if (!btn) return;
-            filtersContainer.querySelectorAll('.lb-filter').forEach(b => b.classList.remove('active'));
+            const board = btn.getAttribute('data-board');
+            if (!board || board === lbBoard) return;
+            tabs.querySelectorAll('.lb-filter').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            lbCurrentFilter = btn.getAttribute('data-filter');
-            applyLeaderboardView();
-        });
-    }
-
-    if (sortSelect) {
-        sortSelect.addEventListener('change', () => {
-            lbCurrentSort = sortSelect.value;
-            applyLeaderboardView();
+            lbBoard = board;
+            loadLeaderboardBoard(board);
         });
     }
 });

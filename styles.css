@@ -3715,3 +3715,40 @@ body.theme-glitching .theme-toggle {
     .reg-row { grid-template-columns: 1fr; }
     .reg-modal-body { padding: 28px 20px 22px; }
 }
+
+
+
+/* ========================================
+   LEADERBOARD — live (Summit / Speedrun) extras
+   ======================================== */
+
+/* Status line under the tabs (e.g. "Loading live data…") */
+.lb-status {
+    text-align: center;
+    color: var(--gray-light);
+    font-size: 13px;
+    min-height: 18px;
+    margin: 4px 0 14px;
+    letter-spacing: 0.5px;
+}
+
+/* Small circular avatar in each table row */
+.lb-row-avatar {
+    display: inline-block;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    margin-right: 10px;
+    vertical-align: middle;
+    background: var(--gray-dark);
+    background-size: cover;
+    background-position: center;
+    border: 1px solid var(--gray-dark);
+}
+
+/* Podium avatar should render the Roblox headshot cleanly */
+.lb-podium-avatar {
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+}
