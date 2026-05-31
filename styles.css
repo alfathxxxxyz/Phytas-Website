@@ -1158,6 +1158,17 @@ body {
     margin-bottom: 18px;
 }
 
+.member-roles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 18px;
+}
+
+.member-roles .member-role {
+    margin-bottom: 0;
+}
+
 .member-role.dev { background: var(--blue); color: var(--white); }
 .member-role.event { background: var(--magenta); color: var(--white); }
 .member-role.caster { background: var(--orange); color: var(--black); }
