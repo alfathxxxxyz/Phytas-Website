@@ -46,6 +46,12 @@ export default {
       if (pathname === '/api/leaderboard/speedrun' && method === 'GET') {
         return await handleLeaderboard(env, 'speedrun');
       }
+      if (pathname === '/api/roblox/avatars' && method === 'GET') {
+        return await handleRobloxAvatars(request);
+      }
+      if (pathname === '/api/roblox/game-icons' && method === 'GET') {
+        return await handleRobloxGameIcons(request);
+      }
       if (pathname === '/' || pathname === '/health') {
         return json({ ok: true, service: 'pythas-leaderboard' });
       }
@@ -136,4 +142,39 @@ async function handleLeaderboard(env, type) {
 
   const players = await res.json();
   return json({ ok: true, type, count: players.length, players });
+}
+
+// ---- GET /api/roblox/avatars?userIds=1,2,3 ----
+// Proxies Roblox thumbnails so the browser doesn't hit CORS issues.
+async function handleRobloxAvatars(request) {
+  const { searchParams } = new URL(request.url);
+  const userIds = (searchParams.get('userIds') || '').replace(/[^0-9,]/g, '');
+  if (!userIds) return json({ ok: true, data: [] });
+  const size = (searchParams.get('size') || '150x150').replace(/[^0-9x]/g, '');
+  const url = `https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userIds}&size=${size}&format=Png&isCircular=true`;
+  return await proxyJson(url);
+}
+
+// ---- GET /api/roblox/game-icons?placeIds=1,2 ----
+async function handleRobloxGameIcons(request) {
+  const { searchParams } = new URL(request.url);
+  const placeIds = (searchParams.get('placeIds') || '').replace(/[^0-9,]/g, '');
+  if (!placeIds) return json({ ok: true, data: [] });
+  const size = (searchParams.get('size') || '512x512').replace(/[^0-9x]/g, '');
+  const url = `https://thumbnails.roblox.com/v1/places/gameicons?placeIds=${placeIds}&size=${size}&format=Png&isCircular=false&returnPolicy=PlaceHolder`;
+  return await proxyJson(url);
+}
+
+// Fetch a Roblox thumbnails URL from the server side and return its JSON with CORS.
+async function proxyJson(url) {
+  try {
+    const res = await fetch(url, { headers: { accept: 'application/json' } });
+    if (!res.ok) {
+      return json({ ok: false, data: [], status: res.status }, 200);
+    }
+    const data = await res.json();
+    return json(data, 200);
+  } catch (err) {
+    return json({ ok: false, data: [], detail: String((err && err.message) || err) }, 200);
+  }
 }

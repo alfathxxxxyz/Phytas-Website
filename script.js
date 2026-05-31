@@ -24,13 +24,16 @@ const ROBLOX_GAMES = {
 
 // Fetch Roblox avatar headshots in one batch from the official thumbnails API.
 // API supports CORS; returns JSON with imageUrl pointing to tr.rbxcdn.com.
+// Base URL of the Cloudflare Worker that proxies Roblox + serves leaderboard data
+const WORKER_API = 'https://pythas-leaderboard.alfathpr18.workers.dev';
+
 async function loadRobloxAvatars() {
     const userIds = Object.values(ROBLOX_USERS);
     if (userIds.length === 0) return;
     try {
-        const url = `https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userIds.join(',')}&size=420x420&format=Png&isCircular=false`;
+        const url = `${WORKER_API}/api/roblox/avatars?userIds=${userIds.join(',')}&size=420x420`;
         const res = await fetch(url);
-        if (!res.ok) throw new Error('Roblox thumbnails API ' + res.status);
+        if (!res.ok) throw new Error('avatars proxy ' + res.status);
         const json = await res.json();
         const byId = {};
         (json.data || []).forEach(item => {
@@ -63,9 +66,9 @@ async function loadRobloxGameIcons() {
     const placeIds = Object.values(ROBLOX_GAMES);
     if (placeIds.length === 0) return;
     try {
-        const url = `https://thumbnails.roblox.com/v1/places/gameicons?placeIds=${placeIds.join(',')}&size=512x512&format=Png&isCircular=false&returnPolicy=PlaceHolder`;
+        const url = `${WORKER_API}/api/roblox/game-icons?placeIds=${placeIds.join(',')}&size=512x512`;
         const res = await fetch(url);
-        if (!res.ok) throw new Error('Roblox game icons API ' + res.status);
+        if (!res.ok) throw new Error('game-icons proxy ' + res.status);
         const json = await res.json();
         const byPlaceId = {};
         (json.data || []).forEach(item => {
@@ -863,7 +866,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 // ========== LEADERBOARD: Live from Cloudflare Worker ==========
-const LEADERBOARD_API = 'https://pythas-leaderboard.alfathpr18.workers.dev';
+const LEADERBOARD_API = WORKER_API;
 
 let lbBoard = 'summit';          // 'summit' | 'speedrun'
 let lbCache = {};                // { summit: [...], speedrun: [...] }
@@ -1010,7 +1013,7 @@ async function loadLeaderboardAvatars(players) {
     const ids = players.map(p => p.user_id).filter(id => id && id > 0);
     if (ids.length === 0) return;
     try {
-        const url = `https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${ids.join(',')}&size=150x150&format=Png&isCircular=true`;
+        const url = `${WORKER_API}/api/roblox/avatars?userIds=${ids.join(',')}&size=150x150`;
         const res = await fetch(url);
         if (!res.ok) return;
         const json = await res.json();
