@@ -92,3 +92,54 @@ _G.PythasLeaderboard = { sync = sync }
 --
 --   _G.PythasLeaderboard.sync(player, total, timeMs, "speedrun")
 -- ============================================================
+
+
+-- ============================================================
+--  INTEGRASI NYATA UNTUK MOUNT AGORA (TerlaSystems)
+--  Letakkan pemanggilan ini DI DALAM script game yang sudah ada.
+--  PENTING: pastikan script ini (LeaderboardSync) ada di
+--  ServerScriptService dan sudah jalan sebelum dipanggil.
+-- ============================================================
+--
+-- (1) SUMMIT
+--     File : ServerScriptService.TerlaSystems.Checkpoints.CheckpointService
+--     Fungsi: awardSummit(player, finishIndex)
+--     Taruh SETELAH SaveSummitData sukses:
+--
+--       if ok and result then
+--           PendingSummit[uid] = nil
+--           ProfileManager.TriggerGlobalRefresh("summit")
+--
+--           if _G.PythasLeaderboard and _G.PythasLeaderboard.sync then
+--               task.spawn(function()
+--                   _G.PythasLeaderboard.sync(player, newValue, nil, "summit")
+--               end)
+--           end
+--
+--           return
+--       end
+--
+--     -> "newValue" = TOTAL summit pemain terbaru.
+--
+-- (2) SPEEDRUN
+--     File : ServerScriptService.TerlaSystems.SpeedRun.SpeedRunService
+--     Fungsi: finishSpeedRun(player)
+--     Taruh SETELAH SaveTimeData sukses:
+--
+--       if saveOk then
+--           local bestTimeMs = ProfileManager.GetBestTime(player)
+--
+--           if _G.PythasLeaderboard and _G.PythasLeaderboard.sync then
+--               task.spawn(function()
+--                   _G.PythasLeaderboard.sync(player, nil, bestTimeMs, "speedrun")
+--               end)
+--           end
+--       end
+--
+--     -> "bestTimeMs" = waktu terbaik pemain dalam milidetik.
+--
+--  Catatan:
+--   - task.spawn dipakai supaya request HTTP tidak nge-block gameplay. (bagus!)
+--   - MAP_NAME di config atas yang menentukan map ("agora" / "aztec"),
+--     jadi pemanggilan di atas TIDAK perlu menyebut map.
+-- ============================================================
