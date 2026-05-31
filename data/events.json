@@ -1,164 +1,56 @@
 [
   {
     "id": "evt-001",
-    "title": "LIMPUL RACE — MOUNT AGORA",
+    "title": "LIMPUL 3 SUMMIT",
     "game": "Mount Agora",
-    "date": "2026-06-14",
-    "time": "20:00",
-    "timezone": "WIB",
+    "date": "",
+    "time": "",
+    "timezone": "",
     "status": "upcoming",
-    "type": "Race Event",
+    "type": "",
     "image": "images/games/mount-agora.png",
-    "description": "High-intensity mountain race through the iconic Agora trails. Compete against the best racers in the community for glory and prizes.",
-    "rules": [
-      "All device categories allowed (Mobile, PC, Mixed)",
-      "No speed exploits or fly hacks",
-      "Items: Speed Coil BANNED, Gravity Coil BANNED",
-      "Must use default character (no morphs)",
-      "Disconnection = automatic disqualification unless reconnected within 30 seconds",
-      "Top 3 finishers in each session advance to finals",
-      "Prize split only applies to final session winners"
-    ],
-    "sessions": [
-      { "name": "Qualifier A", "time": "20:00 WIB", "slots": 16 },
-      { "name": "Qualifier B", "time": "20:30 WIB", "slots": 16 },
-      { "name": "Grand Final", "time": "21:15 WIB", "slots": 6 }
-    ],
-    "prize": "3,000 Robux + Champion Title",
-    "caster": "CastKing",
-    "registrationLink": "https://discord.gg/sqfbJYMDhW",
-    "tags": ["race", "mount-agora", "season-4", "championship"]
+    "description": "",
+    "rules": [],
+    "sessions": [],
+    "prize": "",
+    "caster": "",
+    "registrationLink": "",
+    "tags": []
   },
   {
     "id": "evt-002",
-    "title": "SEASON 4 GRAND PRIX",
+    "title": "THRONE OF POSEIDON LEAGUE S1",
     "game": "Mount Agora",
-    "date": "2026-06-07",
-    "time": "20:00",
-    "timezone": "EST",
+    "date": "",
+    "time": "",
+    "timezone": "",
     "status": "upcoming",
-    "type": "Championship",
+    "type": "",
     "image": "images/games/mount-agora.png",
-    "description": "The ultimate racing championship. 32 racers. 4 rounds. 1 champion. The biggest event of Season 4.",
-    "rules": [
-      "Single Elimination format",
-      "32 participants maximum",
-      "All devices allowed",
-      "No items permitted during races",
-      "Must be registered 24 hours before event",
-      "Stream delay: 10 seconds"
-    ],
-    "sessions": [
-      { "name": "Round of 32", "time": "20:00 EST", "slots": 32 },
-      { "name": "Round of 16", "time": "20:45 EST", "slots": 16 },
-      { "name": "Quarter Finals", "time": "21:15 EST", "slots": 8 },
-      { "name": "Grand Final", "time": "21:45 EST", "slots": 4 }
-    ],
-    "prize": "5,000 Robux + Champion Title + Trophy",
-    "caster": "CastKing & MaschPyth",
-    "registrationLink": "https://discord.gg/sqfbJYMDhW",
-    "tags": ["championship", "grand-prix", "season-4", "mount-agora"]
+    "description": "",
+    "rules": [],
+    "sessions": [],
+    "prize": "",
+    "caster": "",
+    "registrationLink": "",
+    "tags": []
   },
   {
     "id": "evt-003",
-    "title": "FRIDAY NIGHT RACE",
+    "title": "THRONE OF MOUNT AGORA S3",
     "game": "Mount Agora",
-    "date": "2026-05-30",
-    "time": "20:00",
-    "timezone": "EST",
-    "status": "live",
-    "type": "Weekly Race",
-    "image": "images/games/mount-agora.png",
-    "description": "Every Friday at 8PM EST. New tracks, new prizes, same adrenaline. Open to all skill levels.",
-    "rules": [
-      "Open registration — first come first served",
-      "All devices allowed",
-      "Standard racing rules apply",
-      "No items during race",
-      "Fun and fair play required"
-    ],
-    "sessions": [
-      { "name": "Open Race", "time": "20:00 EST", "slots": 24 }
-    ],
-    "prize": "500 Robux",
-    "caster": "AveyyPyth",
-    "registrationLink": "https://discord.gg/sqfbJYMDhW",
-    "tags": ["weekly", "race", "open", "mount-agora"]
-  },
-  {
-    "id": "evt-004",
-    "title": "TIME TRIAL CHALLENGE",
-    "game": "Mount Aztec",
-    "date": "2026-06-02",
-    "time": "18:00",
-    "timezone": "EST",
+    "date": "",
+    "time": "",
+    "timezone": "",
     "status": "upcoming",
-    "type": "Time Trial",
-    "image": "images/games/mount-aztec.png",
-    "description": "Beat the clock on Mount Aztec. Post your fastest time and climb the leaderboard. Top 3 earn exclusive badges.",
-    "rules": [
-      "Solo time trial — no PvP",
-      "3 attempts per player",
-      "Best time counts",
-      "All devices allowed",
-      "Screen recording required for verification"
-    ],
-    "sessions": [
-      { "name": "Time Trial Window", "time": "18:00–22:00 EST", "slots": 50 }
-    ],
-    "prize": "Exclusive Badge + Leaderboard Entry",
+    "type": "",
+    "image": "images/games/mount-agora.png",
+    "description": "",
+    "rules": [],
+    "sessions": [],
+    "prize": "",
     "caster": "",
-    "registrationLink": "https://discord.gg/sqfbJYMDhW",
-    "tags": ["time-trial", "mount-aztec", "solo", "badge"]
-  },
-  {
-    "id": "evt-005",
-    "title": "COLLECTIVE DRIFT NIGHT",
-    "game": "Mount Agora",
-    "date": "2026-06-05",
-    "time": "21:00",
-    "timezone": "EST",
-    "status": "upcoming",
-    "type": "Casual Event",
-    "image": "images/games/mount-agora.png",
-    "description": "A casual drift competition with style points. Show off your best moves on the mountain roads.",
-    "rules": [
-      "Style-based judging by panel",
-      "All devices allowed",
-      "Creativity and flair encouraged",
-      "No exploits or speed hacks"
-    ],
-    "sessions": [
-      { "name": "Drift Show", "time": "21:00 EST", "slots": 20 }
-    ],
-    "prize": "1,000 Robux + Style King Title",
-    "caster": "VinnyPyth",
     "registrationLink": "",
-    "tags": ["drift", "casual", "style", "mount-agora"]
-  },
-  {
-    "id": "evt-006",
-    "title": "QUALIFIER ROUND 3",
-    "game": "Mount Agora",
-    "date": "2026-05-24",
-    "time": "19:00",
-    "timezone": "EST",
-    "status": "finished",
-    "type": "Qualifier",
-    "image": "images/games/mount-agora.png",
-    "description": "The third qualifier round for Season 4 Grand Prix. Top 8 advance to the championship bracket.",
-    "rules": [
-      "Invitation only — qualified players",
-      "Single elimination",
-      "No items allowed",
-      "PC and Mobile categories separate"
-    ],
-    "sessions": [
-      { "name": "Qualifier Heat", "time": "19:00 EST", "slots": 16 }
-    ],
-    "prize": "Championship Slot",
-    "caster": "CastKing",
-    "registrationLink": "",
-    "tags": ["qualifier", "season-4", "championship", "mount-agora"]
+    "tags": []
   }
 ]
