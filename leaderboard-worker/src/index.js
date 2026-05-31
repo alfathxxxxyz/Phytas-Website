@@ -63,6 +63,9 @@ export default {
       if (pathname === '/api/roblox/users' && method === 'GET') {
         return await handleRobloxUsers(request);
       }
+      if (pathname === '/api/admin/refresh-names' && method === 'GET') {
+        return await handleRefreshNames(env);
+      }
       if (pathname === '/' || pathname === '/health') {
         return json({ ok: true, service: 'pythas-leaderboard' });
       }
@@ -216,19 +219,24 @@ async function fillRealNames(env, players) {
   return players;
 }
 
-// Calls the Roblox users API with one retry on 429 (rate limit).
+// Calls the Roblox users API with several retries on 429 (rate limit) and
+// transient errors, using increasing backoff so partial batches don't get lost.
 async function fetchRobloxUsers(ids) {
   const body = JSON.stringify({ userIds: ids, excludeBannedUsers: false });
-  for (let attempt = 0; attempt < 2; attempt++) {
+  const backoffs = [400, 900, 1800]; // ms between attempts
+  for (let attempt = 0; attempt <= backoffs.length; attempt++) {
     try {
       const res = await fetch('https://users.roblox.com/v1/users', {
         method: 'POST',
         headers: { 'content-type': 'application/json', accept: 'application/json' },
         body,
       });
-      if (res.status === 429) {
-        await new Promise(r => setTimeout(r, 600));
-        continue;
+      if (res.status === 429 || res.status >= 500) {
+        if (attempt < backoffs.length) {
+          await new Promise(r => setTimeout(r, backoffs[attempt]));
+          continue;
+        }
+        return null;
       }
       if (!res.ok) return null;
       const data = await res.json();
@@ -238,7 +246,10 @@ async function fetchRobloxUsers(ids) {
       });
       return map;
     } catch (_) {
-      // retry once
+      if (attempt < backoffs.length) {
+        await new Promise(r => setTimeout(r, backoffs[attempt]));
+        continue;
+      }
     }
   }
   return null;
@@ -284,6 +295,59 @@ async function handleRobloxUsers(request) {
     displayName: map[id].displayName,
   }));
   return json({ ok: true, data }, 200);
+}
+
+// ---- GET /api/admin/refresh-names ----
+// Finds ALL rows that still have placeholder usernames (across every map),
+// resolves their real Roblox names in batches, and saves them to Supabase.
+// Handy to clean up stragglers that hit a rate limit on first load.
+async function handleRefreshNames(env) {
+  // Fetch distinct placeholder user_ids
+  const url = `${env.SUPABASE_URL}/rest/v1/players?select=user_id,username,display_name&or=(username.like.User_*,username.is.null)&limit=1000`;
+  const res = await fetch(url, {
+    headers: {
+      apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+      authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+    },
+  });
+  if (!res.ok) {
+    return json({ ok: false, error: 'query failed', status: res.status, detail: await res.text() }, 502);
+  }
+  const rows = await res.json();
+  const ids = [...new Set(
+    rows.filter(r => isPlaceholderName(r.username) && isPlaceholderName(r.display_name) && r.user_id > 0)
+        .map(r => r.user_id)
+  )];
+  if (ids.length === 0) return json({ ok: true, resolved: 0, remaining: 0, message: 'All names already resolved.' });
+
+  let resolvedCount = 0;
+  // Process in batches of 100 with a small pause to respect rate limits
+  for (let i = 0; i < ids.length; i += 100) {
+    const batch = ids.slice(i, i + 100);
+    const map = await fetchRobloxUsers(batch);
+    if (map && Object.keys(map).length > 0) {
+      const payload = Object.keys(map).map(id => ({
+        user_id: Number(id),
+        username: map[id].name,
+        display_name: map[id].displayName || map[id].name,
+      }));
+      try {
+        await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/upsert_player_names`, {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+            authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+          },
+          body: JSON.stringify({ p: payload }),
+        });
+        resolvedCount += payload.length;
+      } catch (_) { /* best effort */ }
+    }
+    if (i + 100 < ids.length) await new Promise(r => setTimeout(r, 700));
+  }
+
+  return json({ ok: true, requested: ids.length, resolved: resolvedCount, remaining: ids.length - resolvedCount });
 }
 
 // Fetch a Roblox thumbnails URL from the server side and return its JSON with CORS.
