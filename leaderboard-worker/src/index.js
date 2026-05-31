@@ -143,8 +143,90 @@ async function handleLeaderboard(env, type) {
     return json({ error: 'Supabase query failed', status: res.status, detail }, 502);
   }
 
-  const players = await res.json();
+  let players = await res.json();
+
+  // Auto-fill real Roblox names for rows that still have placeholder usernames
+  // (e.g. "User_123"). Resolved names are saved back to Supabase so this only
+  // needs to happen once per player.
+  players = await fillRealNames(env, players);
+
   return json({ ok: true, type, count: players.length, players });
+}
+
+// Returns true if a stored name is missing or a placeholder like "User_123".
+function isPlaceholderName(name) {
+  return !name || /^user[_ ]?\d+$/i.test(String(name));
+}
+
+// Look up real Roblox names for placeholder rows, persist them to Supabase,
+// and return the players array with names patched in.
+async function fillRealNames(env, players) {
+  const needs = players.filter(
+    p => p.user_id > 0 && isPlaceholderName(p.display_name) && isPlaceholderName(p.username)
+  );
+  if (needs.length === 0) return players;
+
+  const ids = needs.map(p => p.user_id).slice(0, 100);
+  const resolved = await fetchRobloxUsers(ids); // { id: {name, displayName} }
+  if (!resolved || Object.keys(resolved).length === 0) return players;
+
+  // Patch in-memory for an immediate response
+  players.forEach(p => {
+    const r = resolved[p.user_id];
+    if (r) {
+      p.username = r.name || p.username;
+      p.display_name = r.displayName || r.name || p.display_name;
+    }
+  });
+
+  // Persist to Supabase (fire and forget; ignore failures)
+  try {
+    const rows = Object.keys(resolved).map(id => ({
+      user_id: Number(id),
+      username: resolved[id].name,
+      display_name: resolved[id].displayName || resolved[id].name,
+    }));
+    await fetch(`${env.SUPABASE_URL}/rest/v1/players?on_conflict=user_id`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+        authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+        prefer: 'resolution=merge-duplicates,return=minimal',
+      },
+      body: JSON.stringify(rows),
+    });
+  } catch (_) { /* best effort */ }
+
+  return players;
+}
+
+// Calls the Roblox users API with one retry on 429 (rate limit).
+async function fetchRobloxUsers(ids) {
+  const body = JSON.stringify({ userIds: ids, excludeBannedUsers: false });
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const res = await fetch('https://users.roblox.com/v1/users', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', accept: 'application/json' },
+        body,
+      });
+      if (res.status === 429) {
+        await new Promise(r => setTimeout(r, 600));
+        continue;
+      }
+      if (!res.ok) return null;
+      const data = await res.json();
+      const map = {};
+      (data.data || []).forEach(u => {
+        if (u && u.id) map[u.id] = { name: u.name, displayName: u.displayName || u.name };
+      });
+      return map;
+    } catch (_) {
+      // retry once
+    }
+  }
+  return null;
 }
 
 // ---- GET /api/roblox/avatars?userIds=1,2,3 ----
@@ -178,18 +260,15 @@ async function handleRobloxUsers(request) {
     .filter(n => Number.isFinite(n) && n > 0)
     .slice(0, 200);
   if (ids.length === 0) return json({ ok: true, data: [] });
-  try {
-    const res = await fetch('https://users.roblox.com/v1/users', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', accept: 'application/json' },
-      body: JSON.stringify({ userIds: ids, excludeBannedUsers: false }),
-    });
-    if (!res.ok) return json({ ok: false, data: [], status: res.status }, 200);
-    const data = await res.json();
-    return json(data, 200);
-  } catch (err) {
-    return json({ ok: false, data: [], detail: String((err && err.message) || err) }, 200);
-  }
+  const map = await fetchRobloxUsers(ids);
+  if (!map) return json({ ok: false, data: [] }, 200);
+  // Return in the same shape as the Roblox API for compatibility
+  const data = Object.keys(map).map(id => ({
+    id: Number(id),
+    name: map[id].name,
+    displayName: map[id].displayName,
+  }));
+  return json({ ok: true, data }, 200);
 }
 
 // Fetch a Roblox thumbnails URL from the server side and return its JSON with CORS.
