@@ -48,12 +48,20 @@ async function loadRobloxAvatars() {
             const name = nameEl.textContent.trim();
             const userId = ROBLOX_USERS[name];
             const imgUrl = userId && byId[userId];
-            if (!imgUrl) return;
-            avatarDiv.style.backgroundImage = `url("${imgUrl}")`;
-            avatarDiv.style.backgroundSize = 'cover';
-            avatarDiv.style.backgroundPosition = 'center';
-            avatarDiv.setAttribute('role', 'img');
-            avatarDiv.setAttribute('aria-label', `${name} Roblox avatar`);
+            if (!imgUrl) return; // keep the static <img> fallback if Roblox lookup fails
+            // Prefer updating an existing <img> so it always shows the live Roblox avatar;
+            // fall back to a background image if the card has no <img>.
+            const imgEl = avatarDiv.querySelector('img');
+            if (imgEl) {
+                imgEl.src = imgUrl;
+                imgEl.alt = `${name} Roblox avatar`;
+            } else {
+                avatarDiv.style.backgroundImage = `url("${imgUrl}")`;
+                avatarDiv.style.backgroundSize = 'cover';
+                avatarDiv.style.backgroundPosition = 'center';
+                avatarDiv.setAttribute('role', 'img');
+                avatarDiv.setAttribute('aria-label', `${name} Roblox avatar`);
+            }
             avatarDiv.setAttribute('data-roblox-id', String(userId));
         });
     } catch (err) {
