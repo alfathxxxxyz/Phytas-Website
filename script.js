@@ -1001,7 +1001,9 @@ function renderLeaderboardTable(rows) {
 
 // Pull Roblox avatars for everyone shown, in one batch
 async function loadLeaderboardAvatars(players) {
-    const ids = players.map(p => p.user_id).filter(Boolean);
+    // Only real Roblox accounts have positive IDs. Legacy/seed rows use
+    // negative IDs, so we skip them to avoid breaking the avatar batch call.
+    const ids = players.map(p => p.user_id).filter(id => id && id > 0);
     if (ids.length === 0) return;
     try {
         const url = `https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${ids.join(',')}&size=150x150&format=Png&isCircular=true`;
