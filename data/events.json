@@ -52,5 +52,41 @@
     "caster": "",
     "registrationLink": "",
     "tags": []
+  },
+  {
+    "id": "evt-004",
+    "title": "THRONE OF MOUNT AGORA S1",
+    "game": "Mount Agora",
+    "date": "",
+    "time": "",
+    "timezone": "",
+    "status": "finished",
+    "type": "",
+    "image": "images/games/mount-agora.png",
+    "description": "",
+    "rules": [],
+    "sessions": [],
+    "prize": "",
+    "caster": "",
+    "registrationLink": "",
+    "tags": []
+  },
+  {
+    "id": "evt-005",
+    "title": "THRONE OF MOUNT AGORA S2",
+    "game": "Mount Agora",
+    "date": "",
+    "time": "",
+    "timezone": "",
+    "status": "finished",
+    "type": "",
+    "image": "images/games/mount-agora.png",
+    "description": "",
+    "rules": [],
+    "sessions": [],
+    "prize": "",
+    "caster": "",
+    "registrationLink": "",
+    "tags": []
   }
 ]
