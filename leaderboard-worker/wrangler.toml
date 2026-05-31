@@ -1,0 +1,13 @@
+name = "pythas-leaderboard"
+main = "src/index.js"
+compatibility_date = "2024-11-01"
+
+# ------------------------------------------------------------------
+# Secrets are NOT stored here. Set them once per environment with:
+#   npx wrangler secret put SUPABASE_URL
+#   npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+#   npx wrangler secret put ROBLOX_SYNC_SECRET
+#
+# For local dev (`npx wrangler dev`), put them in a .dev.vars file
+# (see .dev.vars.example). .dev.vars is gitignored.
+# ------------------------------------------------------------------

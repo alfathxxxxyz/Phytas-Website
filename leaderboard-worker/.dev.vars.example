@@ -1,0 +1,6 @@
+# Copy this file to ".dev.vars" (gitignored) for local `wrangler dev`.
+# In production, set these with `npx wrangler secret put <NAME>` instead.
+
+SUPABASE_URL=https://YOUR-PROJECT.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-secret-key
+ROBLOX_SYNC_SECRET=generate-a-long-random-string
