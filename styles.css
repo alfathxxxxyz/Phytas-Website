@@ -3731,6 +3731,11 @@ body.theme-glitching .theme-toggle {
     min-height: 18px;
     margin: 4px 0 10px;
 }
+.reg-turnstile {
+    margin: 6px 0 4px;
+    min-height: 0;
+}
+.reg-turnstile:empty { display: none; }
 .reg-message.error { color: var(--magenta); }
 .reg-message.success { color: var(--lime); }
 

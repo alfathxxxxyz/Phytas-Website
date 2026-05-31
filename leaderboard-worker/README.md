@@ -14,12 +14,13 @@ Website      --GET  /api/leaderboard/speedrun -->  Worker  --select-->  Supabase
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | POST | `/api/roblox/player-stats` | header `x-roblox-secret` | Upsert one player's stats (body may include `map`) |
+| POST | `/api/register` | Cloudflare Turnstile token | Save an event registration (anti-spam) |
 | GET | `/api/leaderboard/summit?map=aztec\|agora` | none | Top 100 by `summit` (desc) for that map |
 | GET | `/api/leaderboard/speedrun?map=aztec\|agora` | none | Top 100 by `best_time_ms` (asc, non-null) for that map |
 
 > `map` defaults to **aztec** if omitted. Valid values: `aztec`, `agora`.
 
-**POST body**
+**POST `/api/roblox/player-stats` body**
 ```json
 {
   "userId": 123456789,
@@ -30,8 +31,28 @@ Website      --GET  /api/leaderboard/speedrun -->  Worker  --select-->  Supabase
   "eventType": "speedrun"
 }
 ```
-Rules: wrong/missing secret → `401`. `summit` is stored as the latest value.
-`best_time_ms` is only updated when the new value is smaller, or when it's still null.
+Rules: wrong/missing secret → `401`. The secret is compared in constant time.
+`summit` is stored as the latest value. `best_time_ms` is only updated when the
+new value is smaller, or when it's still null. Inputs are length/range validated.
+
+**POST `/api/register` body**
+```json
+{
+  "roblox_username": "xRacer_Pro",
+  "discord_username": "@xracer",
+  "device": "PC",
+  "map": "Mount Agora",
+  "notes": "optional",
+  "event_id": "evt-001",
+  "event_title": "LIMPUL 3 SUMMIT",
+  "turnstileToken": "<token from the Turnstile widget>",
+  "website": ""
+}
+```
+Rules: the `turnstileToken` is verified server-side with Cloudflare's siteverify API
+(skipped only if `TURNSTILE_SECRET_KEY` is unset). `website` is a honeypot — if filled,
+the request is silently accepted but discarded. Per-IP rate limited. `device` must be
+one of `PC` / `Mobile` / `Mixed`. The row is inserted with the service role.
 
 ---
 
@@ -47,6 +68,10 @@ Open Supabase → **SQL Editor** → **New query** → paste the contents of
   ⚠️ This key bypasses all security. Keep it secret. It only lives in the Worker, never in the website.
 - `ROBLOX_SYNC_SECRET` — make a long random string yourself, e.g.
   `openssl rand -hex 32`
+- `TURNSTILE_SECRET_KEY` — Cloudflare dashboard → **Turnstile** → create a widget → copy the **Secret Key**.
+  The matching **Site Key** (public) goes in the website's `supabase-config.js` (`TURNSTILE_SITE_KEY`).
+- `ALLOWED_ORIGINS` (non-secret) — comma-separated origins allowed to call the Worker from a browser,
+  e.g. `https://pythas.gg,https://www.pythas.gg`. Set in `wrangler.toml` under `[vars]`.
 
 ### 3. Install & log in to Wrangler
 ```bash
@@ -60,7 +85,10 @@ npx wrangler login
 npx wrangler secret put SUPABASE_URL
 npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY
 npx wrangler secret put ROBLOX_SYNC_SECRET
+npx wrangler secret put TURNSTILE_SECRET_KEY
 ```
+`ALLOWED_ORIGINS` is non-secret and lives in `wrangler.toml` (`[vars]`), so it
+doesn't need `wrangler secret put`.
 
 ### 5. Deploy
 ```bash
@@ -144,7 +172,15 @@ end
 ---
 
 ## Notes
-- CORS is open (`*`) so the website can read the GET endpoints from the browser.
+- **CORS** is locked to `ALLOWED_ORIGINS` when set; otherwise it falls back to `*`
+  (open). Set `ALLOWED_ORIGINS` in production so only your site can read the endpoints
+  from a browser. (Roblox `HttpService` is server-to-server and isn't affected by CORS.)
 - The `players` table has RLS enabled with no policies, so it can't be read/written
   with the public anon key — only the Worker (service role) can touch it.
+- **Registrations** go through `/api/register`, which verifies a Cloudflare Turnstile
+  token server-side and rate-limits per IP. With this in place you can tighten the
+  `registrations` RLS so the public anon key can no longer insert directly — see
+  `SETUP-SUPABASE.md` ("Lock down registrations to the Worker").
+- The Worker returns **generic error messages**; real causes are logged server-side
+  (view with `npx wrangler tail`).
 - Never commit `.dev.vars` or the service role key.

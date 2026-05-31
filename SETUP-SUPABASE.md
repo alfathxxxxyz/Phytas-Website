@@ -129,5 +129,66 @@ on conflict (email) do nothing;
 - **JANGAN PERNAH** taruh `service_role` / secret key di kode website.
 - Pakai **password admin yang kuat** — panel admin ada di URL publik (`/admin.html`),
   yang melindungi cuma login-nya.
-- Form registrasi terbuka untuk publik (memang harus). Kalau nanti kena spam,
-  kabari aku — bisa kita pasang **Cloudflare Turnstile** (CAPTCHA tak terlihat, gratis).
+
+---
+
+## Langkah 4 (opsional, DISARANKAN) — Anti-spam: Cloudflare Turnstile
+
+Form registrasi terbuka untuk publik, jadi rawan spam bot. Turnstile adalah CAPTCHA
+gratis dari Cloudflare yang hampir tak terlihat. Verifikasinya dilakukan **di server
+(Cloudflare Worker)**, bukan cuma di browser, jadi tidak bisa dilewati.
+
+**4a. Bikin widget Turnstile:**
+1. Buka **Cloudflare Dashboard** → **Turnstile** → **Add widget**.
+2. Masukkan domain kamu (mis. `pythas.gg`). Pilih mode **Managed**.
+3. Kamu akan dapat 2 kunci:
+   - **Site Key** (publik) → tempel di `supabase-config.js`:
+     ```js
+     const TURNSTILE_SITE_KEY = '0x4AAAAAAA...'; // site key kamu
+     ```
+   - **Secret Key** (rahasia) → set di Worker (JANGAN ditaruh di website):
+     ```bash
+     cd leaderboard-worker
+     npx wrangler secret put TURNSTILE_SECRET_KEY
+     ```
+
+**4b. Pastikan Worker aktif & alamatnya benar.**
+Di `supabase-config.js`, `WORKER_URL` harus menunjuk ke Worker kamu
+(mis. `https://pythas-leaderboard.<subdomain>.workers.dev`). Saat `WORKER_URL` diisi,
+form registrasi otomatis dikirim lewat Worker (yang mengecek Turnstile dulu), bukan
+langsung ke Supabase.
+
+> Kalau `TURNSTILE_SITE_KEY` dikosongkan, captcha mati dan form jatuh ke mode lama
+> (insert langsung ke Supabase yang tetap dilindungi RLS). Aman, tapi tanpa anti-bot.
+
+---
+
+## Langkah 5 (opsional, DISARANKAN) — Kunci `registrations` hanya lewat Worker
+
+Setelah Turnstile aktif dan registrasi lewat Worker, kamu bisa **mematikan insert
+langsung** dari browser supaya bot tidak bisa lewat jalur Supabase langsung. Jalankan
+di **SQL Editor**:
+
+```sql
+-- Cabut izin insert publik: pendaftaran HARUS lewat Worker (service role bypass RLS)
+drop policy if exists "anyone can register" on public.registrations;
+```
+
+> ⚠️ Lakukan ini **hanya** setelah memastikan `WORKER_URL` + Turnstile berjalan dan
+> registrasi berhasil tersimpan. Kalau belum, biarkan policy `"anyone can register"`
+> tetap ada supaya form mode-fallback masih bisa jalan.
+>
+> Mau balikin? Jalankan lagi blok policy nomor 5 di Langkah 1.
+
+---
+
+## Ringkasan lapisan keamanan
+
+| Lapisan | Melindungi dari | Langkah |
+|---------|-----------------|---------|
+| RLS + allowlist admin | Orang lain baca/hapus data pendaftar | 1, 3 |
+| Signup dimatikan | Orang asing bikin akun admin | 2 |
+| Turnstile (server-side) | Bot spam massal | 4 |
+| Insert dikunci ke Worker | Bypass form lewat API Supabase | 5 |
+| `service_role` hanya di Worker | Kebocoran kunci paling berbahaya | — |
+| CORS `ALLOWED_ORIGINS` di Worker | Situs lain pakai endpoint kamu | (lihat README worker) |

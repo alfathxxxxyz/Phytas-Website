@@ -764,6 +764,8 @@
                     </div>
                     <!-- Honeypot: hidden from humans, traps bots -->
                     <input type="text" id="regWebsite" name="website" class="reg-hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+                    <!-- Cloudflare Turnstile (rendered only when a site key is configured) -->
+                    <div class="reg-turnstile" id="regTurnstile"></div>
                     <div class="reg-message" id="regMessage" role="status"></div>
                     <button type="submit" class="btn btn-primary reg-submit" id="regSubmit">SUBMIT REGISTRATION</button>
                     <p class="reg-privacy">We only use this to organize the event. Don't share personal info like your address or phone number.</p>

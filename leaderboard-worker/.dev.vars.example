@@ -1,6 +1,16 @@
 # Copy this file to ".dev.vars" (gitignored) for local `wrangler dev`.
-# In production, set these with `npx wrangler secret put <NAME>` instead.
+# In production, set secrets with `npx wrangler secret put <NAME>` instead.
 
 SUPABASE_URL=https://YOUR-PROJECT.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-secret-key
 ROBLOX_SYNC_SECRET=generate-a-long-random-string
+
+# Cloudflare Turnstile secret key (server-side captcha verification for /api/register).
+# Get it from Cloudflare dashboard -> Turnstile -> your widget -> "Secret Key".
+# Leave empty/unset to disable the captcha check (NOT recommended in production).
+TURNSTILE_SECRET_KEY=your-turnstile-secret-key
+
+# Comma-separated list of origins allowed to call this Worker from a browser (CORS).
+# Example: https://pythas.gg,https://www.pythas.gg
+# If unset, CORS falls back to "*" (open) for backward compatibility — set this in prod.
+ALLOWED_ORIGINS=https://pythas.gg,https://www.pythas.gg
