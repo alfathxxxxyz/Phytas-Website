@@ -1169,6 +1169,22 @@ body {
     margin-bottom: 0;
 }
 
+.member-name-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+.member-name-row .member-roles {
+    margin-bottom: 0;
+}
+
+.member-name-row h4 {
+    margin-bottom: 0;
+}
+
 .member-role.dev { background: var(--blue); color: var(--white); }
 .member-role.event { background: var(--magenta); color: var(--white); }
 .member-role.caster { background: var(--orange); color: var(--black); }
