@@ -3815,14 +3815,16 @@ body.theme-glitching .theme-toggle {
 /* Featured event banner image */
 .event-featured-image {
     margin: -48px -48px 28px -48px;   /* bleed to the card edges (padding is 48px) */
-    height: 220px;
+    aspect-ratio: var(--event-image-ratio, 16 / 9);
+    max-height: 360px;
     overflow: hidden;
     border-bottom: 1px solid rgba(170, 255, 0, 0.2);
+    background: rgba(4, 6, 10, 0.7);
 }
 .event-featured-image img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     display: block;
 }
 
@@ -3832,18 +3834,16 @@ body.theme-glitching .theme-toggle {
     overflow: hidden;
 }
 .event-card-image {
-    height: 130px;
+    aspect-ratio: var(--event-image-ratio, 16 / 9);
+    max-height: 260px;
     overflow: hidden;
+    background: rgba(4, 6, 10, 0.7);
 }
 .event-card-image img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     display: block;
-    transition: transform 0.4s ease;
-}
-.event-card.has-image:hover .event-card-image img {
-    transform: scale(1.05);
 }
 .event-card .event-card-body {
     padding: 20px 24px 24px;
@@ -3852,17 +3852,19 @@ body.theme-glitching .theme-toggle {
 /* Event detail modal banner image */
 .modal-image {
     margin: -48px -48px 24px -48px;   /* bleed to modal edges (modal padding is 48px) */
-    height: 240px;
+    aspect-ratio: var(--event-image-ratio, 16 / 9);
+    max-height: 520px;
     overflow: hidden;
+    background: rgba(4, 6, 10, 0.7);
 }
 .modal-image img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     display: block;
 }
 
 @media (max-width: 600px) {
-    .event-featured-image { margin: -28px -28px 20px -28px; height: 170px; }
-    .modal-image { margin: -48px -48px 20px -48px; height: 180px; }
+    .event-featured-image { margin: -28px -28px 20px -28px; max-height: 280px; }
+    .modal-image { margin: -48px -48px 20px -48px; max-height: 360px; }
 }

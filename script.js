@@ -580,6 +580,21 @@ let eventsData = [];
 let eventGames = [];
 let currentGameFilter = null;
 
+function applyEventImageRatios(root = document) {
+    root.querySelectorAll('.event-featured-image img, .event-card-image img, .modal-image img').forEach(img => {
+        const fitToImage = () => {
+            if (!img.naturalWidth || !img.naturalHeight) return;
+            img.parentElement.style.setProperty('--event-image-ratio', `${img.naturalWidth} / ${img.naturalHeight}`);
+        };
+
+        if (img.complete) {
+            fitToImage();
+        } else {
+            img.addEventListener('load', fitToImage, { once: true });
+        }
+    });
+}
+
 async function renderEvents() {
     const container = document.getElementById('eventsLayout');
     const fallback = document.getElementById('eventsFallback');
@@ -711,6 +726,7 @@ function renderEventsLayout() {
 
     attachGameFilterHandlers();
     attachEventCardHandlers();
+    applyEventImageRatios(container);
 
     // Re-apply fade-in classes
     container.querySelectorAll('.event-featured, .event-card').forEach(el => {
@@ -838,6 +854,7 @@ function renderEventModal(event) {
     html += `</div>`;
 
     body.innerHTML = html;
+    applyEventImageRatios(body);
 
     // Wire the modal's register button to open the on-site registration form
     const modalRegBtn = body.querySelector('.js-modal-register');
