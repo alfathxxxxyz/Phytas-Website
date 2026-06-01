@@ -653,8 +653,12 @@ function renderEventsLayout() {
     const featured = sorted[0];
     const upcoming = sorted.slice(1);
 
+    const featuredImg = featured.image
+        ? `<div class="event-featured-image"><img src="${featured.image}" alt="${featured.title}" loading="lazy"></div>`
+        : '';
     html += `
         <div class="event-featured clickable" data-event-id="${featured.id}">
+            ${featuredImg}
             <div class="event-featured-badge">${featured.status === 'live' ? 'LIVE NOW' : 'NEXT EVENT'}</div>
             <div class="event-featured-content">
                 <h3>${featured.title}</h3>
@@ -682,15 +686,21 @@ function renderEventsLayout() {
             const statusClass = evt.status === 'live' ? 'live' : evt.status === 'finished' ? 'closed' : 'upcoming';
             const btnText = evt.status === 'finished' ? 'ENDED' : 'VIEW DETAILS';
             const btnDisabled = evt.status === 'finished' ? ' disabled' : '';
+            const cardImg = evt.image
+                ? `<div class="event-card-image"><img src="${evt.image}" alt="${evt.title}" loading="lazy"></div>`
+                : '';
             html += `
-                <div class="event-card clickable" data-event-id="${evt.id}">
-                    <div class="event-status ${statusClass}">${getStatusLabel(evt.status)}</div>
-                    <h4>${evt.title}</h4>
-                    <div class="event-details">
-                        <span>${formatDate(evt.date)} &bull; ${formatTime12(evt.time)} ${evt.timezone}</span>
-                        <span>Prize: ${evt.prize}</span>
+                <div class="event-card clickable${evt.image ? ' has-image' : ''}" data-event-id="${evt.id}">
+                    ${cardImg}
+                    <div class="event-card-body">
+                        <div class="event-status ${statusClass}">${getStatusLabel(evt.status)}</div>
+                        <h4>${evt.title}</h4>
+                        <div class="event-details">
+                            <span>${formatDate(evt.date)} &bull; ${formatTime12(evt.time)} ${evt.timezone}</span>
+                            <span>Prize: ${evt.prize}</span>
+                        </div>
+                        <span class="btn btn-outline btn-sm${btnDisabled}">${btnText}</span>
                     </div>
-                    <span class="btn btn-outline btn-sm${btnDisabled}">${btnText}</span>
                 </div>
             `;
         });
@@ -771,6 +781,7 @@ function renderEventModal(event) {
         : 'upcoming';
 
     let html = `
+        ${event.image ? `<div class="modal-image"><img src="${event.image}" alt="${event.title}" loading="lazy"></div>` : ''}
         <h2 id="eventModalTitle">${event.title}</h2>
         <div class="modal-game">${event.game} &bull; ${event.type}</div>
         <div class="modal-status-badge ${statusClass}">${getStatusLabel(event.status)}</div>
