@@ -44,8 +44,10 @@
     const roleMsg = $('roleMsg');
     const sessionsBuilder = $('sessionsBuilder');
     const regFieldsBuilder = $('regFieldsBuilder');
+    const resultsBuilder = $('resultsBuilder');
     const addSessionBtn = $('addSessionBtn');
     const addRegFieldBtn = $('addRegFieldBtn');
+    const addResultRaceBtn = $('addResultRaceBtn');
 
     let allRows = [];
     let allEvents = [];
@@ -104,7 +106,7 @@
 
     function applyRolePermissions() {
         if (usersTabBtn) usersTabBtn.classList.toggle('hidden', !canManageRoles);
-        [newEventBtn, saveEventBtn, deleteEventBtn, $('eventImageUpload')].forEach(el => {
+        [newEventBtn, saveEventBtn, deleteEventBtn, $('eventImageUpload'), addResultRaceBtn, addSessionBtn, addRegFieldBtn].forEach(el => {
             if (el) el.disabled = !canEditEvents;
         });
         [roleEmail, roleSelect, saveRoleBtn, refreshRolesBtn].forEach(el => {
@@ -113,6 +115,9 @@
         if (eventForm) {
             eventForm.querySelectorAll('input, select, textarea').forEach(el => {
                 if (el.id !== 'eventImageUpload') el.disabled = !canEditEvents;
+            });
+            eventForm.querySelectorAll('button').forEach(el => {
+                el.disabled = !canEditEvents;
             });
         }
     }
@@ -234,6 +239,7 @@
     if (refreshRolesBtn) refreshRolesBtn.addEventListener('click', loadRoles);
     if (addSessionBtn) addSessionBtn.addEventListener('click', () => addSessionRow({}));
     if (addRegFieldBtn) addRegFieldBtn.addEventListener('click', () => addRegFieldRow({ type: 'text' }));
+    if (addResultRaceBtn) addResultRaceBtn.addEventListener('click', () => addResultRaceRow({}));
 
     function setTab(tab) {
         tabButtons.forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-tab') === tab));
@@ -301,6 +307,7 @@
         $('eventImage').value = ev ? (ev.image || '') : '';
         $('eventRegistrationLink').value = ev ? (ev.registration_link || '') : '';
         $('eventRules').value = ev && Array.isArray(ev.rules) ? ev.rules.join('\n') : '';
+        renderResultRows(ev ? (ev.results || []) : []);
         renderSessionRows(ev ? (ev.sessions || []) : []);
         $('eventTags').value = ev && Array.isArray(ev.tags) ? ev.tags.join(', ') : '';
         renderRegFieldRows(fields.map(f => ({
@@ -316,6 +323,84 @@
         $('eventRegistrationEnabled').checked = ev ? !!ev.registration_enabled : true;
         renderEventList();
         applyRolePermissions();
+    }
+
+    function addResultWinnerRow(list, winner) {
+        const item = document.createElement('div');
+        item.className = 'builder-item';
+        item.innerHTML = `
+            <div class="builder-row winner-row">
+                <div><label>Rank</label><input data-winner-rank type="number" min="1" max="3" value="${escapeAttr(winner.rank || '')}" placeholder="1"></div>
+                <div><label>Username</label><input data-winner-username value="${escapeAttr(winner.username || '')}" placeholder="Roblox username"></div>
+                <div><label>Display Name</label><input data-winner-display value="${escapeAttr(winner.displayName || winner.display_name || '')}" placeholder="Display name"></div>
+                <div><label>Avatar URL</label><input data-winner-avatar value="${escapeAttr(winner.avatarUrl || winner.avatar_url || '')}" placeholder="https://..."></div>
+                <button class="btn btn-danger" type="button" data-remove-row>Remove</button>
+            </div>
+        `;
+        item.querySelector('[data-remove-row]').addEventListener('click', () => item.remove());
+        list.appendChild(item);
+        applyRolePermissions();
+    }
+
+    function addResultRaceRow(result) {
+        if (!resultsBuilder) return;
+        const item = document.createElement('div');
+        item.className = 'builder-item';
+        const mode = result.mode || 'podium';
+        item.innerHTML = `
+            <div class="race-result-head">
+                <span class="race-result-title">Race Result</span>
+                <button class="btn btn-danger" type="button" data-remove-row>Remove Race</button>
+            </div>
+            <div class="builder-row result-race-row">
+                <div><label>Race Name</label><input data-result-race-name value="${escapeAttr(result.raceName || result.race_name || '')}" placeholder="Race 1 / Final / Mobile"></div>
+                <div><label>Display Mode</label><select data-result-mode>
+                    <option value="podium" ${mode === 'podium' ? 'selected' : ''}>Podium (1st-3rd)</option>
+                    <option value="cards" ${mode === 'cards' ? 'selected' : ''}>Cards (equal winners)</option>
+                </select></div>
+                <button class="btn btn-ghost" type="button" data-add-winner>+ Add Winner</button>
+            </div>
+            <div class="winner-list" data-winner-list></div>
+        `;
+        const list = item.querySelector('[data-winner-list]');
+        item.querySelector('[data-remove-row]').addEventListener('click', () => item.remove());
+        item.querySelector('[data-add-winner]').addEventListener('click', () => {
+            if (list.querySelectorAll('.builder-item').length >= 3) {
+                alert('Max 3 winners per race.');
+                return;
+            }
+            addResultWinnerRow(list, { rank: list.querySelectorAll('.builder-item').length + 1 });
+        });
+        const winners = Array.isArray(result.winners) ? result.winners : [];
+        if (winners.length) winners.slice(0, 3).forEach(w => addResultWinnerRow(list, w));
+        else addResultWinnerRow(list, { rank: 1 });
+        resultsBuilder.appendChild(item);
+        applyRolePermissions();
+    }
+
+    function renderResultRows(results) {
+        if (!resultsBuilder) return;
+        resultsBuilder.innerHTML = '';
+        (Array.isArray(results) ? results : []).forEach(addResultRaceRow);
+    }
+
+    function collectResults() {
+        if (!resultsBuilder) return [];
+        return [...resultsBuilder.querySelectorAll(':scope > .builder-item')].map((item, index) => {
+            const raceName = item.querySelector('[data-result-race-name]').value.trim();
+            const mode = item.querySelector('[data-result-mode]').value;
+            const winners = [...item.querySelectorAll('[data-winner-list] > .builder-item')].map((winnerItem, winnerIndex) => ({
+                rank: Number(winnerItem.querySelector('[data-winner-rank]').value || winnerIndex + 1),
+                username: winnerItem.querySelector('[data-winner-username]').value.trim(),
+                displayName: winnerItem.querySelector('[data-winner-display]').value.trim(),
+                avatarUrl: winnerItem.querySelector('[data-winner-avatar]').value.trim()
+            })).filter(w => w.username || w.displayName || w.avatarUrl).slice(0, 3);
+            return {
+                raceName: raceName || `Race ${index + 1}`,
+                mode: mode === 'cards' ? 'cards' : 'podium',
+                winners
+            };
+        }).filter(result => result.raceName && result.winners.length);
     }
 
     function addSessionRow(session) {
@@ -429,6 +514,7 @@
             description: $('eventDescription').value.trim() || null,
             broadcast_text: $('eventBroadcastText').value.trim() || null,
             rules: $('eventRules').value.split('\n').map(s => s.trim()).filter(Boolean),
+            results: collectResults(),
             sessions: collectSessions(),
             prize: $('eventPrize').value.trim() || null,
             caster: $('eventCaster').value.trim() || null,

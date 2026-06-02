@@ -95,6 +95,7 @@ create table if not exists public.events (
   caster text,
   registration_enabled boolean not null default true,
   registration_link text,
+  results jsonb not null default '[]'::jsonb,
   tags jsonb not null default '[]'::jsonb,
   published boolean not null default true,
   sort_order int not null default 0
@@ -118,6 +119,9 @@ create table if not exists public.event_registration_fields (
 -- 3) Backwards-compatible registrations table upgrade.
 alter table public.registrations
   add column if not exists answers jsonb not null default '{}'::jsonb;
+
+alter table public.events
+  add column if not exists results jsonb not null default '[]'::jsonb;
 
 -- Existing imports/old registrations keep working with old columns.
 alter table public.registrations

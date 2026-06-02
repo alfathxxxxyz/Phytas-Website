@@ -633,6 +633,7 @@ function getStatusLabel(status) {
 
 function normalizeEvent(raw) {
     const fields = raw.event_registration_fields || raw.registrationFields || [];
+    const results = Array.isArray(raw.results) ? raw.results : [];
     return {
         id: String(raw.id || ''),
         title: raw.title || '',
@@ -653,6 +654,19 @@ function normalizeEvent(raw) {
         caster: raw.caster || '',
         registrationEnabled: raw.registrationEnabled ?? raw.registration_enabled ?? true,
         registrationLink: raw.registrationLink || raw.registration_link || '',
+        results: results.map((result, index) => ({
+            raceName: result.raceName || result.race_name || `Race ${index + 1}`,
+            mode: result.mode === 'cards' ? 'cards' : 'podium',
+            winners: (Array.isArray(result.winners) ? result.winners : [])
+                .map((winner, winnerIndex) => ({
+                    rank: Number(winner.rank || winnerIndex + 1),
+                    username: winner.username || winner.robloxUsername || winner.roblox_username || '',
+                    displayName: winner.displayName || winner.display_name || '',
+                    avatarUrl: winner.avatarUrl || winner.avatar_url || ''
+                }))
+                .filter(winner => winner.username || winner.displayName || winner.avatarUrl)
+                .slice(0, 3)
+        })).filter(result => result.raceName && result.winners.length),
         tags: Array.isArray(raw.tags) ? raw.tags : [],
         published: raw.published ?? true,
         sortOrder: raw.sortOrder ?? raw.sort_order ?? 0,
@@ -998,6 +1012,79 @@ function attachEventCardHandlers() {
 
 
 // ========== EVENT MODAL: Render & Controls ==========
+function winnerName(winner) {
+    return winner.displayName || winner.username || 'Winner';
+}
+
+function winnerAvatar(winner) {
+    const name = winnerName(winner);
+    if (winner.avatarUrl) {
+        return `<img src="${escapeHtmlLb(winner.avatarUrl)}" alt="${escapeHtmlLb(name)} avatar" loading="lazy">`;
+    }
+    return `<span>${escapeHtmlLb(name.slice(0, 2).toUpperCase())}</span>`;
+}
+
+function renderEventResults(results) {
+    if (!Array.isArray(results) || results.length === 0) return '';
+
+    let html = '<div class="modal-section-title">RESULTS</div><div class="modal-results">';
+    results.forEach(result => {
+        const winners = [...result.winners].sort((a, b) => (a.rank || 99) - (b.rank || 99)).slice(0, 3);
+        html += `
+            <section class="modal-result-race">
+                <div class="modal-result-head">
+                    <h3>${escapeHtmlLb(result.raceName)}</h3>
+                    <span>${result.mode === 'cards' ? 'WINNERS' : 'PODIUM'}</span>
+                </div>
+        `;
+
+        if (result.mode === 'cards') {
+            html += '<div class="modal-winner-cards">';
+            winners.forEach(winner => {
+                html += `
+                    <article class="modal-winner-card">
+                        <div class="modal-winner-avatar">${winnerAvatar(winner)}</div>
+                        <div>
+                            <strong>${escapeHtmlLb(winnerName(winner))}</strong>
+                            ${winner.username ? `<span>@${escapeHtmlLb(winner.username)}</span>` : ''}
+                        </div>
+                    </article>
+                `;
+            });
+            html += '</div>';
+        } else {
+            const ordered = [];
+            const second = winners.find(w => Number(w.rank) === 2);
+            const first = winners.find(w => Number(w.rank) === 1) || winners[0];
+            const third = winners.find(w => Number(w.rank) === 3);
+            if (second) ordered.push(second);
+            if (first) ordered.push(first);
+            if (third) ordered.push(third);
+            winners.forEach(winner => {
+                if (!ordered.includes(winner)) ordered.push(winner);
+            });
+
+            html += '<div class="modal-result-podium">';
+            ordered.slice(0, 3).forEach(winner => {
+                const rank = Number(winner.rank || 1);
+                html += `
+                    <article class="modal-podium-card rank-${rank}">
+                        <div class="modal-podium-rank">#${rank}</div>
+                        <div class="modal-winner-avatar">${winnerAvatar(winner)}</div>
+                        <strong>${escapeHtmlLb(winnerName(winner))}</strong>
+                        ${winner.username ? `<span>@${escapeHtmlLb(winner.username)}</span>` : ''}
+                    </article>
+                `;
+            });
+            html += '</div>';
+        }
+
+        html += '</section>';
+    });
+    html += '</div>';
+    return html;
+}
+
 function renderEventModal(event) {
     const overlay = document.getElementById('eventModalOverlay');
     const body = document.getElementById('eventModalBody');
@@ -1027,6 +1114,10 @@ function renderEventModal(event) {
 
     if (event.broadcastText) {
         html += `<div class="modal-section-title">BROADCAST</div><p class="modal-description">${event.broadcastText}</p>`;
+    }
+
+    if (event.status === 'finished' && event.results && event.results.length > 0) {
+        html += renderEventResults(event.results);
     }
 
     // Rules
