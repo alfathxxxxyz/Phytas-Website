@@ -679,6 +679,63 @@ async function renderEvents() {
     renderEventsLayout();
 }
 
+function formatHeroEventDate(startDate, endDate) {
+    if (!startDate) return 'DATE TBA';
+
+    const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    const parseDateKey = (dateKey) => {
+        const [year, month, day] = dateKey.split('-').map(Number);
+        return { year, month, day };
+    };
+    const formatPart = (dateKey, includeYear = true) => {
+        const date = parseDateKey(dateKey);
+        return `${date.day} ${monthNames[date.month - 1]}${includeYear ? ` ${date.year}` : ''}`;
+    };
+
+    if (!endDate || startDate === endDate) {
+        return formatPart(startDate);
+    }
+
+    const start = parseDateKey(startDate);
+    const end = parseDateKey(endDate);
+    if (start.year === end.year && start.month === end.month) {
+        return `${start.day}-${end.day} ${monthNames[start.month - 1]} ${start.year}`;
+    }
+
+    return `${formatPart(startDate, start.year !== end.year)} - ${formatPart(endDate)}`;
+}
+
+function renderHeroOngoingEvent(event) {
+    const panel = document.getElementById('heroOngoingEvent');
+    if (!panel) return;
+
+    if (!event) {
+        panel.hidden = true;
+        panel.innerHTML = '';
+        return;
+    }
+
+    panel.innerHTML = `
+        <span class="hero-event-kicker">ONGOING EVENT</span>
+        <h2 class="hero-event-title">${event.title || 'EVENT'}</h2>
+        <p class="hero-event-date">${formatHeroEventDate(event.startDate || event.date, event.endDate)}</p>
+    `;
+    panel.hidden = false;
+}
+
+async function initHeroOngoingEvent() {
+    try {
+        const res = await fetch('/api/ongoing-events');
+        if (!res.ok) throw new Error(`Ongoing events ${res.status}`);
+
+        const data = await res.json();
+        renderHeroOngoingEvent((data.events || [])[0]);
+    } catch (error) {
+        console.warn('Ongoing event fallback:', error);
+        renderHeroOngoingEvent(null);
+    }
+}
+
 // Build the game filter row + featured/upcoming events for the active game.
 function renderEventsLayout() {
     const container = document.getElementById('eventsLayout');
@@ -1412,6 +1469,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load all JSON-driven sections
     initDiscordMemberStat();
     initCommunityMemberStat();
+    initHeroOngoingEvent();
     renderEvents();
     renderLeaderboard();
     renderMediaKit();
