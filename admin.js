@@ -42,6 +42,10 @@
     const saveRoleBtn = $('saveRoleBtn');
     const refreshRolesBtn = $('refreshRolesBtn');
     const roleMsg = $('roleMsg');
+    const sessionsBuilder = $('sessionsBuilder');
+    const regFieldsBuilder = $('regFieldsBuilder');
+    const addSessionBtn = $('addSessionBtn');
+    const addRegFieldBtn = $('addRegFieldBtn');
 
     let allRows = [];
     let allEvents = [];
@@ -228,6 +232,8 @@
     tabButtons.forEach(btn => btn.addEventListener('click', () => setTab(btn.getAttribute('data-tab'))));
     if (saveRoleBtn) saveRoleBtn.addEventListener('click', saveRole);
     if (refreshRolesBtn) refreshRolesBtn.addEventListener('click', loadRoles);
+    if (addSessionBtn) addSessionBtn.addEventListener('click', () => addSessionRow({}));
+    if (addRegFieldBtn) addRegFieldBtn.addEventListener('click', () => addRegFieldRow({ type: 'text' }));
 
     function setTab(tab) {
         tabButtons.forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-tab') === tab));
@@ -295,9 +301,9 @@
         $('eventImage').value = ev ? (ev.image || '') : '';
         $('eventRegistrationLink').value = ev ? (ev.registration_link || '') : '';
         $('eventRules').value = ev && Array.isArray(ev.rules) ? ev.rules.join('\n') : '';
-        $('eventSessions').value = ev ? JSON.stringify(ev.sessions || [], null, 2) : '[]';
+        renderSessionRows(ev ? (ev.sessions || []) : []);
         $('eventTags').value = ev && Array.isArray(ev.tags) ? ev.tags.join(', ') : '';
-        $('eventFields').value = JSON.stringify(fields.map(f => ({
+        renderRegFieldRows(fields.map(f => ({
             key: f.field_key,
             label: f.label,
             type: f.type,
@@ -305,17 +311,107 @@
             options: f.options || [],
             placeholder: f.placeholder || '',
             helpText: f.help_text || ''
-        })), null, 2);
+        })));
         $('eventPublished').checked = ev ? !!ev.published : true;
         $('eventRegistrationEnabled').checked = ev ? !!ev.registration_enabled : true;
         renderEventList();
         applyRolePermissions();
     }
 
-    function parseJsonField(id, fallback) {
-        const raw = ($(id).value || '').trim();
-        if (!raw) return fallback;
-        return JSON.parse(raw);
+    function addSessionRow(session) {
+        if (!sessionsBuilder) return;
+        const item = document.createElement('div');
+        item.className = 'builder-item';
+        item.innerHTML = `
+            <div class="builder-row session-row">
+                <div><label>Name</label><input data-session-name value="${escapeAttr(session.name || '')}" placeholder="Qualifier"></div>
+                <div><label>Time</label><input data-session-time value="${escapeAttr(session.time || '')}" placeholder="19:00 WIB"></div>
+                <div><label>Slots</label><input data-session-slots value="${escapeAttr(session.slots || '')}" placeholder="32"></div>
+                <button class="btn btn-danger" type="button" data-remove-row>Remove</button>
+            </div>
+        `;
+        item.querySelector('[data-remove-row]').addEventListener('click', () => item.remove());
+        sessionsBuilder.appendChild(item);
+        applyRolePermissions();
+    }
+
+    function renderSessionRows(sessions) {
+        if (!sessionsBuilder) return;
+        sessionsBuilder.innerHTML = '';
+        (Array.isArray(sessions) ? sessions : []).forEach(addSessionRow);
+    }
+
+    function collectSessions() {
+        if (!sessionsBuilder) return [];
+        return [...sessionsBuilder.querySelectorAll('.builder-item')].map(item => ({
+            name: item.querySelector('[data-session-name]').value.trim(),
+            time: item.querySelector('[data-session-time]').value.trim(),
+            slots: item.querySelector('[data-session-slots]').value.trim()
+        })).filter(s => s.name || s.time || s.slots);
+    }
+
+    function addRegFieldRow(field) {
+        if (!regFieldsBuilder) return;
+        const item = document.createElement('div');
+        item.className = 'builder-item';
+        const type = field.type || 'text';
+        item.innerHTML = `
+            <label class="mini-check"><input type="checkbox" data-field-required ${field.required ? 'checked' : ''}> Required</label>
+            <div class="builder-row">
+                <div><label>Label</label><input data-field-label value="${escapeAttr(field.label || '')}" placeholder="Roblox Username"></div>
+                <div><label>Key</label><input data-field-key value="${escapeAttr(field.key || field.field_key || '')}" placeholder="roblox_username"></div>
+                <div><label>Type</label><select data-field-type>
+                    ${['text', 'textarea', 'select', 'number', 'date', 'url', 'checkbox'].map(t => `<option value="${t}" ${type === t ? 'selected' : ''}>${t}</option>`).join('')}
+                </select></div>
+                <div><label>Options</label><input data-field-options value="${escapeAttr((field.options || []).join(', '))}" placeholder="PC, Mobile, Mixed"></div>
+                <button class="btn btn-danger" type="button" data-remove-row>Remove</button>
+            </div>
+            <div style="margin-top:8px"><label>Placeholder / hint</label><input data-field-placeholder value="${escapeAttr(field.placeholder || '')}" placeholder="e.g. @username"></div>
+        `;
+        item.querySelector('[data-remove-row]').addEventListener('click', () => item.remove());
+        regFieldsBuilder.appendChild(item);
+        applyRolePermissions();
+    }
+
+    function renderRegFieldRows(fields) {
+        if (!regFieldsBuilder) return;
+        regFieldsBuilder.innerHTML = '';
+        const normalized = (Array.isArray(fields) ? fields : []).map(f => ({
+            key: f.key || f.field_key || '',
+            label: f.label || '',
+            type: f.type || 'text',
+            required: !!f.required,
+            options: f.options || [],
+            placeholder: f.placeholder || ''
+        }));
+        if (normalized.length) normalized.forEach(addRegFieldRow);
+        else [
+            { key: 'roblox_username', label: 'Roblox Username', type: 'text', required: true, placeholder: 'e.g. xRacer_Pro' },
+            { key: 'discord_username', label: 'Discord Username', type: 'text', required: true, placeholder: 'e.g. @username' },
+            { key: 'device', label: 'Device', type: 'select', required: true, options: ['PC', 'Mobile', 'Mixed'] }
+        ].forEach(addRegFieldRow);
+    }
+
+    function collectRegFields() {
+        if (!regFieldsBuilder) return [];
+        return [...regFieldsBuilder.querySelectorAll('.builder-item')].map((item, index) => {
+            const label = item.querySelector('[data-field-label]').value.trim();
+            const rawKey = item.querySelector('[data-field-key]').value.trim();
+            const key = (rawKey || label.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '')).slice(0, 80);
+            const options = item.querySelector('[data-field-options]').value
+                .split(',')
+                .map(s => s.trim())
+                .filter(Boolean);
+            return {
+                key,
+                label,
+                type: item.querySelector('[data-field-type]').value,
+                required: item.querySelector('[data-field-required]').checked,
+                options,
+                placeholder: item.querySelector('[data-field-placeholder]').value.trim(),
+                sortOrder: index
+            };
+        }).filter(field => field.key && field.label);
     }
 
     function eventPayload() {
@@ -333,7 +429,7 @@
             description: $('eventDescription').value.trim() || null,
             broadcast_text: $('eventBroadcastText').value.trim() || null,
             rules: $('eventRules').value.split('\n').map(s => s.trim()).filter(Boolean),
-            sessions: parseJsonField('eventSessions', []),
+            sessions: collectSessions(),
             prize: $('eventPrize').value.trim() || null,
             caster: $('eventCaster').value.trim() || null,
             registration_enabled: $('eventRegistrationEnabled').checked,
@@ -366,8 +462,7 @@
         try {
             const payload = eventPayload();
             if (!payload.title) throw new Error('Title is required.');
-            const regFields = parseJsonField('eventFields', []);
-            if (!Array.isArray(regFields)) throw new Error('Registration Fields JSON must be an array.');
+            const regFields = collectRegFields();
             const id = $('eventId').value;
             const result = id
                 ? await supabaseClient.from('events').update(payload).eq('id', id).select('id').single()

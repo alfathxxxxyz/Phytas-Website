@@ -115,6 +115,15 @@
         .form-grid { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:12px; }
         .form-grid .wide { grid-column: 1 / -1; }
         textarea.mono { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; min-height: 120px; }
+        .builder-head { display:flex; justify-content:space-between; align-items:center; gap:12px; margin:4px 0 10px; }
+        .builder-list { display:flex; flex-direction:column; gap:10px; }
+        .builder-item { background:var(--panel-2); border:1px solid var(--border); border-radius:10px; padding:12px; }
+        .builder-row { display:grid; grid-template-columns: repeat(4, minmax(0, 1fr)) auto; gap:8px; align-items:end; }
+        .builder-row.session-row { grid-template-columns: 1.5fr 1fr 1fr auto; }
+        .builder-row label { margin-top:0; }
+        .mini-check { display:flex; align-items:center; gap:8px; color:var(--text); margin-bottom:10px; }
+        .mini-check input { width:auto; }
+        @media (max-width: 900px) { .builder-row, .builder-row.session-row { grid-template-columns:1fr; } }
         .check-row { display:flex; gap:18px; align-items:center; flex-wrap:wrap; margin:14px 0; }
         .check-row label { display:flex; align-items:center; gap:8px; margin:0; color:var(--text); }
         .check-row input { width:auto; }
@@ -246,9 +255,22 @@
                             <div class="wide"><label>Upload Image</label><input id="eventImageUpload" type="file" accept="image/*"></div>
                             <div class="wide"><label>Registration Link</label><input id="eventRegistrationLink"></div>
                             <div class="wide"><label>Rules (one per line)</label><textarea id="eventRules" rows="3"></textarea></div>
-                            <div class="wide"><label>Sessions JSON</label><textarea id="eventSessions" class="mono" rows="4" placeholder='[{"name":"Qualifier","time":"19:00","slots":32}]'></textarea></div>
+                            <div class="wide">
+                                <div class="builder-head">
+                                    <label style="margin:0">Sessions</label>
+                                    <button class="btn btn-ghost" id="addSessionBtn" type="button">+ Add Session</button>
+                                </div>
+                                <div class="builder-list" id="sessionsBuilder"></div>
+                            </div>
                             <div class="wide"><label>Tags (comma separated)</label><input id="eventTags"></div>
-                            <div class="wide"><label>Registration Fields JSON</label><textarea id="eventFields" class="mono" rows="8" placeholder='[{"key":"roblox_username","label":"Roblox Username","type":"text","required":true}]'></textarea></div>
+                            <div class="wide">
+                                <div class="builder-head">
+                                    <label style="margin:0">Registration Form Fields</label>
+                                    <button class="btn btn-ghost" id="addRegFieldBtn" type="button">+ Add Field</button>
+                                </div>
+                                <div class="builder-list" id="regFieldsBuilder"></div>
+                                <p class="hint">Options are only used for dropdown fields. Separate options with commas, for example: PC, Mobile, Mixed.</p>
+                            </div>
                         </div>
                         <div class="check-row">
                             <label><input id="eventPublished" type="checkbox" checked> Published</label>
