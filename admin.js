@@ -34,11 +34,21 @@
     const eventMsg = $('eventMsg');
     const saveEventBtn = $('saveEventBtn');
     const deleteEventBtn = $('deleteEventBtn');
+    const usersTab = $('usersTab');
+    const usersTabBtn = $('usersTabBtn');
+    const rolesTableBody = $('rolesTableBody');
+    const roleEmail = $('roleEmail');
+    const roleSelect = $('roleSelect');
+    const saveRoleBtn = $('saveRoleBtn');
+    const refreshRolesBtn = $('refreshRolesBtn');
+    const roleMsg = $('roleMsg');
 
     let allRows = [];
     let allEvents = [];
+    let allRoles = [];
     let adminRole = 'staff';
     let canEditEvents = false;
+    let canManageRoles = false;
 
     if (!supabaseClient) {
         document.body.innerHTML =
@@ -74,6 +84,7 @@
         applyRolePermissions();
         await loadRows();
         await loadEvents();
+        if (canManageRoles) await loadRoles();
     }
 
     async function loadAdminRole() {
@@ -83,12 +94,17 @@
             if (!error && data) adminRole = data;
         } catch (e) {}
         canEditEvents = adminRole === 'owner' || adminRole === 'admin';
+        canManageRoles = adminRole === 'owner';
         if (adminRoleEl) adminRoleEl.textContent = adminRole;
     }
 
     function applyRolePermissions() {
+        if (usersTabBtn) usersTabBtn.classList.toggle('hidden', !canManageRoles);
         [newEventBtn, saveEventBtn, deleteEventBtn, $('eventImageUpload')].forEach(el => {
             if (el) el.disabled = !canEditEvents;
+        });
+        [roleEmail, roleSelect, saveRoleBtn, refreshRolesBtn].forEach(el => {
+            if (el) el.disabled = !canManageRoles;
         });
         if (eventForm) {
             eventForm.querySelectorAll('input, select, textarea').forEach(el => {
@@ -210,11 +226,15 @@
     const imageUpload = $('eventImageUpload');
     if (imageUpload) imageUpload.addEventListener('change', uploadEventImage);
     tabButtons.forEach(btn => btn.addEventListener('click', () => setTab(btn.getAttribute('data-tab'))));
+    if (saveRoleBtn) saveRoleBtn.addEventListener('click', saveRole);
+    if (refreshRolesBtn) refreshRolesBtn.addEventListener('click', loadRoles);
 
     function setTab(tab) {
         tabButtons.forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-tab') === tab));
         if (registrationsTab) registrationsTab.classList.toggle('hidden', tab !== 'registrations');
         if (eventsTab) eventsTab.classList.toggle('hidden', tab !== 'events');
+        if (usersTab) usersTab.classList.toggle('hidden', tab !== 'users' || !canManageRoles);
+        if (tab === 'users' && canManageRoles) loadRoles();
     }
 
     async function loadEvents() {
@@ -398,6 +418,90 @@
         $('eventImage').value = data.publicUrl;
         eventMsg.textContent = 'Image uploaded.';
         eventMsg.className = 'msg success';
+    }
+
+    async function loadRoles() {
+        if (!canManageRoles || !rolesTableBody) return;
+        rolesTableBody.innerHTML = '<tr><td colspan="4" class="loading">Loading...</td></tr>';
+        const { data, error } = await supabaseClient
+            .from('admins')
+            .select('email, role, added_at')
+            .order('added_at', { ascending: false });
+        if (error) {
+            rolesTableBody.innerHTML = '<tr><td colspan="4" class="empty">Error loading roles: ' + escapeHtml(error.message) + '</td></tr>';
+            return;
+        }
+        allRoles = data || [];
+        renderRoles();
+    }
+
+    function renderRoles() {
+        if (!rolesTableBody) return;
+        if (!allRoles.length) {
+            rolesTableBody.innerHTML = '<tr><td colspan="4" class="empty">No admin users yet.</td></tr>';
+            return;
+        }
+        rolesTableBody.innerHTML = allRoles.map(row => `
+            <tr>
+                <td>${escapeHtml(row.email)}</td>
+                <td><span class="count-pill">${escapeHtml(row.role || 'staff')}</span></td>
+                <td>${escapeHtml(formatDate(row.added_at))}</td>
+                <td>
+                    <button class="btn btn-ghost" data-role-edit="${escapeAttr(row.email)}">Edit</button>
+                    <button class="btn btn-danger" data-role-delete="${escapeAttr(row.email)}">Remove</button>
+                </td>
+            </tr>
+        `).join('');
+        rolesTableBody.querySelectorAll('[data-role-edit]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const email = btn.getAttribute('data-role-edit');
+                const row = allRoles.find(r => r.email === email);
+                if (!row) return;
+                roleEmail.value = row.email;
+                roleSelect.value = row.role || 'staff';
+                roleEmail.focus();
+            });
+        });
+        rolesTableBody.querySelectorAll('[data-role-delete]').forEach(btn => {
+            btn.addEventListener('click', () => deleteRole(btn.getAttribute('data-role-delete')));
+        });
+    }
+
+    async function saveRole() {
+        if (!canManageRoles) return;
+        const email = (roleEmail.value || '').trim().toLowerCase();
+        const role = roleSelect.value;
+        roleMsg.textContent = '';
+        roleMsg.className = 'msg';
+        if (!email || !email.includes('@')) {
+            roleMsg.textContent = 'Enter a valid email.';
+            roleMsg.className = 'msg error';
+            return;
+        }
+        const { error } = await supabaseClient
+            .from('admins')
+            .upsert({ email, role }, { onConflict: 'email' });
+        if (error) {
+            roleMsg.textContent = 'Save failed: ' + error.message;
+            roleMsg.className = 'msg error';
+            return;
+        }
+        roleMsg.textContent = 'Role saved.';
+        roleMsg.className = 'msg success';
+        roleEmail.value = '';
+        roleSelect.value = 'staff';
+        await loadRoles();
+    }
+
+    async function deleteRole(email) {
+        if (!canManageRoles || !email) return;
+        if (!confirm('Remove admin access for ' + email + '?')) return;
+        const { error } = await supabaseClient.from('admins').delete().eq('email', email);
+        if (error) {
+            alert('Remove failed: ' + error.message);
+            return;
+        }
+        await loadRoles();
     }
 
     // ---------- CSV export ----------

@@ -177,6 +177,7 @@
             <div class="tabs">
                 <button class="tab-btn active" data-tab="registrations" type="button">Registrations</button>
                 <button class="tab-btn" data-tab="events" type="button">Events</button>
+                <button class="tab-btn hidden" data-tab="users" id="usersTabBtn" type="button">Users / Roles</button>
                 <span class="role-pill">Role: <span id="adminRole">staff</span></span>
             </div>
 
@@ -260,6 +261,36 @@
                         </div>
                     </form>
                 </div>
+            </section>
+
+            <section id="usersTab" class="hidden">
+                <div class="toolbar">
+                    <input type="email" id="roleEmail" class="grow" placeholder="user@email.com">
+                    <select id="roleSelect">
+                        <option value="staff">staff</option>
+                        <option value="admin">admin</option>
+                        <option value="owner">owner</option>
+                    </select>
+                    <button class="btn" id="saveRoleBtn" type="button">Save Role</button>
+                    <button class="btn btn-ghost" id="refreshRolesBtn" type="button">Refresh</button>
+                    <span class="msg" id="roleMsg"></span>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Added</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="rolesTableBody">
+                            <tr><td colspan="4" class="loading">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="hint">Only owner can add, edit, or remove admin roles. Users still need a Supabase Auth account to log in.</p>
             </section>
         </div>
     </div>

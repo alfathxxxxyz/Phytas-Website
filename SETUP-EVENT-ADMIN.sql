@@ -29,6 +29,15 @@ as $$
   select public.admin_role() in ('owner', 'admin');
 $$;
 
+create or replace function public.is_owner()
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select public.admin_role() = 'owner';
+$$;
+
 -- 2) Events managed from admin panel.
 create table if not exists public.events (
   id uuid primary key default gen_random_uuid(),
@@ -81,6 +90,36 @@ alter table public.registrations
 alter table public.registrations
   alter column roblox_username drop not null,
   alter column discord_username drop not null;
+
+-- Owner-only role management from the admin panel.
+drop policy if exists "owners can read admins" on public.admins;
+create policy "owners can read admins"
+  on public.admins
+  for select
+  to authenticated
+  using (public.is_owner());
+
+drop policy if exists "owners can add admins" on public.admins;
+create policy "owners can add admins"
+  on public.admins
+  for insert
+  to authenticated
+  with check (public.is_owner());
+
+drop policy if exists "owners can update admins" on public.admins;
+create policy "owners can update admins"
+  on public.admins
+  for update
+  to authenticated
+  using (public.is_owner())
+  with check (public.is_owner());
+
+drop policy if exists "owners can delete admins" on public.admins;
+create policy "owners can delete admins"
+  on public.admins
+  for delete
+  to authenticated
+  using (public.is_owner());
 
 -- 4) Keep updated_at fresh.
 create or replace function public.set_updated_at()
