@@ -322,6 +322,29 @@ function animateCounter(el) {
     requestAnimationFrame(update);
 }
 
+function setStatValue(el, value) {
+    if (!el || !Number.isFinite(value)) return;
+    el.setAttribute('data-target', String(value));
+    if (countersAnimated) {
+        animateCounter(el);
+    }
+}
+
+async function initDiscordMemberStat() {
+    const discordStat = document.querySelector('[data-stat-key="discord-members"]');
+    if (!discordStat) return;
+
+    try {
+        const res = await fetch('/api/discord-stats');
+        if (!res.ok) throw new Error(`Discord stats ${res.status}`);
+
+        const data = await res.json();
+        setStatValue(discordStat, Number(data.memberCount));
+    } catch (error) {
+        console.warn('Discord member stat fallback:', error);
+    }
+}
+
 function triggerCounterAnimations() {
     if (!countersAnimated) {
         statNumbers.forEach(el => animateCounter(el));
@@ -1323,6 +1346,7 @@ async function renderPartners() {
 // ========== INITIALIZE ALL DATA-DRIVEN CONTENT ==========
 document.addEventListener('DOMContentLoaded', () => {
     // Load all JSON-driven sections
+    initDiscordMemberStat();
     renderEvents();
     renderLeaderboard();
     renderMediaKit();
