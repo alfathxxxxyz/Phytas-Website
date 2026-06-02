@@ -1,6 +1,39 @@
 -- PYTHAS Event Admin + Dynamic Registration Fields
 -- Run this in Supabase SQL Editor after the original SETUP-SUPABASE.md schema.
 
+-- 0) Base tables, safe if the original setup has not been run yet.
+create table if not exists public.registrations (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  event_id text,
+  event_title text,
+  roblox_username text,
+  discord_username text,
+  device text,
+  map text,
+  notes text
+);
+
+create table if not exists public.admins (
+  email text primary key,
+  added_at timestamptz not null default now()
+);
+
+create or replace function public.is_admin()
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.admins
+    where lower(email) = lower(auth.jwt() ->> 'email')
+  );
+$$;
+
+alter table public.registrations enable row level security;
+alter table public.admins enable row level security;
+
 -- 1) Admin roles: owner/admin can edit events; staff can only read admin data.
 alter table public.admins
   add column if not exists role text not null default 'staff'
