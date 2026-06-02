@@ -106,6 +106,35 @@ function allowedOrigins(env) {
     .filter(Boolean);
 }
 
+function isOriginAllowed(origin, pattern) {
+  if (pattern === '*') return true;
+  if (origin === pattern) return true;
+  if (pattern === 'null') return origin === 'null';
+
+  try {
+    const originUrl = new URL(origin);
+    const anyPort = pattern.endsWith(':*');
+    const patternUrl = new URL(anyPort ? pattern.slice(0, -2) : pattern);
+    if (originUrl.protocol !== patternUrl.protocol) return false;
+
+    const portMatches = anyPort
+      || (!patternUrl.port && !originUrl.port)
+      || patternUrl.port === originUrl.port;
+
+    if (!portMatches) return false;
+
+    const host = originUrl.hostname.toLowerCase();
+    const patternHost = patternUrl.hostname.toLowerCase();
+    if (patternHost.startsWith('*.')) {
+      const suffix = patternHost.slice(1);
+      return host.endsWith(suffix) && host.length > suffix.length;
+    }
+    return host === patternHost;
+  } catch {
+    return false;
+  }
+}
+
 function corsHeaders(request, env) {
   const headers = {
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
@@ -118,7 +147,7 @@ function corsHeaders(request, env) {
   if (list.length === 0) {
     // Not configured yet: stay backward-compatible. Set ALLOWED_ORIGINS to lock down.
     headers['Access-Control-Allow-Origin'] = '*';
-  } else if (origin && list.includes(origin)) {
+  } else if (origin && list.some((pattern) => isOriginAllowed(origin, pattern))) {
     headers['Access-Control-Allow-Origin'] = origin;
   }
   // If an allowlist is set and the origin isn't on it, we simply omit the header

@@ -771,18 +771,40 @@ function renderHeroOngoingEvent(event) {
     const panel = document.getElementById('heroOngoingEvent');
     if (!panel) return;
 
-    if (!event) {
+    if (sessionStorage.getItem('pythasHeroEventDismissed') === '1' || !event) {
         panel.hidden = true;
         panel.innerHTML = '';
         return;
     }
 
+    const label = event.status === 'live' ? 'ONGOING EVENT' : 'NEXT EVENT';
     panel.innerHTML = `
-        <span class="hero-event-kicker">ONGOING EVENT</span>
+        <button type="button" class="hero-event-close" aria-label="Close event notice">&times;</button>
+        <span class="hero-event-kicker">${label}</span>
         <h2 class="hero-event-title">${event.title || 'EVENT'}</h2>
         <p class="hero-event-date">${formatHeroEventDate(event.startDate || event.date, event.endDate)}</p>
     `;
+    const closeBtn = panel.querySelector('.hero-event-close');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            sessionStorage.setItem('pythasHeroEventDismissed', '1');
+            panel.hidden = true;
+            panel.innerHTML = '';
+        });
+    }
     panel.hidden = false;
+}
+
+function pickNextHeroEvent(events) {
+    if (!Array.isArray(events) || events.length === 0) return null;
+    const candidates = events.filter(event => event && event.status !== 'finished');
+    if (candidates.length === 0) return null;
+
+    const withDates = candidates
+        .filter(event => event.startDate || event.date)
+        .sort((a, b) => new Date(a.startDate || a.date) - new Date(b.startDate || b.date));
+
+    return withDates[0] || candidates[0];
 }
 
 async function initHeroOngoingEvent() {
@@ -791,10 +813,22 @@ async function initHeroOngoingEvent() {
         if (!res.ok) throw new Error(`Ongoing events ${res.status}`);
 
         const data = await res.json();
-        renderHeroOngoingEvent((data.events || [])[0]);
+        const ongoing = (data.events || [])[0];
+        if (ongoing) {
+            renderHeroOngoingEvent(ongoing);
+            return;
+        }
+
+        const events = await loadEventsData();
+        renderHeroOngoingEvent(pickNextHeroEvent(events));
     } catch (error) {
         console.warn('Ongoing event fallback:', error);
-        renderHeroOngoingEvent(null);
+        try {
+            const events = await loadEventsData();
+            renderHeroOngoingEvent(pickNextHeroEvent(events));
+        } catch (_) {
+            renderHeroOngoingEvent(null);
+        }
     }
 }
 

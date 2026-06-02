@@ -71,7 +71,10 @@ Open Supabase → **SQL Editor** → **New query** → paste the contents of
 - `TURNSTILE_SECRET_KEY` — Cloudflare dashboard → **Turnstile** → create a widget → copy the **Secret Key**.
   The matching **Site Key** (public) goes in the website's `supabase-config.js` (`TURNSTILE_SITE_KEY`).
 - `ALLOWED_ORIGINS` (non-secret) — comma-separated origins allowed to call the Worker from a browser,
-  e.g. `https://pythas.gg,https://www.pythas.gg`. Set in `wrangler.toml` under `[vars]`.
+  e.g. `https://pythas.gg,https://www.pythas.gg,https://phytas-website.vercel.app,https://*.vercel.app,http://localhost:*`.
+  Set in `wrangler.toml` under `[vars]`. If the website shows `Failed to fetch`
+  even though the Worker URL works in `curl`, the page origin is probably missing
+  from this list.
 
 ### 3. Install & log in to Wrangler
 ```bash
@@ -88,7 +91,7 @@ npx wrangler secret put ROBLOX_SYNC_SECRET
 npx wrangler secret put TURNSTILE_SECRET_KEY
 ```
 `ALLOWED_ORIGINS` is non-secret and lives in `wrangler.toml` (`[vars]`), so it
-doesn't need `wrangler secret put`.
+doesn't need `wrangler secret put`. Deploy the Worker after changing it.
 
 ### 5. Deploy
 ```bash
