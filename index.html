@@ -704,6 +704,7 @@
                 <h2 id="regModalTitle">EVENT REGISTRATION</h2>
                 <p class="reg-event-name" id="regEventName"></p>
                 <form id="regForm" class="reg-form" novalidate>
+                    <div id="regDynamicFields">
                     <div class="reg-field">
                         <label for="regRoblox">Roblox Username <span class="req">*</span></label>
                         <input type="text" id="regRoblox" name="roblox_username" required maxlength="50" autocomplete="off" placeholder="e.g. xRacer_Pro">
@@ -734,6 +735,7 @@
                     <div class="reg-field">
                         <label for="regNotes">Notes (optional)</label>
                         <textarea id="regNotes" name="notes" rows="3" maxlength="300" placeholder="Anything we should know?"></textarea>
+                    </div>
                     </div>
                     <!-- Honeypot: hidden from humans, traps bots -->
                     <input type="text" id="regWebsite" name="website" class="reg-hp" tabindex="-1" autocomplete="off" aria-hidden="true">

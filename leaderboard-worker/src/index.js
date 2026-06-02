@@ -30,6 +30,7 @@ const LIMITS = {
   NOTES_MAX: 300,
   EVENT_TITLE_MAX: 120,
   EVENT_ID_MAX: 60,
+  ANSWERS_JSON_MAX: 12000,
   EVENT_TYPE_MAX: 40,
   // Sane upper bounds so a compromised/buggy client can't write absurd values
   SUMMIT_MAX: 1_000_000,
@@ -64,6 +65,20 @@ function rateLimit(key, limit, windowMs) {
 
 function clientIp(request) {
   return request.headers.get('CF-Connecting-IP') || 'unknown';
+}
+
+function cleanAnswers(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  const entries = Object.entries(value).slice(0, 50).map(([key, answer]) => {
+    const cleanKey = cleanStr(key, 80).replace(/[^a-z0-9_-]/gi, '_');
+    if (!cleanKey) return null;
+    if (typeof answer === 'boolean') return [cleanKey, answer];
+    return [cleanKey, cleanStr(answer, 1000)];
+  }).filter(Boolean);
+  const answers = Object.fromEntries(entries);
+  const encoded = JSON.stringify(answers);
+  if (encoded.length > LIMITS.ANSWERS_JSON_MAX) return {};
+  return answers;
 }
 
 // ---- Constant-time string comparison (avoids secret timing leaks) ----
@@ -307,11 +322,12 @@ async function handleRegister(request, env) {
   const notes = cleanStr(body.notes, LIMITS.NOTES_MAX);
   const eventId = cleanStr(body.event_id, LIMITS.EVENT_ID_MAX);
   const eventTitle = cleanStr(body.event_title, LIMITS.EVENT_TITLE_MAX);
+  const answers = cleanAnswers(body.answers);
 
-  if (!roblox || !discord || !device) {
+  if (!eventTitle || Object.keys(answers).length === 0) {
     return json({ error: 'Missing required fields' }, 400, request, env);
   }
-  if (!ALLOWED_DEVICES.has(device)) {
+  if (device && !ALLOWED_DEVICES.has(device)) {
     return json({ error: 'Invalid device' }, 400, request, env);
   }
 
@@ -331,6 +347,7 @@ async function handleRegister(request, env) {
       device,
       map,
       notes,
+      answers,
     }),
   });
 

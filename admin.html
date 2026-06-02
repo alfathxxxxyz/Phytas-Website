@@ -104,6 +104,22 @@
             display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
             margin-bottom: 18px;
         }
+        .tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; }
+        .tab-btn { background:var(--panel-2); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:10px 14px; font-weight:700; cursor:pointer; }
+        .tab-btn.active { background:var(--lime); color:#000; border-color:var(--lime); }
+        .grid-2 { display:grid; grid-template-columns: 320px 1fr; gap:18px; align-items:start; }
+        .panel { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:16px; }
+        .event-list { display:flex; flex-direction:column; gap:8px; }
+        .event-list button { text-align:left; background:var(--panel-2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:10px; cursor:pointer; }
+        .event-list button.active { border-color:var(--lime); color:var(--lime); }
+        .form-grid { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:12px; }
+        .form-grid .wide { grid-column: 1 / -1; }
+        textarea.mono { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; min-height: 120px; }
+        .check-row { display:flex; gap:18px; align-items:center; flex-wrap:wrap; margin:14px 0; }
+        .check-row label { display:flex; align-items:center; gap:8px; margin:0; color:var(--text); }
+        .check-row input { width:auto; }
+        .role-pill { background:var(--panel-2); border:1px solid var(--border); color:var(--muted); padding:6px 10px; border-radius:999px; font-size:12px; }
+        @media (max-width: 900px) { .grid-2, .form-grid { grid-template-columns:1fr; } .form-grid .wide { grid-column:auto; } }
         .toolbar .grow { flex: 1; min-width: 180px; }
         .toolbar select, .toolbar input { padding: 9px 11px; }
         .count-pill {
@@ -150,7 +166,7 @@
             <div class="brand" style="margin:0">
                 <div class="mark">P</div>
                 <div>
-                    <h1>REGISTRATIONS</h1>
+                    <h1>PYTHAS ADMIN</h1>
                     <span class="who" id="userEmail"></span>
                 </div>
             </div>
@@ -158,6 +174,13 @@
         </div>
 
         <div class="container">
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="registrations" type="button">Registrations</button>
+                <button class="tab-btn" data-tab="events" type="button">Events</button>
+                <span class="role-pill">Role: <span id="adminRole">staff</span></span>
+            </div>
+
+            <section id="registrationsTab">
             <div class="toolbar">
                 <select id="eventFilter" title="Filter by event"></select>
                 <input type="search" id="searchInput" class="grow" placeholder="Search name, discord, notes…">
@@ -188,6 +211,56 @@
                 </table>
             </div>
             <p class="hint">Export gives a CSV you can open in Google Sheets / Excel. Import expects the same column headers as the export.</p>
+            </section>
+
+            <section id="eventsTab" class="hidden">
+                <div class="toolbar">
+                    <button class="btn" id="newEventBtn" type="button">+ New Event</button>
+                    <button class="btn btn-ghost" id="refreshEventsBtn" type="button">Refresh</button>
+                    <span class="hint">Owner/admin can edit. Staff is read-only.</span>
+                </div>
+                <div class="grid-2">
+                    <div class="panel">
+                        <h3 style="margin-bottom:12px">Events</h3>
+                        <div class="event-list" id="adminEventList"></div>
+                    </div>
+                    <form class="panel" id="eventForm">
+                        <input type="hidden" id="eventId">
+                        <div class="form-grid">
+                            <div class="wide"><label>Title</label><input id="eventTitle" required></div>
+                            <div><label>Game</label><input id="eventGame" value="Mount Agora"></div>
+                            <div><label>Status</label><select id="eventStatus"><option value="upcoming">upcoming</option><option value="live">live</option><option value="finished">finished</option><option value="coming-soon">coming-soon</option></select></div>
+                            <div><label>Date</label><input id="eventDate" type="date"></div>
+                            <div><label>Start Date</label><input id="eventStartDate" type="date"></div>
+                            <div><label>End Date</label><input id="eventEndDate" type="date"></div>
+                            <div><label>Time</label><input id="eventTime" type="time"></div>
+                            <div><label>Timezone</label><input id="eventTimezone" value="WIB"></div>
+                            <div><label>Type</label><input id="eventType"></div>
+                            <div><label>Prize</label><input id="eventPrize"></div>
+                            <div><label>Caster</label><input id="eventCaster"></div>
+                            <div><label>Sort Order</label><input id="eventSortOrder" type="number" value="0"></div>
+                            <div class="wide"><label>Description</label><textarea id="eventDescription" rows="3"></textarea></div>
+                            <div class="wide"><label>Broadcast Text</label><textarea id="eventBroadcastText" rows="3"></textarea></div>
+                            <div class="wide"><label>Image URL</label><input id="eventImage" placeholder="Upload image or paste URL"></div>
+                            <div class="wide"><label>Upload Image</label><input id="eventImageUpload" type="file" accept="image/*"></div>
+                            <div class="wide"><label>Registration Link</label><input id="eventRegistrationLink"></div>
+                            <div class="wide"><label>Rules (one per line)</label><textarea id="eventRules" rows="3"></textarea></div>
+                            <div class="wide"><label>Sessions JSON</label><textarea id="eventSessions" class="mono" rows="4" placeholder='[{"name":"Qualifier","time":"19:00","slots":32}]'></textarea></div>
+                            <div class="wide"><label>Tags (comma separated)</label><input id="eventTags"></div>
+                            <div class="wide"><label>Registration Fields JSON</label><textarea id="eventFields" class="mono" rows="8" placeholder='[{"key":"roblox_username","label":"Roblox Username","type":"text","required":true}]'></textarea></div>
+                        </div>
+                        <div class="check-row">
+                            <label><input id="eventPublished" type="checkbox" checked> Published</label>
+                            <label><input id="eventRegistrationEnabled" type="checkbox" checked> Registration enabled</label>
+                        </div>
+                        <div class="toolbar">
+                            <button class="btn" id="saveEventBtn" type="submit">Save Event</button>
+                            <button class="btn btn-danger" id="deleteEventBtn" type="button">Delete</button>
+                            <span class="msg" id="eventMsg"></span>
+                        </div>
+                    </form>
+                </div>
+            </section>
         </div>
     </div>
 

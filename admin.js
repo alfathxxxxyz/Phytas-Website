@@ -23,8 +23,22 @@
     const refreshBtn = $('refreshBtn');
     const exportBtn = $('exportBtn');
     const importInput = $('importInput');
+    const adminRoleEl = $('adminRole');
+    const tabButtons = document.querySelectorAll('[data-tab]');
+    const registrationsTab = $('registrationsTab');
+    const eventsTab = $('eventsTab');
+    const newEventBtn = $('newEventBtn');
+    const refreshEventsBtn = $('refreshEventsBtn');
+    const adminEventList = $('adminEventList');
+    const eventForm = $('eventForm');
+    const eventMsg = $('eventMsg');
+    const saveEventBtn = $('saveEventBtn');
+    const deleteEventBtn = $('deleteEventBtn');
 
     let allRows = [];
+    let allEvents = [];
+    let adminRole = 'staff';
+    let canEditEvents = false;
 
     if (!supabaseClient) {
         document.body.innerHTML =
@@ -56,7 +70,31 @@
         if (userEmailEl && session && session.user) {
             userEmailEl.textContent = session.user.email || '';
         }
+        await loadAdminRole();
+        applyRolePermissions();
         await loadRows();
+        await loadEvents();
+    }
+
+    async function loadAdminRole() {
+        adminRole = 'staff';
+        try {
+            const { data, error } = await supabaseClient.rpc('admin_role');
+            if (!error && data) adminRole = data;
+        } catch (e) {}
+        canEditEvents = adminRole === 'owner' || adminRole === 'admin';
+        if (adminRoleEl) adminRoleEl.textContent = adminRole;
+    }
+
+    function applyRolePermissions() {
+        [newEventBtn, saveEventBtn, deleteEventBtn, $('eventImageUpload')].forEach(el => {
+            if (el) el.disabled = !canEditEvents;
+        });
+        if (eventForm) {
+            eventForm.querySelectorAll('input, select, textarea').forEach(el => {
+                if (el.id !== 'eventImageUpload') el.disabled = !canEditEvents;
+            });
+        }
     }
 
     loginForm.addEventListener('submit', async (e) => {
@@ -165,14 +203,225 @@
     refreshBtn.addEventListener('click', loadRows);
     exportBtn.addEventListener('click', exportCsv);
     importInput.addEventListener('change', importCsv);
+    if (refreshEventsBtn) refreshEventsBtn.addEventListener('click', loadEvents);
+    if (newEventBtn) newEventBtn.addEventListener('click', () => fillEventForm(null));
+    if (eventForm) eventForm.addEventListener('submit', saveEvent);
+    if (deleteEventBtn) deleteEventBtn.addEventListener('click', deleteEvent);
+    const imageUpload = $('eventImageUpload');
+    if (imageUpload) imageUpload.addEventListener('change', uploadEventImage);
+    tabButtons.forEach(btn => btn.addEventListener('click', () => setTab(btn.getAttribute('data-tab'))));
+
+    function setTab(tab) {
+        tabButtons.forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-tab') === tab));
+        if (registrationsTab) registrationsTab.classList.toggle('hidden', tab !== 'registrations');
+        if (eventsTab) eventsTab.classList.toggle('hidden', tab !== 'events');
+    }
+
+    async function loadEvents() {
+        if (!adminEventList) return;
+        adminEventList.innerHTML = '<div class="hint">Loading events...</div>';
+        const { data, error } = await supabaseClient
+            .from('events')
+            .select('*, event_registration_fields(*)')
+            .order('sort_order', { ascending: true })
+            .order('created_at', { ascending: false });
+        if (error) {
+            adminEventList.innerHTML = '<div class="hint">Error loading events: ' + escapeHtml(error.message) + '</div>';
+            return;
+        }
+        allEvents = data || [];
+        renderEventList();
+        if (!($('eventId') && $('eventId').value) && allEvents[0]) fillEventForm(allEvents[0]);
+        applyRolePermissions();
+    }
+
+    function renderEventList() {
+        if (!adminEventList) return;
+        if (!allEvents.length) {
+            adminEventList.innerHTML = '<div class="hint">No events yet.</div>';
+            return;
+        }
+        const selected = $('eventId') ? $('eventId').value : '';
+        adminEventList.innerHTML = allEvents.map(ev => `
+            <button type="button" data-event-id="${escapeAttr(ev.id)}" class="${String(ev.id) === selected ? 'active' : ''}">
+                <strong>${escapeHtml(ev.title || 'Untitled')}</strong><br>
+                <span class="hint">${escapeHtml(ev.status || '')} · ${escapeHtml(ev.game || '')}</span>
+            </button>
+        `).join('');
+        adminEventList.querySelectorAll('[data-event-id]').forEach(btn => {
+            btn.addEventListener('click', () => fillEventForm(allEvents.find(ev => String(ev.id) === btn.getAttribute('data-event-id'))));
+        });
+    }
+
+    function fillEventForm(ev) {
+        if (!eventForm) return;
+        eventMsg.textContent = '';
+        const fields = ev ? (ev.event_registration_fields || []).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)) : [];
+        $('eventId').value = ev ? ev.id : '';
+        $('eventTitle').value = ev ? (ev.title || '') : '';
+        $('eventGame').value = ev ? (ev.game || 'Mount Agora') : 'Mount Agora';
+        $('eventStatus').value = ev ? (ev.status || 'upcoming') : 'upcoming';
+        $('eventDate').value = ev ? (ev.date || '') : '';
+        $('eventStartDate').value = ev ? (ev.start_date || '') : '';
+        $('eventEndDate').value = ev ? (ev.end_date || '') : '';
+        $('eventTime').value = ev ? (ev.time || '') : '';
+        $('eventTimezone').value = ev ? (ev.timezone || 'WIB') : 'WIB';
+        $('eventType').value = ev ? (ev.type || '') : '';
+        $('eventPrize').value = ev ? (ev.prize || '') : '';
+        $('eventCaster').value = ev ? (ev.caster || '') : '';
+        $('eventSortOrder').value = ev ? (ev.sort_order || 0) : 0;
+        $('eventDescription').value = ev ? (ev.description || '') : '';
+        $('eventBroadcastText').value = ev ? (ev.broadcast_text || '') : '';
+        $('eventImage').value = ev ? (ev.image || '') : '';
+        $('eventRegistrationLink').value = ev ? (ev.registration_link || '') : '';
+        $('eventRules').value = ev && Array.isArray(ev.rules) ? ev.rules.join('\n') : '';
+        $('eventSessions').value = ev ? JSON.stringify(ev.sessions || [], null, 2) : '[]';
+        $('eventTags').value = ev && Array.isArray(ev.tags) ? ev.tags.join(', ') : '';
+        $('eventFields').value = JSON.stringify(fields.map(f => ({
+            key: f.field_key,
+            label: f.label,
+            type: f.type,
+            required: f.required,
+            options: f.options || [],
+            placeholder: f.placeholder || '',
+            helpText: f.help_text || ''
+        })), null, 2);
+        $('eventPublished').checked = ev ? !!ev.published : true;
+        $('eventRegistrationEnabled').checked = ev ? !!ev.registration_enabled : true;
+        renderEventList();
+        applyRolePermissions();
+    }
+
+    function parseJsonField(id, fallback) {
+        const raw = ($(id).value || '').trim();
+        if (!raw) return fallback;
+        return JSON.parse(raw);
+    }
+
+    function eventPayload() {
+        return {
+            title: $('eventTitle').value.trim(),
+            game: $('eventGame').value.trim() || 'Mount Agora',
+            status: $('eventStatus').value,
+            date: $('eventDate').value || null,
+            start_date: $('eventStartDate').value || null,
+            end_date: $('eventEndDate').value || null,
+            time: $('eventTime').value || null,
+            timezone: $('eventTimezone').value.trim() || null,
+            type: $('eventType').value.trim() || null,
+            image: $('eventImage').value.trim() || null,
+            description: $('eventDescription').value.trim() || null,
+            broadcast_text: $('eventBroadcastText').value.trim() || null,
+            rules: $('eventRules').value.split('\n').map(s => s.trim()).filter(Boolean),
+            sessions: parseJsonField('eventSessions', []),
+            prize: $('eventPrize').value.trim() || null,
+            caster: $('eventCaster').value.trim() || null,
+            registration_enabled: $('eventRegistrationEnabled').checked,
+            registration_link: $('eventRegistrationLink').value.trim() || null,
+            tags: $('eventTags').value.split(',').map(s => s.trim()).filter(Boolean),
+            published: $('eventPublished').checked,
+            sort_order: Number($('eventSortOrder').value || 0)
+        };
+    }
+
+    function fieldPayload(eventId, field, index) {
+        return {
+            event_id: eventId,
+            sort_order: index,
+            field_key: field.key,
+            label: field.label,
+            type: field.type || 'text',
+            required: !!field.required,
+            options: Array.isArray(field.options) ? field.options : [],
+            placeholder: field.placeholder || null,
+            help_text: field.helpText || field.help_text || null
+        };
+    }
+
+    async function saveEvent(e) {
+        e.preventDefault();
+        if (!canEditEvents) return;
+        eventMsg.textContent = 'Saving...';
+        eventMsg.className = 'msg';
+        try {
+            const payload = eventPayload();
+            if (!payload.title) throw new Error('Title is required.');
+            const regFields = parseJsonField('eventFields', []);
+            if (!Array.isArray(regFields)) throw new Error('Registration Fields JSON must be an array.');
+            const id = $('eventId').value;
+            const result = id
+                ? await supabaseClient.from('events').update(payload).eq('id', id).select('id').single()
+                : await supabaseClient.from('events').insert(payload).select('id').single();
+            if (result.error) throw result.error;
+            const eventId = result.data.id;
+            await supabaseClient.from('event_registration_fields').delete().eq('event_id', eventId);
+            if (regFields.length) {
+                const { error } = await supabaseClient
+                    .from('event_registration_fields')
+                    .insert(regFields.map((field, index) => fieldPayload(eventId, field, index)));
+                if (error) throw error;
+            }
+            eventMsg.textContent = 'Saved.';
+            eventMsg.className = 'msg success';
+            await loadEvents();
+            fillEventForm(allEvents.find(ev => String(ev.id) === String(eventId)));
+        } catch (err) {
+            eventMsg.textContent = 'Save failed: ' + (err.message || err);
+            eventMsg.className = 'msg error';
+        }
+    }
+
+    async function deleteEvent() {
+        if (!canEditEvents) return;
+        const id = $('eventId').value;
+        if (!id || !confirm('Delete this event? Registrations stay stored, but event config will be removed.')) return;
+        const { error } = await supabaseClient.from('events').delete().eq('id', id);
+        if (error) { alert('Delete failed: ' + error.message); return; }
+        fillEventForm(null);
+        await loadEvents();
+    }
+
+    async function uploadEventImage(e) {
+        if (!canEditEvents) return;
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        eventMsg.textContent = 'Uploading image...';
+        const ext = (file.name.split('.').pop() || 'png').toLowerCase();
+        const name = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+        const { error } = await supabaseClient.storage.from('event-images').upload(name, file, { upsert: false });
+        if (error) {
+            eventMsg.textContent = 'Upload failed: ' + error.message;
+            eventMsg.className = 'msg error';
+            return;
+        }
+        const { data } = supabaseClient.storage.from('event-images').getPublicUrl(name);
+        $('eventImage').value = data.publicUrl;
+        eventMsg.textContent = 'Image uploaded.';
+        eventMsg.className = 'msg success';
+    }
 
     // ---------- CSV export ----------
-    const CSV_HEADERS = ['created_at', 'event_title', 'event_id', 'roblox_username', 'discord_username', 'device', 'map', 'notes'];
+    function csvHeaders(rows) {
+        const answerKeys = new Set();
+        rows.forEach(r => {
+            if (r.answers && typeof r.answers === 'object') {
+                Object.keys(r.answers).forEach(k => answerKeys.add('answer_' + k));
+            }
+        });
+        return ['created_at', 'event_title', 'event_id', 'roblox_username', 'discord_username', 'device', 'map', 'notes', ...answerKeys];
+    }
 
     function exportCsv() {
         const rows = getFiltered();
-        const lines = [CSV_HEADERS.join(',')];
-        rows.forEach(r => lines.push(CSV_HEADERS.map(h => csvCell(r[h])).join(',')));
+        const headers = csvHeaders(rows);
+        const lines = [headers.join(',')];
+        rows.forEach(r => lines.push(headers.map(h => {
+            if (h.startsWith('answer_')) {
+                const key = h.slice(7);
+                return csvCell(r.answers && r.answers[key]);
+            }
+            return csvCell(r[h]);
+        }).join(',')));
         const blob = new Blob(['\uFEFF' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');

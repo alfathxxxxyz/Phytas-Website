@@ -4,7 +4,7 @@
 //  table. Exposes window.openRegModal(eventId, eventTitle).
 // ============================================================
 (function setupRegistration() {
-    let currentEvent = { id: '', title: '' };
+    let currentEvent = { id: '', title: '', registrationFields: [] };
     let isSubmitting = false;
     const REG_COOLDOWN_MS = 60000; // max 1 registration per minute, PER EVENT (anti-spam)
     const REG_COOLDOWN_KEY = 'pythas_reg_cooldowns';
@@ -100,13 +100,87 @@
         msg.className = 'reg-message' + (type ? ' ' + type : '');
     }
 
-    function openRegModal(eventId, eventTitle) {
+    const DEFAULT_FIELDS = [
+        { key: 'roblox_username', label: 'Roblox Username', type: 'text', required: true, placeholder: 'e.g. xRacer_Pro' },
+        { key: 'discord_username', label: 'Discord Username', type: 'text', required: true, placeholder: 'e.g. @username' },
+        { key: 'device', label: 'Device', type: 'select', required: true, options: ['PC', 'Mobile', 'Mixed'] },
+        { key: 'map', label: 'Preferred Map', type: 'select', required: false, options: ['Mount Agora', 'Mount Aztec'], placeholder: 'No preference' },
+        { key: 'notes', label: 'Notes', type: 'textarea', required: false, placeholder: 'Anything we should know?' }
+    ];
+
+    function escapeHtml(s) {
+        return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'
+        }[c]));
+    }
+
+    function fieldId(key) {
+        return 'regField_' + String(key || '').replace(/[^a-z0-9_-]/gi, '_');
+    }
+
+    function renderField(field) {
+        const id = fieldId(field.key);
+        const required = field.required ? ' required' : '';
+        const req = field.required ? ' <span class="req">*</span>' : '';
+        const placeholder = field.placeholder ? ` placeholder="${escapeHtml(field.placeholder)}"` : '';
+        const help = field.helpText ? `<small>${escapeHtml(field.helpText)}</small>` : '';
+        const label = `<label for="${id}">${escapeHtml(field.label)}${req}</label>`;
+
+        if (field.type === 'textarea') {
+            return `<div class="reg-field">${label}<textarea id="${id}" name="${escapeHtml(field.key)}" rows="3" maxlength="500"${required}${placeholder}></textarea>${help}</div>`;
+        }
+
+        if (field.type === 'select') {
+            const empty = `<option value="">${escapeHtml(field.placeholder || 'Select...')}</option>`;
+            const options = (field.options || []).map(opt => `<option value="${escapeHtml(opt)}">${escapeHtml(opt)}</option>`).join('');
+            return `<div class="reg-field">${label}<select id="${id}" name="${escapeHtml(field.key)}"${required}>${empty}${options}</select>${help}</div>`;
+        }
+
+        if (field.type === 'checkbox') {
+            return `<div class="reg-field"><label><input type="checkbox" id="${id}" name="${escapeHtml(field.key)}"${required}> ${escapeHtml(field.label)}${req}</label>${help}</div>`;
+        }
+
+        const type = ['number', 'date', 'url'].includes(field.type) ? field.type : 'text';
+        return `<div class="reg-field">${label}<input type="${type}" id="${id}" name="${escapeHtml(field.key)}" maxlength="120" autocomplete="off"${required}${placeholder}>${help}</div>`;
+    }
+
+    function renderRegistrationFields() {
+        const container = document.getElementById('regDynamicFields');
+        if (!container) return;
+        const fields = currentEvent.registrationFields && currentEvent.registrationFields.length
+            ? currentEvent.registrationFields
+            : DEFAULT_FIELDS;
+        container.innerHTML = fields.map(renderField).join('');
+    }
+
+    function collectRegistrationAnswers() {
+        const fields = currentEvent.registrationFields && currentEvent.registrationFields.length
+            ? currentEvent.registrationFields
+            : DEFAULT_FIELDS;
+        const answers = {};
+        const missing = [];
+
+        fields.forEach(field => {
+            const el = document.getElementById(fieldId(field.key));
+            if (!el) return;
+            const value = field.type === 'checkbox' ? el.checked : String(el.value || '').trim();
+            answers[field.key] = value;
+            if (field.required && (field.type === 'checkbox' ? !value : !String(value).trim())) {
+                missing.push(field.label);
+            }
+        });
+
+        return { fields, answers, missing };
+    }
+
+    function openRegModal(eventId, eventTitle, eventData) {
         const overlay = document.getElementById('regModalOverlay');
         if (!overlay) return;
 
         currentEvent = {
             id: eventId || '',
-            title: eventTitle || 'General Registration'
+            title: eventTitle || 'General Registration',
+            registrationFields: (eventData && eventData.registrationFields) || []
         };
 
         const nameEl = document.getElementById('regEventName');
@@ -114,6 +188,7 @@
 
         const form = document.getElementById('regForm');
         if (form) form.reset();
+        renderRegistrationFields();
         showMsg('', '');
 
         // Prepare the captcha (no-op when Turnstile isn't configured)
@@ -130,7 +205,7 @@
         overlay.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
 
-        const first = document.getElementById('regRoblox');
+        const first = document.querySelector('#regDynamicFields input, #regDynamicFields select, #regDynamicFields textarea');
         if (first) setTimeout(() => first.focus(), 60);
     }
     // Expose globally so event buttons can trigger it
@@ -171,13 +246,9 @@
             const hp = document.getElementById('regWebsite');
             if (hp && hp.value) { closeRegModal(); return; }
 
-            const roblox = document.getElementById('regRoblox').value.trim();
-            const discord = document.getElementById('regDiscord').value.trim();
-            const device = document.getElementById('regDevice').value;
-            const map = document.getElementById('regMap').value;
-            const notes = document.getElementById('regNotes').value.trim();
+            const collected = collectRegistrationAnswers();
 
-            if (!roblox || !discord || !device) {
+            if (collected.missing.length > 0) {
                 showMsg('Please fill in all required fields marked with *.', 'error');
                 return;
             }
@@ -212,11 +283,12 @@
             const payload = {
                 event_id: currentEvent.id || null,
                 event_title: currentEvent.title || null,
-                roblox_username: roblox,
-                discord_username: discord,
-                device: device,
-                map: map || null,
-                notes: notes || null
+                roblox_username: collected.answers.roblox_username || collected.answers.roblox || null,
+                discord_username: collected.answers.discord_username || collected.answers.discord || null,
+                device: collected.answers.device || null,
+                map: collected.answers.map || null,
+                notes: collected.answers.notes || null,
+                answers: collected.answers
             };
 
             let failed = false;

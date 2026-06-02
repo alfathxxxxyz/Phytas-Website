@@ -631,8 +631,70 @@ function getStatusLabel(status) {
     return map[status] || status.toUpperCase();
 }
 
+function normalizeEvent(raw) {
+    const fields = raw.event_registration_fields || raw.registrationFields || [];
+    return {
+        id: String(raw.id || ''),
+        title: raw.title || '',
+        game: raw.game || 'Mount Agora',
+        date: raw.date || '',
+        startDate: raw.startDate || raw.start_date || raw.date || '',
+        endDate: raw.endDate || raw.end_date || raw.startDate || raw.start_date || raw.date || '',
+        time: raw.time || '',
+        timezone: raw.timezone || '',
+        status: raw.status || 'upcoming',
+        type: raw.type || '',
+        image: raw.image || '',
+        description: raw.description || '',
+        broadcastText: raw.broadcastText || raw.broadcast_text || '',
+        rules: Array.isArray(raw.rules) ? raw.rules : [],
+        sessions: Array.isArray(raw.sessions) ? raw.sessions : [],
+        prize: raw.prize || '',
+        caster: raw.caster || '',
+        registrationEnabled: raw.registrationEnabled ?? raw.registration_enabled ?? true,
+        registrationLink: raw.registrationLink || raw.registration_link || '',
+        tags: Array.isArray(raw.tags) ? raw.tags : [],
+        published: raw.published ?? true,
+        sortOrder: raw.sortOrder ?? raw.sort_order ?? 0,
+        registrationFields: fields
+            .map(field => ({
+                id: field.id || '',
+                key: field.key || field.field_key || '',
+                label: field.label || '',
+                type: field.type || 'text',
+                required: !!field.required,
+                options: Array.isArray(field.options) ? field.options : [],
+                placeholder: field.placeholder || '',
+                helpText: field.helpText || field.help_text || '',
+                sortOrder: field.sortOrder ?? field.sort_order ?? 0
+            }))
+            .filter(field => field.key && field.label)
+            .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
+    };
+}
 
-// ========== EVENTS: Render from JSON ==========
+async function loadEventsData() {
+    if (supabaseClient) {
+        try {
+            const { data, error } = await supabaseClient
+                .from('events')
+                .select('*, event_registration_fields(*)')
+                .eq('published', true)
+                .order('sort_order', { ascending: true })
+                .order('start_date', { ascending: true, nullsFirst: false });
+            if (error) throw error;
+            if (data && data.length > 0) return data.map(normalizeEvent);
+        } catch (error) {
+            console.warn('[events] Supabase fallback to JSON:', error.message || error);
+        }
+    }
+
+    const data = await loadJSON('data/events.json');
+    return Array.isArray(data) ? data.map(normalizeEvent) : null;
+}
+
+
+// ========== EVENTS: Render from Supabase/JSON ==========
 let eventsData = [];
 let eventGames = [];
 let currentGameFilter = null;
@@ -657,7 +719,7 @@ async function renderEvents() {
     const fallback = document.getElementById('eventsFallback');
     if (!container) return;
 
-    const data = await loadJSON('data/events.json');
+    const data = await loadEventsData();
     if (!data || data.length === 0) {
         // Keep fallback visible
         if (fallback) fallback.style.display = '';
@@ -800,7 +862,9 @@ function renderEventsLayout() {
                 </div>
                 ${featured.status === 'finished'
                     ? `<span class="btn btn-outline disabled">REGISTRATION CLOSED</span>`
-                    : `<button type="button" class="btn btn-primary js-register-btn">REGISTER NOW</button>`
+                    : featured.registrationEnabled
+                        ? `<button type="button" class="btn btn-primary js-register-btn">REGISTER NOW</button>`
+                        : `<button type="button" class="btn btn-outline js-details-btn">DETAILS</button>`
                 }
             </div>
         </div>
@@ -813,7 +877,7 @@ function renderEventsLayout() {
     } else {
         upcoming.forEach(evt => {
             const statusClass = evt.status === 'live' ? 'live' : evt.status === 'finished' ? 'closed' : 'upcoming';
-            const btnText = evt.status === 'finished' ? 'ENDED' : 'VIEW DETAILS';
+            const btnText = evt.status === 'finished' ? 'ENDED' : evt.registrationEnabled ? 'VIEW DETAILS' : 'DETAILS';
             const btnDisabled = evt.status === 'finished' ? ' disabled' : '';
             const cardImg = evt.image
                 ? `<div class="event-card-image"><img src="${evt.image}" alt="${evt.title}" loading="lazy"></div>`
@@ -882,7 +946,7 @@ function attachEventCardHandlers() {
                 e.stopPropagation();
                 const id = card.getAttribute('data-event-id');
                 const ev = eventsData.find(x => x.id === id);
-                if (ev && window.openRegModal) window.openRegModal(ev.id, ev.title);
+                if (ev && window.openRegModal) window.openRegModal(ev.id, ev.title, ev);
                 return;
             }
             // Don't open modal if clicking a real external link
@@ -909,20 +973,27 @@ function renderEventModal(event) {
         : event.status === 'finished' ? 'finished'
         : event.status === 'coming-soon' ? 'coming-soon'
         : 'upcoming';
+    const metaItems = [
+        ['DATE', formatDate(event.date || event.startDate)],
+        ['TIME', [formatTime12(event.time), event.timezone].filter(Boolean).join(' ')],
+        ['PRIZE', event.prize],
+        ['CASTER', event.caster]
+    ].filter(item => item[1]);
 
     let html = `
         ${event.image ? `<div class="modal-image"><img src="${event.image}" alt="${event.title}" loading="lazy"></div>` : ''}
         <h2 id="eventModalTitle">${event.title}</h2>
-        <div class="modal-game">${event.game} &bull; ${event.type}</div>
+        <div class="modal-game">${[event.game, event.type].filter(Boolean).join(' &bull; ')}</div>
         <div class="modal-status-badge ${statusClass}">${getStatusLabel(event.status)}</div>
-        <div class="modal-meta-grid">
-            <div class="modal-meta-item"><span class="label">DATE</span><span class="value">${formatDate(event.date)}</span></div>
-            <div class="modal-meta-item"><span class="label">TIME</span><span class="value">${formatTime12(event.time)} ${event.timezone}</span></div>
-            <div class="modal-meta-item"><span class="label">PRIZE</span><span class="value">${event.prize}</span></div>
-            <div class="modal-meta-item"><span class="label">CASTER</span><span class="value">${event.caster || 'TBA'}</span></div>
-        </div>
-        <p class="modal-description">${event.description}</p>
+        ${metaItems.length ? `<div class="modal-meta-grid">
+            ${metaItems.map(([label, value]) => `<div class="modal-meta-item"><span class="label">${label}</span><span class="value">${value}</span></div>`).join('')}
+        </div>` : ''}
+        ${event.description ? `<p class="modal-description">${event.description}</p>` : ''}
     `;
+
+    if (event.broadcastText) {
+        html += `<div class="modal-section-title">BROADCAST</div><p class="modal-description">${event.broadcastText}</p>`;
+    }
 
     // Rules
     if (event.rules && event.rules.length > 0) {
@@ -962,8 +1033,10 @@ function renderEventModal(event) {
         html += `<span class="btn btn-outline disabled">EVENT ENDED</span>`;
     } else if (event.status === 'coming-soon') {
         html += `<span class="btn btn-outline disabled">COMING SOON</span>`;
-    } else {
+    } else if (event.registrationEnabled) {
         html += `<button type="button" class="btn btn-primary js-modal-register">REGISTER NOW</button>`;
+    } else {
+        html += `<span class="btn btn-outline disabled">DETAILS ONLY</span>`;
     }
     html += `</div>`;
 
@@ -976,7 +1049,7 @@ function renderEventModal(event) {
         modalRegBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             closeEventModal();
-            if (window.openRegModal) window.openRegModal(event.id, event.title);
+            if (window.openRegModal) window.openRegModal(event.id, event.title, event);
         });
     }
 
