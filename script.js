@@ -302,6 +302,7 @@ document.querySelectorAll('.nav-links a').forEach(link => {
 // ========== ANIMATED COUNTER FOR STATS ==========
 const statNumbers = document.querySelectorAll('.stat-number');
 let countersAnimated = false;
+let discordStatsPromise = null;
 
 function animateCounter(el) {
     const target = parseInt(el.getAttribute('data-target'));
@@ -330,15 +331,23 @@ function setStatValue(el, value) {
     }
 }
 
+async function loadDiscordStats() {
+    if (!discordStatsPromise) {
+        discordStatsPromise = fetch('/api/discord-stats').then(res => {
+            if (!res.ok) throw new Error(`Discord stats ${res.status}`);
+            return res.json();
+        });
+    }
+
+    return discordStatsPromise;
+}
+
 async function initDiscordMemberStat() {
     const discordStat = document.querySelector('[data-stat-key="discord-members"]');
     if (!discordStat) return;
 
     try {
-        const res = await fetch('/api/discord-stats');
-        if (!res.ok) throw new Error(`Discord stats ${res.status}`);
-
-        const data = await res.json();
+        const data = await loadDiscordStats();
         setStatValue(discordStat, Number(data.memberCount));
     } catch (error) {
         console.warn('Discord member stat fallback:', error);
@@ -1218,12 +1227,27 @@ function renderMkIntro(data) {
         <h3>ABOUT <span class="accent-text">${data.communityName || 'PYTHAS'}</span></h3>
         <p>${data.shortDescription || ''}</p>
         <div class="mk-stats-row">
-            <div class="mk-stat"><div class="mk-stat-value">${audience.discordMembers || '—'}</div><div class="mk-stat-label">DISCORD</div></div>
+            <div class="mk-stat"><div class="mk-stat-value" data-stat-key="media-kit-discord-members">${audience.discordMembers || '—'}</div><div class="mk-stat-label">DISCORD</div></div>
             <div class="mk-stat"><div class="mk-stat-value">${audience.robloxGroupMembers || '—'}</div><div class="mk-stat-label">ROBLOX GROUP</div></div>
             <div class="mk-stat"><div class="mk-stat-value">${audience.totalEventsHosted || '—'}</div><div class="mk-stat-label">EVENTS HOSTED</div></div>
             <div class="mk-stat"><div class="mk-stat-value">${audience.averageEventParticipants || '—'}</div><div class="mk-stat-label">AVG PARTICIPANTS</div></div>
         </div>
     `;
+    syncMediaKitDiscordStat(el);
+}
+
+async function syncMediaKitDiscordStat(root = document) {
+    const discordStat = root.querySelector('[data-stat-key="media-kit-discord-members"]');
+    if (!discordStat) return;
+
+    try {
+        const data = await loadDiscordStats();
+        const memberCount = Number(data.memberCount);
+        if (!Number.isFinite(memberCount)) return;
+        discordStat.textContent = memberCount.toLocaleString();
+    } catch (error) {
+        console.warn('Media kit Discord stat fallback:', error);
+    }
 }
 
 function renderMkStrengths(data) {
