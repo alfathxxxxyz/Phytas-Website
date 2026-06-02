@@ -303,9 +303,11 @@ document.querySelectorAll('.nav-links a').forEach(link => {
 const statNumbers = document.querySelectorAll('.stat-number');
 let countersAnimated = false;
 let discordStatsPromise = null;
+let robloxCommunityStatsPromise = null;
 
 function animateCounter(el) {
     const target = parseInt(el.getAttribute('data-target'));
+    const suffix = el.getAttribute('data-suffix') || '';
     const duration = 2000;
     const start = performance.now();
 
@@ -313,11 +315,11 @@ function animateCounter(el) {
         const elapsed = now - start;
         const progress = Math.min(elapsed / duration, 1);
         const eased = 1 - Math.pow(1 - progress, 3);
-        el.textContent = Math.floor(target * eased).toLocaleString();
+        el.textContent = `${Math.floor(target * eased).toLocaleString()}${suffix}`;
         if (progress < 1) {
             requestAnimationFrame(update);
         } else {
-            el.textContent = target.toLocaleString();
+            el.textContent = `${target.toLocaleString()}${suffix}`;
         }
     }
     requestAnimationFrame(update);
@@ -342,6 +344,17 @@ async function loadDiscordStats() {
     return discordStatsPromise;
 }
 
+async function loadRobloxCommunityStats() {
+    if (!robloxCommunityStatsPromise) {
+        robloxCommunityStatsPromise = fetch('/api/roblox-community-stats').then(res => {
+            if (!res.ok) throw new Error(`Roblox community stats ${res.status}`);
+            return res.json();
+        });
+    }
+
+    return robloxCommunityStatsPromise;
+}
+
 async function initDiscordMemberStat() {
     const discordStat = document.querySelector('[data-stat-key="discord-members"]');
     if (!discordStat) return;
@@ -351,6 +364,18 @@ async function initDiscordMemberStat() {
         setStatValue(discordStat, Number(data.memberCount));
     } catch (error) {
         console.warn('Discord member stat fallback:', error);
+    }
+}
+
+async function initCommunityMemberStat() {
+    const communityStat = document.querySelector('[data-stat-key="community-members"]');
+    if (!communityStat) return;
+
+    try {
+        const data = await loadRobloxCommunityStats();
+        setStatValue(communityStat, Number(data.memberCount));
+    } catch (error) {
+        console.warn('Community member stat fallback:', error);
     }
 }
 
@@ -1228,12 +1253,13 @@ function renderMkIntro(data) {
         <p>${data.shortDescription || ''}</p>
         <div class="mk-stats-row">
             <div class="mk-stat"><div class="mk-stat-value" data-stat-key="media-kit-discord-members">${audience.discordMembers || '—'}</div><div class="mk-stat-label">DISCORD</div></div>
-            <div class="mk-stat"><div class="mk-stat-value">${audience.robloxGroupMembers || '—'}</div><div class="mk-stat-label">ROBLOX GROUP</div></div>
+            <div class="mk-stat"><div class="mk-stat-value" data-stat-key="media-kit-community-members">${audience.robloxGroupMembers || '—'}</div><div class="mk-stat-label">COMMUNITY MEMBERS</div></div>
             <div class="mk-stat"><div class="mk-stat-value">${audience.totalEventsHosted || '—'}</div><div class="mk-stat-label">EVENTS HOSTED</div></div>
-            <div class="mk-stat"><div class="mk-stat-value">${audience.averageEventParticipants || '—'}</div><div class="mk-stat-label">AVG PARTICIPANTS</div></div>
+            <div class="mk-stat"><div class="mk-stat-value">${audience.averageEventParticipants || '—'}</div><div class="mk-stat-label">AVG PLAYERS</div></div>
         </div>
     `;
     syncMediaKitDiscordStat(el);
+    syncMediaKitCommunityStat(el);
 }
 
 async function syncMediaKitDiscordStat(root = document) {
@@ -1247,6 +1273,20 @@ async function syncMediaKitDiscordStat(root = document) {
         discordStat.textContent = memberCount.toLocaleString();
     } catch (error) {
         console.warn('Media kit Discord stat fallback:', error);
+    }
+}
+
+async function syncMediaKitCommunityStat(root = document) {
+    const communityStat = root.querySelector('[data-stat-key="media-kit-community-members"]');
+    if (!communityStat) return;
+
+    try {
+        const data = await loadRobloxCommunityStats();
+        const memberCount = Number(data.memberCount);
+        if (!Number.isFinite(memberCount)) return;
+        communityStat.textContent = memberCount.toLocaleString();
+    } catch (error) {
+        console.warn('Media kit community stat fallback:', error);
     }
 }
 
@@ -1371,6 +1411,7 @@ async function renderPartners() {
 document.addEventListener('DOMContentLoaded', () => {
     // Load all JSON-driven sections
     initDiscordMemberStat();
+    initCommunityMemberStat();
     renderEvents();
     renderLeaderboard();
     renderMediaKit();
