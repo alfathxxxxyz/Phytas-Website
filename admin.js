@@ -48,6 +48,7 @@
     const addSessionBtn = $('addSessionBtn');
     const addRegFieldBtn = $('addRegFieldBtn');
     const addResultRaceBtn = $('addResultRaceBtn');
+    const WORKER_API = (window.PYTHAS_CONFIG && window.PYTHAS_CONFIG.WORKER_URL) || '';
 
     let allRows = [];
     let allEvents = [];
@@ -331,6 +332,8 @@
         item.innerHTML = `
             <div class="builder-row winner-row">
                 <div><label>Rank</label><input data-winner-rank type="number" min="1" max="3" value="${escapeAttr(winner.rank || '')}" placeholder="1"></div>
+                <div><label>Roblox Profile URL</label><input data-winner-profile value="${escapeAttr(winner.profileUrl || winner.profile_url || '')}" placeholder="https://www.roblox.com/users/.../profile"></div>
+                <button class="btn btn-ghost" type="button" data-winner-autofill>Autofill</button>
                 <div><label>Username</label><input data-winner-username value="${escapeAttr(winner.username || '')}" placeholder="Roblox username"></div>
                 <div><label>Display Name</label><input data-winner-display value="${escapeAttr(winner.displayName || winner.display_name || '')}" placeholder="Display name"></div>
                 <div><label>Avatar URL</label><input data-winner-avatar value="${escapeAttr(winner.avatarUrl || winner.avatar_url || '')}" placeholder="https://..."></div>
@@ -338,8 +341,55 @@
             </div>
         `;
         item.querySelector('[data-remove-row]').addEventListener('click', () => item.remove());
+        item.querySelector('[data-winner-autofill]').addEventListener('click', () => autofillWinnerFromProfile(item));
         list.appendChild(item);
         applyRolePermissions();
+    }
+
+    function parseRobloxUserId(profileUrl) {
+        const text = String(profileUrl || '').trim();
+        const match = text.match(/roblox\.com\/users\/(\d+)/i) || text.match(/^(\d+)$/);
+        return match ? match[1] : '';
+    }
+
+    async function autofillWinnerFromProfile(item) {
+        const profileInput = item.querySelector('[data-winner-profile]');
+        const userId = parseRobloxUserId(profileInput.value);
+        if (!userId) {
+            alert('Paste a Roblox profile URL like https://www.roblox.com/users/123/profile');
+            return;
+        }
+        if (!WORKER_API) {
+            alert('Worker URL is not configured.');
+            return;
+        }
+
+        const btn = item.querySelector('[data-winner-autofill]');
+        const oldText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = 'Loading...';
+        try {
+            const [userRes, avatarRes] = await Promise.all([
+                fetch(`${WORKER_API}/api/roblox/users?userIds=${encodeURIComponent(userId)}`),
+                fetch(`${WORKER_API}/api/roblox/avatars?userIds=${encodeURIComponent(userId)}&size=150x150`)
+            ]);
+            if (!userRes.ok) throw new Error('User lookup failed');
+
+            const userJson = await userRes.json();
+            const avatarJson = avatarRes.ok ? await avatarRes.json() : { data: [] };
+            const user = (userJson.data || [])[0];
+            const avatar = (avatarJson.data || []).find(a => String(a.targetId) === String(userId));
+            if (!user) throw new Error('Roblox user not found');
+
+            item.querySelector('[data-winner-username]').value = user.name || '';
+            item.querySelector('[data-winner-display]').value = user.displayName || user.name || '';
+            if (avatar && avatar.imageUrl) item.querySelector('[data-winner-avatar]').value = avatar.imageUrl;
+        } catch (err) {
+            alert('Autofill failed: ' + (err.message || err));
+        } finally {
+            btn.disabled = !canEditEvents;
+            btn.textContent = oldText;
+        }
     }
 
     function addResultRaceRow(result) {
@@ -391,6 +441,7 @@
             const mode = item.querySelector('[data-result-mode]').value;
             const winners = [...item.querySelectorAll('[data-winner-list] > .builder-item')].map((winnerItem, winnerIndex) => ({
                 rank: Number(winnerItem.querySelector('[data-winner-rank]').value || winnerIndex + 1),
+                profileUrl: winnerItem.querySelector('[data-winner-profile]').value.trim(),
                 username: winnerItem.querySelector('[data-winner-username]').value.trim(),
                 displayName: winnerItem.querySelector('[data-winner-display]').value.trim(),
                 avatarUrl: winnerItem.querySelector('[data-winner-avatar]').value.trim()
