@@ -1271,6 +1271,7 @@ body {
     flex-wrap: wrap;
     gap: 6px;
     margin-bottom: 18px;
+    min-width: 0;
 }
 
 .member-roles .member-role {
@@ -1281,7 +1282,7 @@ body {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 8px;
     margin-bottom: 6px;
 }
 
@@ -1291,6 +1292,14 @@ body {
 
 .member-name-row h4 {
     margin-bottom: 0;
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    order: 1;
+}
+
+.member-name-row .member-roles {
+    order: 2;
 }
 
 .member-role.dev { background: var(--blue); color: var(--white); }
