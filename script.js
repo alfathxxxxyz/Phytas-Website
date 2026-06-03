@@ -5,7 +5,7 @@
 
 // ========== ROBLOX LIVE DATA CONFIG ==========
 // Map of member display name -> Roblox User ID
-// Avatars auto-update when members change them on Roblox.
+// Names and avatars auto-update when members change them on Roblox.
 const ROBLOX_USERS = {
     'MaschPyth':  9096966065,
     'AerionPyth': 9288648967,
@@ -14,6 +14,10 @@ const ROBLOX_USERS = {
     'VinnyPyth':  9124999411,
     'AsbiiPyth':  8877318735,
     'DellPyth':   8902740169
+};
+
+const ROBLOX_SPONSORS = {
+    'LunaDelRey': 9189111615
 };
 
 // Map of game name (matches H3 in .game-card) -> Roblox Place ID
@@ -27,45 +31,91 @@ const ROBLOX_GAMES = {
 // Base URL of the Cloudflare Worker that proxies Roblox + serves leaderboard data
 const WORKER_API = 'https://pythas-leaderboard.alfathpr18.workers.dev';
 
-async function loadRobloxAvatars() {
-    const userIds = Object.values(ROBLOX_USERS);
+function robloxUserIdFromUrl(url) {
+    const match = String(url || '').match(/roblox\.com\/users\/(\d+)/i);
+    return match ? Number(match[1]) : null;
+}
+
+async function loadRobloxProfiles() {
+    const profileTargets = [];
+
+    document.querySelectorAll('.member-card').forEach(card => {
+        const nameEl = card.querySelector('.member-info h4');
+        const avatarEl = card.querySelector('.member-avatar');
+        if (!nameEl || !avatarEl) return;
+        const userId = ROBLOX_USERS[nameEl.textContent.trim()] || Number(card.getAttribute('data-roblox-id'));
+        if (!userId) return;
+        profileTargets.push({ userId, nameEl, avatarEl });
+    });
+
+    document.querySelectorAll('.spotlight-card').forEach(card => {
+        const nameEl = card.querySelector('h5');
+        const avatarEl = card.querySelector('.spotlight-avatar');
+        if (!nameEl || !avatarEl) return;
+        const userId = ROBLOX_SPONSORS[nameEl.textContent.trim()] || Number(card.getAttribute('data-roblox-id'));
+        if (!userId) return;
+        profileTargets.push({ userId, nameEl, avatarEl });
+    });
+
+    document.querySelectorAll('.member-wall-grid a[href*="roblox.com/users/"]').forEach(link => {
+        const userId = robloxUserIdFromUrl(link.href);
+        if (!userId) return;
+        profileTargets.push({ userId, nameEl: link, avatarEl: null });
+    });
+
+    const userIds = [...new Set(profileTargets.map(target => target.userId).filter(Boolean))];
     if (userIds.length === 0) return;
+
     try {
-        const url = `${WORKER_API}/api/roblox/avatars?userIds=${userIds.join(',')}&size=420x420`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('avatars proxy ' + res.status);
-        const json = await res.json();
-        const byId = {};
-        (json.data || []).forEach(item => {
+        const [usersRes, avatarsRes] = await Promise.all([
+            fetch(`${WORKER_API}/api/roblox/users?userIds=${userIds.join(',')}`),
+            fetch(`${WORKER_API}/api/roblox/avatars?userIds=${userIds.join(',')}&size=420x420`)
+        ]);
+        if (!usersRes.ok) throw new Error('users proxy ' + usersRes.status);
+        if (!avatarsRes.ok) throw new Error('avatars proxy ' + avatarsRes.status);
+
+        const usersJson = await usersRes.json();
+        const avatarsJson = await avatarsRes.json();
+        const usersById = {};
+        const avatarsById = {};
+
+        (usersJson.data || []).forEach(user => {
+            if (user && user.id) usersById[user.id] = user;
+        });
+        (avatarsJson.data || []).forEach(item => {
             if (item.state === 'Completed' && item.imageUrl) {
-                byId[item.targetId] = item.imageUrl;
+                avatarsById[item.targetId] = item.imageUrl;
             }
         });
-        document.querySelectorAll('.member-card').forEach(card => {
-            const nameEl = card.querySelector('.member-info h4');
-            const avatarDiv = card.querySelector('.member-avatar');
-            if (!nameEl || !avatarDiv) return;
-            const name = nameEl.textContent.trim();
-            const userId = ROBLOX_USERS[name];
-            const imgUrl = userId && byId[userId];
-            if (!imgUrl) return; // keep the static <img> fallback if Roblox lookup fails
-            // Prefer updating an existing <img> so it always shows the live Roblox avatar;
-            // fall back to a background image if the card has no <img>.
-            const imgEl = avatarDiv.querySelector('img');
+
+        profileTargets.forEach(target => {
+            const user = usersById[target.userId];
+            const imgUrl = avatarsById[target.userId];
+            const displayName = user && (user.displayName || user.name);
+            if (displayName) {
+                target.nameEl.textContent = displayName;
+            }
+
+            if (target.nameEl.tagName === 'A' && user && user.name) {
+                target.nameEl.title = `@${user.name}`;
+            }
+
+            if (!target.avatarEl || !imgUrl) return;
+            const imgEl = target.avatarEl.querySelector('img');
             if (imgEl) {
                 imgEl.src = imgUrl;
-                imgEl.alt = `${name} Roblox avatar`;
+                imgEl.alt = `${displayName || user?.name || 'Roblox user'} avatar`;
             } else {
-                avatarDiv.style.backgroundImage = `url("${imgUrl}")`;
-                avatarDiv.style.backgroundSize = 'cover';
-                avatarDiv.style.backgroundPosition = 'center';
-                avatarDiv.setAttribute('role', 'img');
-                avatarDiv.setAttribute('aria-label', `${name} Roblox avatar`);
+                target.avatarEl.style.backgroundImage = `url("${imgUrl}")`;
+                target.avatarEl.style.backgroundSize = 'cover';
+                target.avatarEl.style.backgroundPosition = 'center';
+                target.avatarEl.setAttribute('role', 'img');
+                target.avatarEl.setAttribute('aria-label', `${displayName || user?.name || 'Roblox user'} avatar`);
             }
-            avatarDiv.setAttribute('data-roblox-id', String(userId));
+            target.avatarEl.setAttribute('data-roblox-id', String(target.userId));
         });
     } catch (err) {
-        console.warn('[Roblox avatars] failed to load:', err);
+        console.warn('[Roblox profiles] failed to load:', err);
     }
 }
 
@@ -106,7 +156,7 @@ async function loadRobloxGameIcons() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    loadRobloxAvatars();
+    loadRobloxProfiles();
     loadRobloxGameIcons();
 });
 
