@@ -23,27 +23,27 @@
     username:     { x: 318, y: 185, size: 28, color: '#9FA3AA', align: 'left',   font: 'inter',  weight: 500 },
     robloxId:     { x: 340, y: 252, size: 16, color: '#C8C8C8', align: 'left',   font: 'inter',  weight: 400 },
 
-    // Stat boxes (label + value)
+    // Stat boxes (label + value)  [summit values bumped to 1.3x: 24 -> 31]
     lblAgoraSummit: { x: 145, y: 342, size: 17, color: '#FFFFFF', align: 'center', font: 'oswald', weight: 500, text: 'AGORA SUMMIT' },
-    summitAgora:    { x: 145, y: 405, size: 24, color: '#AAFF00', align: 'center', font: 'oswald', weight: 700 },
+    summitAgora:    { x: 145, y: 405, size: 31, color: '#AAFF00', align: 'center', font: 'oswald', weight: 700 },
     lblAztecSummit: { x: 385, y: 342, size: 17, color: '#FFFFFF', align: 'center', font: 'oswald', weight: 500, text: 'AZTEC SUMMIT' },
-    summitAztec:    { x: 385, y: 405, size: 24, color: '#AAFF00', align: 'center', font: 'oswald', weight: 700 },
+    summitAztec:    { x: 385, y: 405, size: 31, color: '#AAFF00', align: 'center', font: 'oswald', weight: 700 },
     lblScore:       { x: 585, y: 342, size: 17, color: '#FFFFFF', align: 'center', font: 'oswald', weight: 500, text: 'SCORE' },
-    grade:          { x: 585, y: 395, size: 64, color: '#AAFF00', align: 'center', font: 'oswald', weight: 700 },
+    grade:          { x: 585, y: 385, size: 64, color: '#AAFF00', align: 'center', font: 'oswald', weight: 700 },
 
-    // Best time section
-    btTitle:      { x: 72,  y: 527, size: 22, color: '#AAFF00', align: 'left', font: 'oswald', weight: 700, text: 'BEST TIME' },
-    lblAgora:     { x: 72,  y: 570, size: 22, color: '#FFFFFF', align: 'left', font: 'oswald', weight: 500, text: 'AGORA' },
-    timeAgora:    { x: 72,  y: 622, size: 25, color: '#AAFF00', align: 'left', font: 'oswald', weight: 700 },
-    lblAztec:     { x: 312, y: 570, size: 22, color: '#FFFFFF', align: 'left', font: 'oswald', weight: 500, text: 'AZTEC' },
-    timeAztec:    { x: 312, y: 622, size: 25, color: '#AAFF00', align: 'left', font: 'oswald', weight: 700 },
-    lblPoseidon:  { x: 72,  y: 681, size: 22, color: '#FFFFFF', align: 'left', font: 'oswald', weight: 500, text: 'POSEIDON' },
-    timePoseidon: { x: 72,  y: 710, size: 25, color: '#AAFF00', align: 'left', font: 'oswald', weight: 700 },
-    lblOverall:   { x: 312, y: 681, size: 22, color: '#FFFFFF', align: 'left', font: 'oswald', weight: 500, text: 'OVERALL BEST' },
-    timeOverall:  { x: 312, y: 710, size: 25, color: '#AAFF00', align: 'left', font: 'oswald', weight: 700 },
+    // Best time section  [font: Ethnocentric; uniform label->value gap = 46px]
+    btTitle:      { x: 72,  y: 527, size: 22, color: '#AAFF00', align: 'left', font: 'ethno', weight: 700, text: 'BEST TIME' },
+    lblAgora:     { x: 72,  y: 570, size: 22, color: '#FFFFFF', align: 'left', font: 'ethno', weight: 500, text: 'AGORA' },
+    timeAgora:    { x: 72,  y: 616, size: 25, color: '#AAFF00', align: 'left', font: 'ethno', weight: 700 },
+    lblAztec:     { x: 312, y: 570, size: 22, color: '#FFFFFF', align: 'left', font: 'ethno', weight: 500, text: 'AZTEC' },
+    timeAztec:    { x: 312, y: 616, size: 25, color: '#AAFF00', align: 'left', font: 'ethno', weight: 700 },
+    lblPoseidon:  { x: 72,  y: 681, size: 22, color: '#FFFFFF', align: 'left', font: 'ethno', weight: 500, text: 'POSEIDON' },
+    timePoseidon: { x: 72,  y: 727, size: 25, color: '#AAFF00', align: 'left', font: 'ethno', weight: 700 },
+    lblOverall:   { x: 312, y: 681, size: 22, color: '#FFFFFF', align: 'left', font: 'ethno', weight: 500, text: 'OVERALL BEST' },
+    timeOverall:  { x: 312, y: 727, size: 25, color: '#AAFF00', align: 'left', font: 'ethno', weight: 700 },
 
-    // Footer
-    regId:        { x: 585, y: 852, size: 16, color: '#FFFFFF', align: 'center', font: 'inter', weight: 500 },
+    // Footer  [reg ID: match top Roblox ID style (Inter 400), size 1.2x = 19, nudged lower]
+    regId:        { x: 585, y: 858, size: 19, color: '#FFFFFF', align: 'center', font: 'inter', weight: 400 },
   };
 
   // ---- Avatar (circular mask matching the green ring in the background) ----
@@ -98,7 +98,7 @@
       el.style.fontSize = cfg.size + 'px';
       el.style.color = cfg.color;
       el.style.fontWeight = cfg.weight || 600;
-      el.style.fontFamily = cfg.font === 'inter' ? "'Inter', sans-serif" : "'Oswald', sans-serif";
+      el.style.fontFamily = fontFamily(cfg.font);
       el.style.top = cfg.y + 'px';
       if (cfg.align === 'center') {
         el.style.left = cfg.x + 'px';
@@ -349,6 +349,13 @@
 
   // ---- Formatting ----
   function formatNumber(num) { return Number(num).toLocaleString('en-US'); }
+
+  // Map a font key to a CSS font-family stack.
+  function fontFamily(key) {
+    if (key === 'inter') return "'Inter', sans-serif";
+    if (key === 'ethno') return "'Ethnocentric', 'Orbitron', 'Oswald', sans-serif";
+    return "'Oswald', sans-serif";
+  }
 
   // mm:ss.cc (centiseconds)
   function fmtTime(ms) {
