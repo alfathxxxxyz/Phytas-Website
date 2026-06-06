@@ -1612,24 +1612,9 @@ function renderMkStrengths(data) {
 }
 
 function renderMkPackages(data) {
+    // Sponsor packages archived — intentionally hidden
     const el = document.getElementById('mkPackages');
-    if (!el || !data.sponsorPackages || data.sponsorPackages.length === 0) return;
-
-    let html = `<h3>SPONSOR <span class="accent-text">PACKAGES</span></h3><div class="mk-packages-grid">`;
-    data.sponsorPackages.forEach(pkg => {
-        const tierClass = pkg.name.toLowerCase();
-        html += `
-            <div class="mk-package-card ${tierClass}">
-                <div class="mk-package-name">${pkg.name}</div>
-                <div class="mk-package-price">${pkg.price}</div>
-                <ul class="mk-package-benefits">
-                    ${pkg.benefits.map(b => `<li>${b}</li>`).join('')}
-                </ul>
-            </div>
-        `;
-    });
-    html += '</div>';
-    el.innerHTML = html;
+    if (el) el.innerHTML = '';
 }
 
 function renderMkAssets(data) {
@@ -1640,7 +1625,6 @@ function renderMkAssets(data) {
         <h3>BRAND <span class="accent-text">ASSETS</span></h3>
         <div class="mk-assets-banner">
             <img src="images/brand-assets.png" alt="PYTHAS Brand Assets" loading="lazy">
-            <a href="images/brand-assets.png" download class="btn btn-primary">DOWNLOAD BRAND ASSETS</a>
         </div>
     `;
 }
