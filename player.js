@@ -1,5 +1,6 @@
 // ============================================================
-//  PYTHAS Player Card — Frontend Logic
+//  PYTHAS Player Card — Frontend Logic v2.0
+//  Redesigned compact gaming card
 // ============================================================
 
 (function () {
@@ -18,7 +19,6 @@
   const cardAvatar = document.getElementById('cardAvatar');
   const cardDisplayName = document.getElementById('cardDisplayName');
   const cardUsername = document.getElementById('cardUsername');
-  const cardAgeBadge = document.getElementById('cardAgeBadge');
   const cardAgeText = document.getElementById('cardAgeText');
   const ageDays = document.getElementById('ageDays');
   const ageSince = document.getElementById('ageSince');
@@ -107,13 +107,13 @@
     cardDisplayName.textContent = user.displayName;
     cardUsername.textContent = `@${user.name}`;
 
-    // Account Age Badge
-    cardAgeText.textContent = `${accountAge.tier} \u2022 ${accountAge.years}${accountAge.years === 1 ? ' year' : ' years'}`;
+    // Tier Badge
+    cardAgeText.textContent = `${accountAge.tier} \u2022 ${accountAge.years}y`;
 
-    // Age Calculator
-    ageDays.textContent = formatNumber(accountAge.days);
+    // Age Stats
+    ageDays.textContent = formatCompact(accountAge.days);
     const created = new Date(accountAge.createdDate);
-    ageSince.textContent = `Since ${created.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`;
+    ageSince.textContent = `Member since ${created.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
 
     // Social Stats
     cardFriends.textContent = formatCompact(social.friends);
@@ -125,7 +125,7 @@
 
     // Bio
     if (user.description && user.description.trim()) {
-      cardBioText.textContent = user.description.slice(0, 150) + (user.description.length > 150 ? '...' : '');
+      cardBioText.textContent = user.description.slice(0, 120) + (user.description.length > 120 ? '...' : '');
       cardBio.hidden = false;
     } else {
       cardBio.hidden = true;
@@ -143,7 +143,7 @@
 
     // Groups
     if (groups && groups.length > 0) {
-      renderGroups(groups);
+      renderGroups(groups.slice(0, 4)); // Max 4 groups for compact view
       cardGroups.hidden = false;
     } else {
       cardGroups.hidden = true;
@@ -159,10 +159,11 @@
   // ---- Render Badges ----
   function renderBadges(badges) {
     cardBadges.innerHTML = '';
+    if (!badges || badges.length === 0) return;
     badges.forEach(badge => {
       const el = document.createElement('div');
       el.className = 'badge-item';
-      el.title = badge.description;
+      el.title = badge.description || '';
       el.innerHTML = `<span class="badge-icon">${badge.icon}</span><span class="badge-label">${badge.label}</span>`;
       cardBadges.appendChild(el);
     });
@@ -171,24 +172,22 @@
   // ---- Render Phytas Stats ----
   function renderPhytasStats(phytas) {
     phytasStatsGrid.innerHTML = '';
-
     const stats = [];
 
     if (phytas.aztec) {
       if (phytas.aztec.summit) {
-        stats.push({ label: 'Summit (Aztec)', value: formatNumber(phytas.aztec.summit.score), sub: `Rank #${phytas.aztec.summit.rank}` });
+        stats.push({ label: 'Summit (Aztec)', value: formatNumber(phytas.aztec.summit.score), sub: `#${phytas.aztec.summit.rank}` });
       }
       if (phytas.aztec.speedrun) {
-        stats.push({ label: 'Speedrun (Aztec)', value: formatTime(phytas.aztec.speedrun.time_ms), sub: `Rank #${phytas.aztec.speedrun.rank}` });
+        stats.push({ label: 'Speedrun (Aztec)', value: formatTime(phytas.aztec.speedrun.time_ms), sub: `#${phytas.aztec.speedrun.rank}` });
       }
     }
-
     if (phytas.agora) {
       if (phytas.agora.summit) {
-        stats.push({ label: 'Summit (Agora)', value: formatNumber(phytas.agora.summit.score), sub: `Rank #${phytas.agora.summit.rank}` });
+        stats.push({ label: 'Summit (Agora)', value: formatNumber(phytas.agora.summit.score), sub: `#${phytas.agora.summit.rank}` });
       }
       if (phytas.agora.speedrun) {
-        stats.push({ label: 'Speedrun (Agora)', value: formatTime(phytas.agora.speedrun.time_ms), sub: `Rank #${phytas.agora.speedrun.rank}` });
+        stats.push({ label: 'Speedrun (Agora)', value: formatTime(phytas.agora.speedrun.time_ms), sub: `#${phytas.agora.speedrun.rank}` });
       }
     }
 
@@ -220,7 +219,6 @@
     const url = `https://www.roblox.com/users/${userId}/profile`;
 
     if (typeof qrcode === 'undefined') {
-      // Library not loaded, skip
       qrCanvas.style.display = 'none';
       return;
     }
@@ -235,14 +233,15 @@
 
     ctx.clearRect(0, 0, size, size);
 
-    // Get computed theme colors for QR
     const cardEl = document.getElementById('playerCard');
     const styles = getComputedStyle(cardEl);
     const fg = styles.getPropertyValue('--qr-fg').trim() || '#ffffff';
     const bg = styles.getPropertyValue('--qr-bg').trim() || 'transparent';
 
-    ctx.fillStyle = bg;
-    ctx.fillRect(0, 0, size, size);
+    if (bg !== 'transparent') {
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, size, size);
+    }
 
     ctx.fillStyle = fg;
     for (let row = 0; row < qr.getModuleCount(); row++) {
@@ -262,7 +261,6 @@
     const theme = btn.dataset.theme;
     playerCard.setAttribute('data-theme', theme);
 
-    // Update active state
     themeSelector.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
 
@@ -315,8 +313,7 @@
           ]);
           showToast('Image copied to clipboard!');
         } catch {
-          // Fallback: download
-          showToast('Clipboard not supported, downloading instead...');
+          showToast('Clipboard not supported, downloading...');
           handleSave();
         }
       }, 'image/png');
@@ -334,9 +331,8 @@
     const url = `${window.location.origin}/player.html?id=${currentProfile.user.id}`;
 
     navigator.clipboard.writeText(url).then(() => {
-      showToast('Link copied to clipboard!');
+      showToast('Link copied!');
     }).catch(() => {
-      // Fallback
       prompt('Copy this link:', url);
     });
   }
@@ -348,7 +344,6 @@
     playerInput.value = '';
     playerInput.focus();
     currentProfile = null;
-    // Clean URL
     history.replaceState(null, '', window.location.pathname);
   }
 
@@ -384,7 +379,6 @@
   }
 
   function showToast(message) {
-    // Remove existing toast
     const existing = document.querySelector('.toast');
     if (existing) existing.remove();
 
