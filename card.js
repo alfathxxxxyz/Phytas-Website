@@ -26,10 +26,10 @@
     // Stat boxes (label + value)  [summit values bumped to 1.3x: 24 -> 31]
     lblAgoraSummit: { x: 145, y: 342, size: 17, color: '#FFFFFF', align: 'center', font: 'oswald', weight: 500, text: 'AGORA SUMMIT' },
     summitAgora:    { x: 145, y: 405, size: 31, color: '#AAFF00', align: 'center', font: 'oswald', weight: 700 },
-    lblAztecSummit: { x: 385, y: 342, size: 17, color: '#FFFFFF', align: 'center', font: 'oswald', weight: 500, text: 'AZTEC SUMMIT' },
-    summitAztec:    { x: 385, y: 405, size: 31, color: '#AAFF00', align: 'center', font: 'oswald', weight: 700 },
+    lblAztecSummit: { x: 375, y: 342, size: 17, color: '#FFFFFF', align: 'center', font: 'oswald', weight: 500, text: 'AZTEC SUMMIT' },
+    summitAztec:    { x: 375, y: 405, size: 31, color: '#AAFF00', align: 'center', font: 'oswald', weight: 700 },
     lblScore:       { x: 585, y: 342, size: 17, color: '#FFFFFF', align: 'center', font: 'oswald', weight: 500, text: 'SCORE' },
-    grade:          { x: 585, y: 385, size: 64, color: '#AAFF00', align: 'center', font: 'oswald', weight: 700 },
+    grade:          { x: 585, y: 380, size: 64, color: '#AAFF00', align: 'center', font: 'oswald', weight: 700 },
 
     // Best time section  [font: Ethnocentric; uniform label->value gap = 46px]
     btTitle:      { x: 72,  y: 527, size: 22, color: '#AAFF00', align: 'left', font: 'ethno', weight: 700, text: 'BEST TIME' },
@@ -52,7 +52,7 @@
   // ---- Image elements (x,y = top-left; w,h = size) ----
   const IMAGES = {
     logo: { x: 75,  y: 828, w: 180, h: 48 },
-    qr:   { x: 556, y: 666, w: 102, h: 102 },
+    qr:   { x: 549, y: 659, w: 102, h: 102 },
   };
 
   // ---- DOM refs ----
