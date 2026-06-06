@@ -24,18 +24,21 @@ local MAP_NAME    = "aztec"  -- "aztec" untuk Mount Aztec, "agora" untuk Mount A
 -- ==============================================
 
 --[[
-  sync(player, summitTotal, bestTimeMs, eventType)
+  sync(player, summitTotal, bestTimeMs, eventType, mapOverride)
 
   player      : objek Player
   summitTotal : TOTAL summit pemain saat ini (angka). -> disimpan sbg nilai terbaru
   bestTimeMs  : waktu lari yg baru saja dicatat dlm milidetik (angka), atau nil.
                 -> server hanya menyimpan kalau lebih kecil dari rekor lama
   eventType   : "summit" atau "speedrun" (opsional, penanda saja)
+  mapOverride : paksa map tertentu ("poseidon" / "aztec" / "agora"), opsional.
+                Kalau nil, pakai MAP_NAME default. Berguna kalau satu game
+                punya beberapa leaderboard terpisah (mis. Agora + Poseidon).
 
   Catatan: map otomatis diambil dari MAP_NAME di atas, jadi cukup set sekali
   per game. Tiap game (Aztec / Agora) punya leaderboard terpisah di website.
 ]]
-local function sync(player: Player, summitTotal: number?, bestTimeMs: number?, eventType: string?)
+local function sync(player: Player, summitTotal: number?, bestTimeMs: number?, eventType: string?, mapOverride: string?)
 	local payload = {
 		userId = player.UserId,
 		username = player.Name,
@@ -43,7 +46,7 @@ local function sync(player: Player, summitTotal: number?, bestTimeMs: number?, e
 		summit = summitTotal,
 		bestTimeMs = bestTimeMs,
 		eventType = eventType,
-		map = MAP_NAME,
+		map = mapOverride or MAP_NAME,
 	}
 
 	local ok, result = pcall(function()
@@ -142,4 +145,32 @@ _G.PythasLeaderboard = { sync = sync }
 --   - task.spawn dipakai supaya request HTTP tidak nge-block gameplay. (bagus!)
 --   - MAP_NAME di config atas yang menentukan map ("agora" / "aztec"),
 --     jadi pemanggilan di atas TIDAK perlu menyebut map.
+-- ============================================================
+
+
+-- ============================================================
+--  INTEGRASI POSEIDON (di dalam game Mount Agora)
+--  Poseidon punya timer + leaderboard sendiri, terpisah dari
+--  speedrun Agora biasa. Datanya disimpan di:
+--    OrderedDataStore("TimerLeaderboard_S1")
+--  via ServerScriptService.PoseidonTimer -> saveTime(player, elapsedSeconds)
+--
+--  CARA SAMBUNGNYA:
+--  Di PoseidonTimer, SETELAH baris:
+--      TimeLeaderboard:SetAsync(userId, newMs)
+--  tambahkan:
+--
+--      if _G.PythasLeaderboard and _G.PythasLeaderboard.sync then
+--          task.spawn(function()
+--              -- mapOverride "poseidon" WAJIB, supaya tidak masuk sbg Agora
+--              _G.PythasLeaderboard.sync(player, nil, newMs, "speedrun", "poseidon")
+--          end)
+--      end
+--
+--  PENTING:
+--   - Script ini (di game Agora namanya "ScriptWebsite") MAP_NAME-nya tetap
+--     "agora". Parameter ke-5 ("poseidon") yang nge-override map khusus
+--     untuk data Poseidon. Tanpa override, Poseidon bakal kecatat sebagai Agora.
+--   - Worker website sudah dikenalin map "poseidon" -> tersimpan sebagai
+--     "Poseidon" di tabel players (baris terpisah per user_id).
 -- ============================================================
