@@ -30,6 +30,7 @@
     const newEventBtn = $('newEventBtn');
     const refreshEventsBtn = $('refreshEventsBtn');
     const adminEventList = $('adminEventList');
+    const adminEventCal = $('adminEventCal');
     const eventForm = $('eventForm');
     const eventMsg = $('eventMsg');
     const saveEventBtn = $('saveEventBtn');
@@ -264,6 +265,7 @@
         }
         allEvents = data || [];
         renderEventList();
+        renderAdminCalendar();
         if (!($('eventId') && $('eventId').value) && allEvents[0]) fillEventForm(allEvents[0]);
         applyRolePermissions();
     }
@@ -278,11 +280,112 @@
         adminEventList.innerHTML = allEvents.map(ev => `
             <button type="button" data-event-id="${escapeAttr(ev.id)}" class="${String(ev.id) === selected ? 'active' : ''}">
                 <strong>${escapeHtml(ev.title || 'Untitled')}</strong><br>
-                <span class="hint">${escapeHtml(ev.status || '')} · ${escapeHtml(ev.game || '')}</span>
+                <span class="hint">${escapeHtml(ev.status || '')} · ${escapeHtml(ev.game || '')}${adminEventDate(ev) ? ' · ' + escapeHtml(adminEventDate(ev)) : ''}</span>
             </button>
         `).join('');
         adminEventList.querySelectorAll('[data-event-id]').forEach(btn => {
             btn.addEventListener('click', () => fillEventForm(allEvents.find(ev => String(ev.id) === btn.getAttribute('data-event-id'))));
+        });
+    }
+
+    // ---- Calendar overview (read-only, click to edit) ----
+    const ADMIN_STATUS_COLORS = { 'live': '#FF0080', 'upcoming': '#AAFF00', 'coming-soon': '#00CFFF', 'finished': '#6B7280' };
+    const ADMIN_MONTHS = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
+    const ADMIN_CAL_MIN_YEAR = 2025;
+    let adminCalYear = null;
+    let adminCalMonth = null;
+
+    function adminEventDate(ev) {
+        return ev.start_date || ev.date || ev.end_date || '';
+    }
+
+    function adminDateKey(d) {
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    function adminEventDateKeys(ev) {
+        const start = ev.start_date || ev.date;
+        if (!start) return [];
+        const end = ev.end_date || ev.start_date || ev.date || start;
+        const cur = new Date(start + 'T00:00:00');
+        const last = new Date(end + 'T00:00:00');
+        if (isNaN(cur.getTime())) return [];
+        if (isNaN(last.getTime()) || last < cur) return [start];
+        const keys = [];
+        let guard = 0;
+        while (cur <= last && guard < 400) {
+            keys.push(adminDateKey(cur));
+            cur.setDate(cur.getDate() + 1);
+            guard++;
+        }
+        return keys;
+    }
+
+    function renderAdminCalendar() {
+        if (!adminEventCal) return;
+
+        if (adminCalYear === null) {
+            const now = new Date();
+            adminCalYear = now.getFullYear();
+            adminCalMonth = now.getMonth();
+            if (adminCalYear < ADMIN_CAL_MIN_YEAR) { adminCalYear = ADMIN_CAL_MIN_YEAR; adminCalMonth = 0; }
+        }
+
+        const dayMap = {};
+        allEvents.forEach(ev => {
+            adminEventDateKeys(ev).forEach(key => { (dayMap[key] = dayMap[key] || []).push(ev); });
+        });
+
+        const first = new Date(adminCalYear, adminCalMonth, 1);
+        const startWeekday = (first.getDay() + 6) % 7;
+        const daysInMonth = new Date(adminCalYear, adminCalMonth + 1, 0).getDate();
+        const todayKey = adminDateKey(new Date());
+        const atMin = adminCalYear <= ADMIN_CAL_MIN_YEAR && adminCalMonth <= 0;
+
+        let html = `
+            <div class="admin-cal-header">
+                <button type="button" class="admin-cal-nav" data-acal-nav="prev"${atMin ? ' disabled' : ''}>&lsaquo;</button>
+                <div class="admin-cal-title">${ADMIN_MONTHS[adminCalMonth]} ${adminCalYear}</div>
+                <button type="button" class="admin-cal-nav" data-acal-nav="next">&rsaquo;</button>
+            </div>
+            <div class="admin-cal-grid">${['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'].map(d => `<div class="admin-cal-weekday">${d}</div>`).join('')}</div>
+            <div class="admin-cal-grid">
+        `;
+
+        for (let i = 0; i < startWeekday; i++) html += '<div class="admin-cal-cell empty"></div>';
+        for (let day = 1; day <= daysInMonth; day++) {
+            const key = `${adminCalYear}-${String(adminCalMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const dayEvents = dayMap[key] || [];
+            html += `<div class="admin-cal-cell${key === todayKey ? ' is-today' : ''}"><div class="admin-cal-date">${day}</div>`;
+            dayEvents.slice(0, 3).forEach(ev => {
+                const sc = ADMIN_STATUS_COLORS[ev.status] || '#888';
+                html += `<button type="button" class="admin-cal-chip" data-acal-event="${escapeAttr(ev.id)}" style="--chip-status:${sc}" title="${escapeAttr(ev.title || 'Event')}">${escapeHtml(ev.title || 'Event')}</button>`;
+            });
+            if (dayEvents.length > 3) html += `<span class="admin-cal-more">+${dayEvents.length - 3}</span>`;
+            html += '</div>';
+        }
+        html += '</div>';
+
+        adminEventCal.innerHTML = html;
+
+        adminEventCal.querySelectorAll('[data-acal-nav]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const dir = btn.getAttribute('data-acal-nav');
+                if (dir === 'prev') {
+                    if (adminCalMonth === 0) { adminCalMonth = 11; adminCalYear--; } else { adminCalMonth--; }
+                } else {
+                    if (adminCalMonth === 11) { adminCalMonth = 0; adminCalYear++; } else { adminCalMonth++; }
+                }
+                if (adminCalYear < ADMIN_CAL_MIN_YEAR) { adminCalYear = ADMIN_CAL_MIN_YEAR; adminCalMonth = 0; }
+                renderAdminCalendar();
+            });
+        });
+
+        adminEventCal.querySelectorAll('[data-acal-event]').forEach(chip => {
+            chip.addEventListener('click', () => {
+                const ev = allEvents.find(x => String(x.id) === chip.getAttribute('data-acal-event'));
+                if (ev) fillEventForm(ev);
+            });
         });
     }
 

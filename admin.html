@@ -151,6 +151,42 @@
         .hint { color: var(--muted); font-size: 12px; margin-top: 14px; }
         .hidden { display: none !important; }
         .nowrap { white-space: nowrap; }
+
+        /* ---- Admin Calendar Overview ---- */
+        .admin-cal-panel { margin-bottom: 18px; }
+        .admin-cal-header {
+            display: flex; align-items: center; justify-content: center;
+            gap: 16px; margin-bottom: 14px;
+        }
+        .admin-cal-title {
+            font-weight: 700; letter-spacing: 1px; color: var(--lime);
+            min-width: 180px; text-align: center;
+        }
+        .admin-cal-nav {
+            width: 32px; height: 32px; border: 1px solid var(--border);
+            background: var(--panel-2); color: var(--text); border-radius: 6px;
+            font-size: 18px; line-height: 1; cursor: pointer;
+        }
+        .admin-cal-nav:hover:not(:disabled) { border-color: var(--lime); color: var(--lime); }
+        .admin-cal-nav:disabled { opacity: 0.3; cursor: not-allowed; }
+        .admin-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        .admin-cal-weekday { text-align: center; font-size: 11px; color: var(--muted); padding: 4px 0; }
+        .admin-cal-cell {
+            min-height: 70px; background: var(--bg); border: 1px solid var(--border);
+            border-radius: 6px; padding: 4px; display: flex; flex-direction: column; gap: 3px; overflow: hidden;
+        }
+        .admin-cal-cell.empty { background: transparent; border-color: transparent; }
+        .admin-cal-cell.is-today { border-color: var(--lime); }
+        .admin-cal-date { font-size: 11px; font-weight: 600; color: var(--muted); }
+        .admin-cal-cell.is-today .admin-cal-date { color: var(--lime); }
+        .admin-cal-chip {
+            text-align: left; border: none; border-left: 3px solid var(--chip-status, #888);
+            background: var(--panel-2); color: var(--text); font-size: 10px; line-height: 1.25;
+            padding: 2px 5px; border-radius: 3px; cursor: pointer; width: 100%;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .admin-cal-chip:hover { background: var(--border); }
+        .admin-cal-more { font-size: 9px; color: var(--muted); padding-left: 3px; }
     </style>
 </head>
 <body>
@@ -233,6 +269,11 @@
                     <button class="btn" id="newEventBtn" type="button">+ New Event</button>
                     <button class="btn btn-ghost" id="refreshEventsBtn" type="button">Refresh</button>
                     <span class="hint">Owner/admin can edit. Staff is read-only.</span>
+                </div>
+                <div class="panel admin-cal-panel">
+                    <h3 style="margin-bottom:12px">Calendar Overview</h3>
+                    <p class="hint" style="margin-bottom:12px">Visual schedule from Start Date / End Date (falls back to Date). Click an event to load it into the editor.</p>
+                    <div class="admin-cal" id="adminEventCal"></div>
                 </div>
                 <div class="grid-2">
                     <div class="panel">
