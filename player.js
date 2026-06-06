@@ -181,6 +181,9 @@
       if (phytas.aztec.speedrun) {
         stats.push({ label: 'Speedrun (Aztec)', value: formatTime(phytas.aztec.speedrun.time_ms), sub: `Rank #${phytas.aztec.speedrun.rank}` });
       }
+      if (phytas.aztec.playtime_seconds > 0) {
+        stats.push({ label: 'Playtime (Aztec)', value: formatPlaytime(phytas.aztec.playtime_seconds), sub: 'Total time played' });
+      }
     }
 
     if (phytas.agora) {
@@ -189,6 +192,9 @@
       }
       if (phytas.agora.speedrun) {
         stats.push({ label: 'Speedrun (Agora)', value: formatTime(phytas.agora.speedrun.time_ms), sub: `Rank #${phytas.agora.speedrun.rank}` });
+      }
+      if (phytas.agora.playtime_seconds > 0) {
+        stats.push({ label: 'Playtime (Agora)', value: formatPlaytime(phytas.agora.playtime_seconds), sub: 'Total time played' });
       }
     }
 
@@ -417,6 +423,16 @@
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = (totalSeconds % 60).toFixed(2);
     return `${String(minutes).padStart(2, '0')}:${seconds.padStart(5, '0')}`;
+  }
+
+  function formatPlaytime(seconds) {
+    if (!seconds || seconds <= 0) return '--';
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m`;
   }
 
   function escapeHtml(str) {

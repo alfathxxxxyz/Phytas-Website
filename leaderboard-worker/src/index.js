@@ -2,7 +2,7 @@
 //  PYTHAS Leaderboard + Registration — Cloudflare Worker
 //
 //  Endpoints:
-//    POST /api/roblox/player-stats        (header: x-roblox-secret; body may include map)
+//    POST /api/roblox/player-stats        (header: x-roblox-secret; body may include map, playtimeSeconds)
 //    POST /api/register                   (public, Turnstile-protected)
 //    GET  /api/leaderboard/summit?map=    -> top 100 by summit desc (per map)
 //    GET  /api/leaderboard/speedrun?map=  -> top 100 by best_time_ms asc (per map)
@@ -35,6 +35,7 @@ const LIMITS = {
   // Sane upper bounds so a compromised/buggy client can't write absurd values
   SUMMIT_MAX: 1_000_000,
   BEST_TIME_MS_MAX: 86_400_000, // 24h in ms
+  PLAYTIME_SECONDS_MAX: 86_400, // max 24h per single sync (prevents absurd values)
 };
 
 const ALLOWED_DEVICES = new Set(['PC', 'Mobile', 'Mixed']);
@@ -284,6 +285,13 @@ async function handlePlayerStats(request, env) {
     bestTimeMs = r.value;
   }
 
+  let playtimeSeconds = 0;
+  if (body.playtimeSeconds != null) {
+    const r = boundedInt(body.playtimeSeconds, 0, LIMITS.PLAYTIME_SECONDS_MAX);
+    if (!r.ok) return json({ error: 'playtimeSeconds out of range' }, 400, request, env);
+    playtimeSeconds = r.value;
+  }
+
   // Atomic upsert via PostgREST RPC (handles "summit latest" + "best time only if smaller")
   const res = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/upsert_player_stats`, {
     method: 'POST',
@@ -299,6 +307,7 @@ async function handlePlayerStats(request, env) {
       p_summit: summit,
       p_best_time_ms: bestTimeMs,
       p_map: map,
+      p_playtime_seconds: playtimeSeconds,
     }),
   });
 
@@ -417,7 +426,7 @@ async function verifyTurnstile(token, ip, env) {
 
 // ---- GET /api/leaderboard/:type ----
 async function handleLeaderboard(env, type, map, request) {
-  const select = 'user_id,username,display_name,summit,best_time_ms,updated_at';
+  const select = 'user_id,username,display_name,summit,best_time_ms,playtime_seconds,updated_at';
   const mapFilter = `map=eq.${encodeURIComponent(map)}`;
   const query =
     type === 'summit'

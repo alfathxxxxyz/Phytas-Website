@@ -211,15 +211,21 @@ async function fetchPhytasStats(userId) {
 
     if (!hasData) return null;
 
+    // Extract playtime from any available leaderboard entry for this player
+    const aztecPlaytime = (aztecSummit && aztecSummit.playtime_seconds) || (aztecSpeedrun && aztecSpeedrun.playtime_seconds) || 0;
+    const agoraPlaytime = (agoraSummit && agoraSummit.playtime_seconds) || (agoraSpeedrun && agoraSpeedrun.playtime_seconds) || 0;
+
     return {
       hasData: true,
       aztec: {
         summit: aztecSummit ? { score: aztecSummit.summit, rank: aztecSummit.rank } : null,
         speedrun: aztecSpeedrun ? { time_ms: aztecSpeedrun.best_time_ms, rank: aztecSpeedrun.rank } : null,
+        playtime_seconds: aztecPlaytime,
       },
       agora: {
         summit: agoraSummit ? { score: agoraSummit.summit, rank: agoraSummit.rank } : null,
         speedrun: agoraSpeedrun ? { time_ms: agoraSpeedrun.best_time_ms, rank: agoraSpeedrun.rank } : null,
+        playtime_seconds: agoraPlaytime,
       },
     };
   } catch {
