@@ -157,6 +157,18 @@ body {
     border-radius: 0;
 }
 
+.nav-logo-img {
+    height: 36px;
+    width: auto;
+    object-fit: contain;
+}
+
+.footer-logo-img {
+    height: 44px;
+    width: auto;
+    object-fit: contain;
+}
+
 .logo-text {
     font-family: var(--font-heading);
     font-weight: 700;
