@@ -715,7 +715,6 @@ function normalizeEvent(raw) {
                     avatarUrl: winner.avatarUrl || winner.avatar_url || ''
                 }))
                 .filter(winner => winner.username || winner.displayName || winner.avatarUrl)
-                .slice(0, 3)
         })).filter(result => result.raceName && result.winners.length),
         tags: Array.isArray(raw.tags) ? raw.tags : [],
         published: raw.published ?? true,
@@ -1079,7 +1078,7 @@ function renderEventResults(results) {
 
     let html = '<div class="modal-section-title">RESULTS</div><div class="modal-results">';
     results.forEach(result => {
-        const winners = [...result.winners].sort((a, b) => (a.rank || 99) - (b.rank || 99)).slice(0, 3);
+        const winners = [...result.winners].sort((a, b) => (a.rank || 99) - (b.rank || 99));
         html += `
             <section class="modal-result-race">
                 <div class="modal-result-head">
@@ -1115,7 +1114,7 @@ function renderEventResults(results) {
             });
 
             html += '<div class="modal-result-podium">';
-            ordered.slice(0, 3).forEach(winner => {
+            ordered.forEach(winner => {
                 const rank = Number(winner.rank || 1);
                 html += `
                     <article class="modal-podium-card rank-${rank}">
