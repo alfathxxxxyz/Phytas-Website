@@ -16,72 +16,12 @@
 -- ============================================================
 
 local HttpService = game:GetService("HttpService")
-local Players = game:GetService("Players")
 
 -- ====== 1) CONFIG - GANTI TIGA BARIS INI ======
 local WORKER_URL  = "https://pythas-leaderboard.XXXX.workers.dev/api/roblox/player-stats"
 local SYNC_SECRET = "PASTE_ROBLOX_SYNC_SECRET_DISINI"
 local MAP_NAME    = "aztec"  -- "aztec" untuk Mount Aztec, "agora" untuk Mount Agora
 -- ==============================================
-
--- ====== PLAYTIME TRACKING ======
--- Menyimpan waktu join tiap pemain untuk menghitung playtime saat leave.
-local JoinTimes: { [number]: number } = {}
-
--- Sync hanya playtime (tanpa summit/bestTime) saat player leave
-local function syncPlaytime(player: Player, playtimeSeconds: number)
-	local payload = {
-		userId = player.UserId,
-		username = player.Name,
-		displayName = player.DisplayName,
-		playtimeSeconds = playtimeSeconds,
-		map = MAP_NAME,
-	}
-
-	local ok, result = pcall(function()
-		return HttpService:RequestAsync({
-			Url = WORKER_URL,
-			Method = "POST",
-			Headers = {
-				["Content-Type"] = "application/json",
-				["x-roblox-secret"] = SYNC_SECRET,
-			},
-			Body = HttpService:JSONEncode(payload),
-		})
-	end)
-
-	if not ok then
-		warn("[PYTHAS] playtime sync error: " .. tostring(result))
-		return
-	end
-
-	if not result.Success then
-		warn(("[PYTHAS] playtime sync gagal (%d): %s"):format(result.StatusCode, tostring(result.Body)))
-	else
-		print(("[PYTHAS] playtime synced %s @ %s (%ds)"):format(
-			player.Name, MAP_NAME, playtimeSeconds))
-	end
-end
-
-Players.PlayerAdded:Connect(function(player: Player)
-	JoinTimes[player.UserId] = os.time()
-end)
-
-Players.PlayerRemoving:Connect(function(player: Player)
-	local joinTime = JoinTimes[player.UserId]
-	if not joinTime then return end
-
-	local playtimeSeconds = os.time() - joinTime
-	JoinTimes[player.UserId] = nil
-
-	-- Kirim playtime ke Worker (fire and forget)
-	if playtimeSeconds > 0 then
-		task.spawn(function()
-			syncPlaytime(player, playtimeSeconds)
-		end)
-	end
-end)
--- ================================
 
 --[[
   sync(player, summitTotal, bestTimeMs, eventType)

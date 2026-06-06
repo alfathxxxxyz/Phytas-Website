@@ -195,8 +195,14 @@ async function fetchPhytasStats(userId) {
 
     return {
       hasData: true,
-      aztec: data.aztec || { summit: null, speedrun: null, playtime_seconds: 0 },
-      agora: data.agora || { summit: null, speedrun: null, playtime_seconds: 0 },
+      aztec: {
+        summit: data.aztec?.summit || null,
+        speedrun: data.aztec?.speedrun || null,
+      },
+      agora: {
+        summit: data.agora?.summit || null,
+        speedrun: data.agora?.speedrun || null,
+      },
     };
   } catch {
     return null;
