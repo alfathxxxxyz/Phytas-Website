@@ -185,6 +185,7 @@ function boundedInt(value, min, max) {
 function normalizeMap(raw) {
   const v = (raw == null ? '' : String(raw)).trim().toLowerCase();
   if (v === 'agora' || v === 'mount agora' || v === 'mount-agora') return 'Mount Agora';
+  if (v === 'poseidon' || v === 'mount poseidon' || v === 'mount-poseidon') return 'Poseidon';
   return 'Mount Aztec';
 }
 
