@@ -256,22 +256,20 @@ function updateActiveNav(targetId) {
 // Nav link click handler
 navItems.forEach(link => {
     link.addEventListener('click', (e) => {
-        e.preventDefault();
         const targetId = link.getAttribute('data-section');
-        if (targetId) {
-            showSection(targetId);
-            history.pushState({ section: targetId }, '', '#' + targetId);
-        }
+        if (!targetId) return; // Allow normal navigation (e.g. player.html)
+        e.preventDefault();
+        showSection(targetId);
+        history.pushState({ section: targetId }, '', '#' + targetId);
     });
     // Keyboard support: Enter/Space triggers section switch
     link.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
             const targetId = link.getAttribute('data-section');
-            if (targetId) {
-                showSection(targetId);
-                history.pushState({ section: targetId }, '', '#' + targetId);
-            }
+            if (!targetId) return; // Allow normal navigation
+            e.preventDefault();
+            showSection(targetId);
+            history.pushState({ section: targetId }, '', '#' + targetId);
         }
     });
 });
