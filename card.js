@@ -52,7 +52,7 @@
   // ---- Image elements (x,y = top-left; w,h = size) ----
   const IMAGES = {
     logo: { x: 75,  y: 828, w: 180, h: 48 },
-    qr:   { x: 549, y: 659, w: 102, h: 102 },
+    qr:   { x: 549, y: 656, w: 102, h: 102 },
   };
 
   // ---- DOM refs ----
