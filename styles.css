@@ -222,6 +222,9 @@ body {
     border-radius: 4px;
     font-size: 10px;
     letter-spacing: 1.5px;
+    cursor: pointer;
+    position: relative;
+    z-index: 10;
 }
 
 .nav-links a.nav-player-card:hover {
