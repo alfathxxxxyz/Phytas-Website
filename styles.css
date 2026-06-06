@@ -3741,7 +3741,6 @@ body.theme-glitching .theme-toggle {
 
 .mk-assets-banner img {
     width: 100%;
-    max-width: 700px;
     border-radius: 12px;
     border: 1px solid var(--gray-dark);
 }
