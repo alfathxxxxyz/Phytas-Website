@@ -1636,40 +1636,13 @@ function renderMkAssets(data) {
     const el = document.getElementById('mkAssets');
     if (!el) return;
 
-    let html = `<h3>BRAND <span class="accent-text">ASSETS</span></h3>`;
-
-    // Asset cards
-    if (data.brandAssets && data.brandAssets.length > 0) {
-        html += '<div class="mk-assets-grid">';
-        const icons = { 'Logo': '&#127912;', 'Template': '&#128196;', 'Banner': '&#127988;', 'Guidelines': '&#127912;' };
-        data.brandAssets.forEach(asset => {
-            const icon = icons[asset.type] || '&#128193;';
-            html += `
-                <div class="mk-asset-card">
-                    <div class="mk-asset-icon">${icon}</div>
-                    <h5>${asset.name}</h5>
-                    <span>${asset.format}</span>
-                </div>
-            `;
-        });
-        html += '</div>';
-    }
-
-    // Color Palette
-    if (data.colorPalette && data.colorPalette.length > 0) {
-        html += '<div class="mk-palette">';
-        data.colorPalette.forEach(c => {
-            html += `
-                <div class="mk-palette-swatch">
-                    <div class="mk-swatch-color" style="background:${c.hex};"></div>
-                    <span class="mk-swatch-label">${c.name}</span>
-                </div>
-            `;
-        });
-        html += '</div>';
-    }
-
-    el.innerHTML = html;
+    el.innerHTML = `
+        <h3>BRAND <span class="accent-text">ASSETS</span></h3>
+        <div class="mk-assets-banner">
+            <img src="images/brand-assets.png" alt="PYTHAS Brand Assets" loading="lazy">
+            <a href="images/brand-assets.png" download class="btn btn-primary">DOWNLOAD BRAND ASSETS</a>
+        </div>
+    `;
 }
 
 function renderMkCta(data) {

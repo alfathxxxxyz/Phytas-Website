@@ -3732,41 +3732,22 @@ body.theme-glitching .theme-toggle {
     letter-spacing: 0.5px;
 }
 
-.mk-assets-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
+.mk-assets-banner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
 }
 
-.mk-asset-card {
-    background: var(--dark-panel);
+.mk-assets-banner img {
+    width: 100%;
+    max-width: 700px;
+    border-radius: 12px;
     border: 1px solid var(--gray-dark);
-    padding: 24px 20px;
-    text-align: center;
-    transition: var(--transition);
 }
 
-.mk-asset-card:hover {
-    border-color: rgba(170, 255, 0, 0.3);
-    transform: translateY(-3px);
-}
-
-.mk-asset-icon {
-    font-size: 32px;
-    margin-bottom: 12px;
-}
-
-.mk-asset-card h5 {
-    font-family: var(--font-heading);
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 1px;
-    margin-bottom: 6px;
-}
-
-.mk-asset-card span {
-    font-size: 11px;
-    color: var(--gray-light);
+.mk-assets-banner .btn {
+    font-size: 14px;
 }
 
 /* Color Palette Display */
