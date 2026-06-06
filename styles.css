@@ -214,6 +214,25 @@ body {
     width: 100%;
 }
 
+/* Player Card nav link — accent styling */
+.nav-links a.nav-player-card {
+    color: var(--lime);
+    border: 1px solid var(--lime);
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+}
+
+.nav-links a.nav-player-card:hover {
+    background: var(--lime);
+    color: var(--black);
+}
+
+.nav-links a.nav-player-card::after {
+    display: none;
+}
+
 .nav-cta .btn-sm {
     padding: 10px 24px;
     font-size: 12px;
