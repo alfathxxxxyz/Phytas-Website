@@ -187,60 +187,19 @@ async function fetchGroups(userId) {
 // ---- Fetch Phytas stats from leaderboard worker ----
 async function fetchPhytasStats(userId) {
   try {
-    // Query both maps for summit and speedrun
-    const [summitAztec, summitAgora, speedrunAztec, speedrunAgora] = await Promise.all([
-      fetchLeaderboard('summit', 'aztec'),
-      fetchLeaderboard('summit', 'agora'),
-      fetchLeaderboard('speedrun', 'aztec'),
-      fetchLeaderboard('speedrun', 'agora'),
-    ]);
+    const res = await fetch(`${LEADERBOARD_WORKER}/api/player/${userId}`);
+    if (!res.ok) return null;
+    const data = await res.json();
 
-    // Find player in each leaderboard
-    const findPlayer = (players, uid) => {
-      const idx = players.findIndex(p => p.user_id === uid);
-      if (idx === -1) return null;
-      return { ...players[idx], rank: idx + 1 };
-    };
-
-    const aztecSummit = findPlayer(summitAztec, userId);
-    const agoraSummit = findPlayer(summitAgora, userId);
-    const aztecSpeedrun = findPlayer(speedrunAztec, userId);
-    const agoraSpeedrun = findPlayer(speedrunAgora, userId);
-
-    const hasData = aztecSummit || agoraSummit || aztecSpeedrun || agoraSpeedrun;
-
-    if (!hasData) return null;
-
-    // Extract playtime from any available leaderboard entry for this player
-    const aztecPlaytime = (aztecSummit && aztecSummit.playtime_seconds) || (aztecSpeedrun && aztecSpeedrun.playtime_seconds) || 0;
-    const agoraPlaytime = (agoraSummit && agoraSummit.playtime_seconds) || (agoraSpeedrun && agoraSpeedrun.playtime_seconds) || 0;
+    if (!data.ok || !data.hasData) return null;
 
     return {
       hasData: true,
-      aztec: {
-        summit: aztecSummit ? { score: aztecSummit.summit, rank: aztecSummit.rank } : null,
-        speedrun: aztecSpeedrun ? { time_ms: aztecSpeedrun.best_time_ms, rank: aztecSpeedrun.rank } : null,
-        playtime_seconds: aztecPlaytime,
-      },
-      agora: {
-        summit: agoraSummit ? { score: agoraSummit.summit, rank: agoraSummit.rank } : null,
-        speedrun: agoraSpeedrun ? { time_ms: agoraSpeedrun.best_time_ms, rank: agoraSpeedrun.rank } : null,
-        playtime_seconds: agoraPlaytime,
-      },
+      aztec: data.aztec || { summit: null, speedrun: null, playtime_seconds: 0 },
+      agora: data.agora || { summit: null, speedrun: null, playtime_seconds: 0 },
     };
   } catch {
     return null;
-  }
-}
-
-async function fetchLeaderboard(type, map) {
-  try {
-    const res = await fetch(`${LEADERBOARD_WORKER}/api/leaderboard/${type}?map=${map}`);
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data.players || [];
-  } catch {
-    return [];
   }
 }
 

@@ -226,6 +226,9 @@ export default {
       if (pathname === '/api/roblox/users' && method === 'GET') {
         return await handleRobloxUsers(request, env);
       }
+      if (pathname.startsWith('/api/player/') && method === 'GET') {
+        return await handlePlayerProfile(request, env);
+      }
       if (pathname === '/api/admin/refresh-names' && method === 'GET') {
         return await handleRefreshNames(env, request);
       }
@@ -422,6 +425,90 @@ async function verifyTurnstile(token, ip, env) {
     console.error('[worker] turnstile verify exception:', err);
     return false;
   }
+}
+
+// ---- GET /api/player/:userId ----
+// Returns all stats for a specific player across all maps (direct DB query).
+async function handlePlayerProfile(request, env) {
+  const { pathname } = new URL(request.url);
+  const userIdStr = pathname.replace('/api/player/', '');
+  const userId = Number(userIdStr);
+
+  if (!Number.isFinite(userId) || userId <= 0) {
+    return json({ error: 'Invalid userId' }, 400, request, env);
+  }
+
+  // Query Supabase directly for this player's data across all maps
+  const query = `user_id=eq.${userId}&select=user_id,username,display_name,summit,best_time_ms,playtime_seconds,map,updated_at`;
+  const res = await fetch(`${env.SUPABASE_URL}/rest/v1/players?${query}`, {
+    headers: {
+      apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+      authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+    },
+  });
+
+  if (!res.ok) {
+    console.error('[worker] player profile query failed:', res.status, await safeText(res));
+    return json({ error: 'Upstream error' }, 502, request, env);
+  }
+
+  const rows = await res.json();
+
+  if (!rows || rows.length === 0) {
+    return json({ ok: true, hasData: false, userId }, 200, request, env);
+  }
+
+  // Also determine rank for each map/category
+  const [summitAztec, summitAgora, speedrunAztec, speedrunAgora] = await Promise.all([
+    fetchLeaderboardForRank(env, 'summit', 'Mount Aztec'),
+    fetchLeaderboardForRank(env, 'summit', 'Mount Agora'),
+    fetchLeaderboardForRank(env, 'speedrun', 'Mount Aztec'),
+    fetchLeaderboardForRank(env, 'speedrun', 'Mount Agora'),
+  ]);
+
+  const getRank = (list, uid) => {
+    const idx = list.findIndex(p => p.user_id === uid);
+    return idx === -1 ? null : idx + 1;
+  };
+
+  const aztecRow = rows.find(r => r.map === 'Mount Aztec');
+  const agoraRow = rows.find(r => r.map === 'Mount Agora');
+
+  const result = {
+    ok: true,
+    hasData: true,
+    userId,
+    aztec: aztecRow ? {
+      summit: aztecRow.summit > 0 ? { score: aztecRow.summit, rank: getRank(summitAztec, userId) } : null,
+      speedrun: aztecRow.best_time_ms ? { time_ms: aztecRow.best_time_ms, rank: getRank(speedrunAztec, userId) } : null,
+      playtime_seconds: aztecRow.playtime_seconds || 0,
+    } : null,
+    agora: agoraRow ? {
+      summit: agoraRow.summit > 0 ? { score: agoraRow.summit, rank: getRank(summitAgora, userId) } : null,
+      speedrun: agoraRow.best_time_ms ? { time_ms: agoraRow.best_time_ms, rank: getRank(speedrunAgora, userId) } : null,
+      playtime_seconds: agoraRow.playtime_seconds || 0,
+    } : null,
+  };
+
+  return json(result, 200, request, env);
+}
+
+// Fetch full leaderboard for ranking purposes (cached per request is fine, Workers are short-lived)
+async function fetchLeaderboardForRank(env, type, map) {
+  const mapFilter = `map=eq.${encodeURIComponent(map)}`;
+  const query = type === 'summit'
+    ? `select=user_id&${mapFilter}&summit=gt.0&order=summit.desc&limit=500`
+    : `select=user_id&${mapFilter}&best_time_ms=not.is.null&order=best_time_ms.asc&limit=500`;
+
+  const res = await fetch(`${env.SUPABASE_URL}/rest/v1/players?${query}`, {
+    headers: {
+      apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+      authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+    },
+  });
+
+  if (!res.ok) return [];
+  return await res.json();
 }
 
 // ---- GET /api/leaderboard/:type ----

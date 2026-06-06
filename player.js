@@ -133,9 +133,16 @@
 
     // Phytas Stats
     if (phytas && phytas.hasData) {
-      renderPhytasStats(phytas);
-      cardPhytas.hidden = false;
-      cardPhytasCta.hidden = true;
+      const hasVisibleStats = (phytas.aztec && (phytas.aztec.summit || phytas.aztec.speedrun || phytas.aztec.playtime_seconds > 0)) ||
+                              (phytas.agora && (phytas.agora.summit || phytas.agora.speedrun || phytas.agora.playtime_seconds > 0));
+      if (hasVisibleStats) {
+        renderPhytasStats(phytas);
+        cardPhytas.hidden = false;
+        cardPhytasCta.hidden = true;
+      } else {
+        cardPhytas.hidden = true;
+        cardPhytasCta.hidden = false;
+      }
     } else {
       cardPhytas.hidden = true;
       cardPhytasCta.hidden = false;
