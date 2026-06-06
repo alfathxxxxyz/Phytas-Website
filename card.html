@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player Card - PYTHAS</title>
+    <meta name="description" content="Generate your PYTHAS Player Card. View your stats, grade, and share your profile.">
+    <meta property="og:title" content="Player Card - PYTHAS">
+    <meta property="og:description" content="Generate your PYTHAS Player Card with stats, grade, and more.">
+    <meta property="og:type" content="website">
+    <link rel="icon" href="images/7bb28f56-fd57-488b-b9a1-768a7e414531 copy.png" type="image/png">
+    <link rel="stylesheet" href="card.css">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="card-nav">
+        <a href="index.html" class="nav-back">
+            <span class="back-arrow">&larr;</span>
+            <img src="images/Pythas-Logo.png" alt="PYTHAS" class="nav-logo-img">
+        </a>
+        <h1 class="nav-title">PLAYER CARD</h1>
+    </nav>
+
+    <main class="card-main">
+        <!-- Search Section -->
+        <section class="search-section" id="searchSection">
+            <div class="search-container">
+                <h2 class="search-title">GENERATE YOUR <span class="accent">PLAYER CARD</span></h2>
+                <p class="search-subtitle">Enter your Roblox User ID or Username.</p>
+                <form class="search-form" id="searchForm">
+                    <div class="input-wrapper">
+                        <input type="text" id="playerInput" placeholder="Roblox User ID or Username" autocomplete="off" required>
+                        <button type="submit" class="btn-search" id="searchBtn">
+                            <span class="btn-text">GENERATE</span>
+                            <span class="btn-loading" hidden><span class="spinner"></span></span>
+                        </button>
+                    </div>
+                    <p class="input-hint">Example: 9096966065 or MaschPYTH</p>
+                </form>
+                <p class="search-error" id="searchError" hidden></p>
+            </div>
+        </section>
+
+        <!-- Card Result Section -->
+        <section class="result-section" id="resultSection" hidden>
+            <div class="card-stage" id="cardStage">
+                <!-- 720x900 card; all overlay elements injected by card.js -->
+                <div class="pcard" id="pcard">
+                    <img class="pcard-bg" id="pcardBg" src="images/image 1.png" alt="" crossorigin="anonymous">
+                    <!-- overlay elements injected here -->
+                </div>
+            </div>
+
+            <div class="card-actions">
+                <button class="btn-action btn-save" id="btnSave"><span>&#128190;</span> Save as PNG</button>
+                <button class="btn-action btn-share" id="btnShare"><span>&#128279;</span> Copy Link</button>
+                <button class="btn-action btn-new" id="btnNew"><span>&#128260;</span> New Search</button>
+            </div>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <script src="card.js"></script>
+</body>
+</html>

@@ -32,12 +32,13 @@ module.exports = async function handler(req, res) {
     }
 
     // Fetch all data in parallel
-    const [userInfo, avatarData, socialStats, groups, phytasStats] = await Promise.all([
+    const [userInfo, avatarData, socialStats, groups, phytasStats, cardReg] = await Promise.all([
       fetchUserInfo(userId),
       fetchAvatars(userId),
       fetchSocialStats(userId),
       fetchGroups(userId),
       fetchPhytasStats(userId),
+      fetchCardReg(userId),
     ]);
 
     if (!userInfo) {
@@ -74,6 +75,7 @@ module.exports = async function handler(req, res) {
       social: socialStats,
       groups: groups,
       phytas: phytasStats,
+      cardReg: cardReg,
       badges: badges,
     };
 
@@ -193,17 +195,61 @@ async function fetchPhytasStats(userId) {
 
     if (!data.ok || !data.hasData) return null;
 
+    const aztec = {
+      summit: data.aztec?.summit || null,
+      speedrun: data.aztec?.speedrun || null,
+    };
+    const agora = {
+      summit: data.agora?.summit || null,
+      speedrun: data.agora?.speedrun || null,
+    };
+    const poseidon = {
+      speedrun: data.poseidon?.speedrun || null,
+    };
+
+    // Overall best = fastest speedrun time across all three maps.
+    const times = [
+      aztec.speedrun?.time_ms,
+      agora.speedrun?.time_ms,
+      poseidon.speedrun?.time_ms,
+    ].filter(t => typeof t === 'number' && t > 0);
+    const overallBest = times.length > 0 ? Math.min(...times) : null;
+
+    // Grade: based on how many of the 5 data points the player has.
+    //   5 -> A+ | 4 -> A | 3 -> B+ | 2 -> B- | 1 -> B | 0 -> null
+    const dataPoints = [
+      aztec.summit,        // 1. Summit Aztec
+      agora.summit,        // 2. Summit Agora
+      aztec.speedrun,      // 3. Speedrun Aztec
+      agora.speedrun,      // 4. Speedrun Agora
+      poseidon.speedrun,   // 5. Speedrun Poseidon
+    ].filter(Boolean).length;
+
+    const gradeMap = { 5: 'A+', 4: 'A', 3: 'B+', 2: 'B-', 1: 'B' };
+    const grade = gradeMap[dataPoints] || null;
+
     return {
       hasData: true,
-      aztec: {
-        summit: data.aztec?.summit || null,
-        speedrun: data.aztec?.speedrun || null,
-      },
-      agora: {
-        summit: data.agora?.summit || null,
-        speedrun: data.agora?.speedrun || null,
-      },
+      aztec,
+      agora,
+      poseidon,
+      overallBest,
+      grade,
+      dataPoints,
     };
+  } catch {
+    return null;
+  }
+}
+
+// ---- Fetch sequential card registration number ----
+async function fetchCardReg(userId) {
+  try {
+    const res = await fetch(`${LEADERBOARD_WORKER}/api/card-register/${userId}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data.ok) return null;
+    return { number: data.regNumber, formatted: data.formatted };
   } catch {
     return null;
   }

@@ -9,8 +9,10 @@
 //    GET  /api/roblox/avatars?userIds=    -> proxied Roblox headshots
 //    GET  /api/roblox/game-icons?placeIds=-> proxied Roblox game icons
 //    GET  /api/roblox/users?userIds=      -> resolve Roblox usernames/display names
+//    GET  /api/player/:userId             -> all stats for one player (per map) + ranks
+//    GET  /api/card-register/:userId      -> sequential card registration number
 //    GET  /api/admin/refresh-names        -> backfill placeholder names
-//    map = "aztec" (default) or "agora"
+//    map = "aztec" (default), "agora", or "poseidon"
 //
 //  Env (set as Wrangler secrets / vars, never commit real values):
 //    SUPABASE_URL
@@ -225,6 +227,9 @@ export default {
       }
       if (pathname === '/api/roblox/users' && method === 'GET') {
         return await handleRobloxUsers(request, env);
+      }
+      if (pathname.startsWith('/api/card-register/') && method === 'GET') {
+        return await handleCardRegister(request, env);
       }
       if (pathname.startsWith('/api/player/') && method === 'GET') {
         return await handlePlayerProfile(request, env);
@@ -451,11 +456,12 @@ async function handlePlayerProfile(request, env) {
   }
 
   // Also determine rank for each map/category
-  const [summitAztec, summitAgora, speedrunAztec, speedrunAgora] = await Promise.all([
+  const [summitAztec, summitAgora, speedrunAztec, speedrunAgora, speedrunPoseidon] = await Promise.all([
     fetchLeaderboardForRank(env, 'summit', 'Mount Aztec'),
     fetchLeaderboardForRank(env, 'summit', 'Mount Agora'),
     fetchLeaderboardForRank(env, 'speedrun', 'Mount Aztec'),
     fetchLeaderboardForRank(env, 'speedrun', 'Mount Agora'),
+    fetchLeaderboardForRank(env, 'speedrun', 'Poseidon'),
   ]);
 
   const getRank = (list, uid) => {
@@ -465,6 +471,7 @@ async function handlePlayerProfile(request, env) {
 
   const aztecRow = rows.find(r => r.map === 'Mount Aztec');
   const agoraRow = rows.find(r => r.map === 'Mount Agora');
+  const poseidonRow = rows.find(r => r.map === 'Poseidon');
 
   const result = {
     ok: true,
@@ -478,9 +485,53 @@ async function handlePlayerProfile(request, env) {
       summit: agoraRow.summit > 0 ? { score: agoraRow.summit, rank: getRank(summitAgora, userId) } : null,
       speedrun: agoraRow.best_time_ms ? { time_ms: agoraRow.best_time_ms, rank: getRank(speedrunAgora, userId) } : null,
     } : null,
+    poseidon: poseidonRow ? {
+      speedrun: poseidonRow.best_time_ms ? { time_ms: poseidonRow.best_time_ms, rank: getRank(speedrunPoseidon, userId) } : null,
+    } : null,
   };
 
   return json(result, 200, request, env);
+}
+
+// ---- GET /api/card-register/:userId ----
+// Returns a sequential registration number for a player, assigning a new one
+// the first time they generate a card. Idempotent: same user always gets the
+// same number. Formatted as "000-00-00001" (10 digits, zero-padded).
+async function handleCardRegister(request, env) {
+  if (!rateLimit(`cardreg:${clientIp(request)}`, 60, 60_000)) {
+    return json({ error: 'Too many requests' }, 429, request, env);
+  }
+
+  const { pathname } = new URL(request.url);
+  const userId = Number(pathname.replace('/api/card-register/', ''));
+  if (!Number.isFinite(userId) || userId <= 0) {
+    return json({ error: 'Invalid userId' }, 400, request, env);
+  }
+
+  const res = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/get_or_create_card_reg`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+      authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+    },
+    body: JSON.stringify({ p_user_id: userId }),
+  });
+
+  if (!res.ok) {
+    console.error('[worker] card-register RPC failed:', res.status, await safeText(res));
+    return json({ error: 'Upstream error' }, 502, request, env);
+  }
+
+  const regNumber = await res.json(); // RPC returns a bigint
+  const formatted = formatRegNumber(regNumber);
+  return json({ ok: true, userId, regNumber, formatted }, 200, request, env);
+}
+
+// Format a sequential number into "000-00-00001" (10 digits total).
+function formatRegNumber(n) {
+  const padded = String(n).padStart(10, '0').slice(-10);
+  return `${padded.slice(0, 3)}-${padded.slice(3, 5)}-${padded.slice(5)}`;
 }
 
 // Fetch leaderboard for ranking purposes
