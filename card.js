@@ -15,37 +15,44 @@
   // ---- Text elements ----
   // x,y in px (design space). align: left | center | right.
   // For align:center the x is the CENTER point. y is the TOP of the text.
-  // Set `static: true` for labels with fixed text already defined here.
+  // font: 'oswald' (headings/stats) | 'inter' (body/small). Edit freely here.
   const TEXT = {
-    title:        { x: 318, y: 55,  size: 26, color: '#AAFF00', align: 'left',   weight: 700, text: 'PLAYER PROFILE' },
-    displayName:  { x: 318, y: 103, size: 58, color: '#FFFFFF', align: 'left',   weight: 700 },
-    username:     { x: 318, y: 185, size: 28, color: '#9FA3AA', align: 'left',   weight: 500 },
-    robloxId:     { x: 340, y: 252, size: 16, color: '#C8C8C8', align: 'left',   weight: 500 },
-    regId:        { x: 585, y: 852, size: 16, color: '#FFFFFF', align: 'center', weight: 600 },
+    // Header
+    title:        { x: 318, y: 55,  size: 26, color: '#AAFF00', align: 'left',   font: 'oswald', weight: 700, text: 'PLAYER PROFILE' },
+    displayName:  { x: 318, y: 103, size: 58, color: '#FFFFFF', align: 'left',   font: 'oswald', weight: 700 },
+    username:     { x: 318, y: 185, size: 28, color: '#9FA3AA', align: 'left',   font: 'inter',  weight: 500 },
+    robloxId:     { x: 340, y: 252, size: 16, color: '#C8C8C8', align: 'left',   font: 'inter',  weight: 400 },
 
-    grade:        { x: 585, y: 395, size: 64, color: '#AAFF00', align: 'center', weight: 700 },
+    // Stat boxes (label + value)
+    lblAgoraSummit: { x: 145, y: 342, size: 17, color: '#FFFFFF', align: 'center', font: 'oswald', weight: 500, text: 'AGORA SUMMIT' },
+    summitAgora:    { x: 145, y: 405, size: 24, color: '#AAFF00', align: 'center', font: 'oswald', weight: 700 },
+    lblAztecSummit: { x: 385, y: 342, size: 17, color: '#FFFFFF', align: 'center', font: 'oswald', weight: 500, text: 'AZTEC SUMMIT' },
+    summitAztec:    { x: 385, y: 405, size: 24, color: '#AAFF00', align: 'center', font: 'oswald', weight: 700 },
+    lblScore:       { x: 585, y: 342, size: 17, color: '#FFFFFF', align: 'center', font: 'oswald', weight: 500, text: 'SCORE' },
+    grade:          { x: 585, y: 395, size: 64, color: '#AAFF00', align: 'center', font: 'oswald', weight: 700 },
 
-    summitAgora:  { x: 145, y: 405, size: 22, color: '#AAFF00', align: 'center', weight: 700 },
-    summitAztec:  { x: 385, y: 405, size: 22, color: '#AAFF00', align: 'center', weight: 700 },
+    // Best time section
+    btTitle:      { x: 72,  y: 527, size: 22, color: '#AAFF00', align: 'left', font: 'oswald', weight: 700, text: 'BEST TIME' },
+    lblAgora:     { x: 72,  y: 570, size: 22, color: '#FFFFFF', align: 'left', font: 'oswald', weight: 500, text: 'AGORA' },
+    timeAgora:    { x: 72,  y: 622, size: 25, color: '#AAFF00', align: 'left', font: 'oswald', weight: 700 },
+    lblAztec:     { x: 312, y: 570, size: 22, color: '#FFFFFF', align: 'left', font: 'oswald', weight: 500, text: 'AZTEC' },
+    timeAztec:    { x: 312, y: 622, size: 25, color: '#AAFF00', align: 'left', font: 'oswald', weight: 700 },
+    lblPoseidon:  { x: 72,  y: 681, size: 22, color: '#FFFFFF', align: 'left', font: 'oswald', weight: 500, text: 'POSEIDON' },
+    timePoseidon: { x: 72,  y: 710, size: 25, color: '#AAFF00', align: 'left', font: 'oswald', weight: 700 },
+    lblOverall:   { x: 312, y: 681, size: 22, color: '#FFFFFF', align: 'left', font: 'oswald', weight: 500, text: 'OVERALL BEST' },
+    timeOverall:  { x: 312, y: 710, size: 25, color: '#AAFF00', align: 'left', font: 'oswald', weight: 700 },
 
-    // Section + slot labels (set "" if they're already part of the background image)
-    btTitle:      { x: 72,  y: 527, size: 22, color: '#AAFF00', align: 'left',   weight: 700, text: 'BEST TIME' },
-    lblAgora:     { x: 72,  y: 570, size: 22, color: '#FFFFFF', align: 'left',   weight: 600, text: 'AGORA' },
-    lblAztec:     { x: 312, y: 570, size: 22, color: '#FFFFFF', align: 'left',   weight: 600, text: 'AZTEC' },
-    lblPoseidon:  { x: 72,  y: 681, size: 22, color: '#FFFFFF', align: 'left',   weight: 600, text: 'POSEIDON' },
-    lblOverall:   { x: 312, y: 681, size: 22, color: '#FFFFFF', align: 'left',   weight: 600, text: 'OVERALL BEST' },
-
-    timeAgora:    { x: 72,  y: 622, size: 25, color: '#AAFF00', align: 'left',   weight: 700 },
-    timeAztec:    { x: 312, y: 622, size: 25, color: '#AAFF00', align: 'left',   weight: 700 },
-    timePoseidon: { x: 72,  y: 710, size: 25, color: '#AAFF00', align: 'left',   weight: 700 },
-    timeOverall:  { x: 312, y: 710, size: 25, color: '#AAFF00', align: 'left',   weight: 700 },
+    // Footer
+    regId:        { x: 585, y: 852, size: 16, color: '#FFFFFF', align: 'center', font: 'inter', weight: 500 },
   };
+
+  // ---- Avatar (circular mask matching the green ring in the background) ----
+  const AVATAR = { x: 58, y: 58, w: 230, h: 230, imgScale: 1.0, objectPosition: 'center 45%' };
 
   // ---- Image elements (x,y = top-left; w,h = size) ----
   const IMAGES = {
-    avatar: { x: 35,  y: 27,  w: 250, h: 250, radius: 18 },
-    logo:   { x: 75,  y: 818, w: 180, h: 48 },
-    qr:     { x: 545, y: 655, w: 125, h: 125 },
+    logo: { x: 75,  y: 818, w: 180, h: 48 },
+    qr:   { x: 545, y: 655, w: 125, h: 125 },
   };
 
   // ---- DOM refs ----
@@ -91,6 +98,7 @@
       el.style.fontSize = cfg.size + 'px';
       el.style.color = cfg.color;
       el.style.fontWeight = cfg.weight || 600;
+      el.style.fontFamily = cfg.font === 'inter' ? "'Inter', sans-serif" : "'Oswald', sans-serif";
       el.style.top = cfg.y + 'px';
       if (cfg.align === 'center') {
         el.style.left = cfg.x + 'px';
@@ -108,14 +116,30 @@
       els[key] = el;
     });
 
-    // Avatar
+    // Avatar — circular mask matching the green ring in the background.
+    // The ring itself is part of the background; the avatar just sits inside it.
+    const mask = document.createElement('div');
+    mask.style.position = 'absolute';
+    mask.style.left = AVATAR.x + 'px';
+    mask.style.top = AVATAR.y + 'px';
+    mask.style.width = AVATAR.w + 'px';
+    mask.style.height = AVATAR.h + 'px';
+    mask.style.borderRadius = '50%';
+    mask.style.overflow = 'hidden';
+    mask.style.zIndex = '2';
+
     const avatar = document.createElement('img');
-    avatar.className = 'el-img';
     avatar.id = 'cardAvatar';
     avatar.crossOrigin = 'anonymous';
-    setBox(avatar, IMAGES.avatar);
-    avatar.style.borderRadius = (IMAGES.avatar.radius || 0) + 'px';
-    pcard.appendChild(avatar);
+    avatar.style.width = '100%';
+    avatar.style.height = '100%';
+    avatar.style.objectFit = 'cover';
+    avatar.style.objectPosition = AVATAR.objectPosition || 'center';
+    if (AVATAR.imgScale && AVATAR.imgScale !== 1) {
+      avatar.style.transform = 'scale(' + AVATAR.imgScale + ')';
+    }
+    mask.appendChild(avatar);
+    pcard.appendChild(mask);
     els.avatar = avatar;
 
     // Logo
@@ -124,6 +148,7 @@
     logo.src = 'images/Pythas-Logo.png';
     logo.crossOrigin = 'anonymous';
     logo.style.objectFit = 'contain';
+    logo.style.zIndex = '3';
     setBox(logo, IMAGES.logo);
     pcard.appendChild(logo);
     els.logo = logo;
@@ -134,6 +159,7 @@
     qr.id = 'cardQr';
     qr.width = IMAGES.qr.w;
     qr.height = IMAGES.qr.h;
+    qr.style.zIndex = '3';
     setBox(qr, IMAGES.qr);
     pcard.appendChild(qr);
     els.qr = qr;
