@@ -145,15 +145,16 @@ body {
 .logo-mark {
     width: 40px;
     height: 40px;
-    background: var(--lime);
-    color: var(--black);
-    font-family: var(--font-heading);
-    font-weight: 700;
-    font-size: 22px;
     display: flex;
     align-items: center;
     justify-content: center;
-    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+
+.logo-mark.logo-img {
+    object-fit: contain;
+    clip-path: none;
+    background: none;
+    border-radius: 0;
 }
 
 .logo-text {
