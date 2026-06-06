@@ -415,14 +415,10 @@
         const list = item.querySelector('[data-winner-list]');
         item.querySelector('[data-remove-row]').addEventListener('click', () => item.remove());
         item.querySelector('[data-add-winner]').addEventListener('click', () => {
-            if (list.querySelectorAll('.builder-item').length >= 3) {
-                alert('Max 3 winners per race.');
-                return;
-            }
             addResultWinnerRow(list, { rank: list.querySelectorAll('.builder-item').length + 1 });
         });
         const winners = Array.isArray(result.winners) ? result.winners : [];
-        if (winners.length) winners.slice(0, 3).forEach(w => addResultWinnerRow(list, w));
+        if (winners.length) winners.forEach(w => addResultWinnerRow(list, w));
         else addResultWinnerRow(list, { rank: 1 });
         resultsBuilder.appendChild(item);
         applyRolePermissions();
@@ -445,7 +441,7 @@
                 username: winnerItem.querySelector('[data-winner-username]').value.trim(),
                 displayName: winnerItem.querySelector('[data-winner-display]').value.trim(),
                 avatarUrl: winnerItem.querySelector('[data-winner-avatar]').value.trim()
-            })).filter(w => w.username || w.displayName || w.avatarUrl).slice(0, 3);
+            })).filter(w => w.username || w.displayName || w.avatarUrl);
             return {
                 raceName: raceName || `Race ${index + 1}`,
                 mode: mode === 'cards' ? 'cards' : 'podium',
