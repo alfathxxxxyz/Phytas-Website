@@ -1602,7 +1602,7 @@ function renderMkStrengths(data) {
     data.strengths.forEach(str => {
         html += `
             <div class="mk-strength-item">
-                <span class="mk-strength-icon">&#9889;</span>
+                <span class="mk-strength-icon">&#10003;</span>
                 <span class="mk-strength-text">${str}</span>
             </div>
         `;
