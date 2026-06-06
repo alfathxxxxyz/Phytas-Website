@@ -42,8 +42,8 @@
     lblOverall:   { x: 312, y: 681, size: 22, color: '#FFFFFF', align: 'left', font: 'ethno', weight: 500, text: 'OVERALL BEST' },
     timeOverall:  { x: 312, y: 727, size: 25, color: '#AAFF00', align: 'left', font: 'ethno', weight: 700 },
 
-    // Footer  [reg ID: match top Roblox ID style (Inter 400), size 1.2x = 19, nudged lower]
-    regId:        { x: 585, y: 858, size: 19, color: '#FFFFFF', align: 'center', font: 'inter', weight: 400 },
+    // Footer  [reg ID: match top Roblox ID style (Inter 400), size 1.2x = 19]
+    regId:        { x: 585, y: 850, size: 19, color: '#FFFFFF', align: 'center', font: 'inter', weight: 400 },
   };
 
   // ---- Avatar (circular mask matching the green ring in the background) ----
@@ -51,8 +51,8 @@
 
   // ---- Image elements (x,y = top-left; w,h = size) ----
   const IMAGES = {
-    logo: { x: 75,  y: 818, w: 180, h: 48 },
-    qr:   { x: 545, y: 655, w: 125, h: 125 },
+    logo: { x: 75,  y: 828, w: 180, h: 48 },
+    qr:   { x: 551, y: 661, w: 112, h: 112 },
   };
 
   // ---- DOM refs ----
