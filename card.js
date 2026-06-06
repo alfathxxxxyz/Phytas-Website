@@ -43,7 +43,7 @@
     timeOverall:  { x: 312, y: 727, size: 25, color: '#AAFF00', align: 'left', font: 'ethno', weight: 700 },
 
     // Footer  [reg ID: match top Roblox ID style (Inter 400), size 1.2x = 19]
-    regId:        { x: 585, y: 850, size: 19, color: '#FFFFFF', align: 'center', font: 'inter', weight: 400 },
+    regId:        { x: 585, y: 842, size: 19, color: '#FFFFFF', align: 'center', font: 'inter', weight: 400 },
   };
 
   // ---- Avatar (circular mask matching the green ring in the background) ----
@@ -52,7 +52,7 @@
   // ---- Image elements (x,y = top-left; w,h = size) ----
   const IMAGES = {
     logo: { x: 75,  y: 828, w: 180, h: 48 },
-    qr:   { x: 551, y: 661, w: 112, h: 112 },
+    qr:   { x: 556, y: 666, w: 102, h: 102 },
   };
 
   // ---- DOM refs ----
