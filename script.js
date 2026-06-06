@@ -1058,6 +1058,218 @@ function attachEventCardHandlers() {
 }
 
 
+// ========== EVENTS: Calendar View ==========
+const EVENT_STATUS_COLORS = {
+    'live': '#FF0080',
+    'upcoming': '#AAFF00',
+    'coming-soon': '#00CFFF',
+    'finished': '#6B7280'
+};
+const EVENT_GAME_PALETTE = ['#AAFF00', '#FF0080', '#00CFFF', '#FFB400', '#A855F7', '#FF5630', '#22D3EE'];
+const CAL_MONTH_NAMES = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
+const CAL_MIN_YEAR = 2025; // earliest month users can navigate to is Jan 2025
+
+let currentEventView = 'list';
+let calYear = null;
+let calMonth = null; // 0-11
+
+function eventGameColor(game) {
+    const idx = eventGames.indexOf(game);
+    return EVENT_GAME_PALETTE[(idx < 0 ? 0 : idx) % EVENT_GAME_PALETTE.length];
+}
+
+function toDateKey(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
+
+// All 'YYYY-MM-DD' keys an event spans (supports multi-day startDate..endDate)
+function eventDateKeys(ev) {
+    const start = ev.startDate || ev.date;
+    if (!start) return [];
+    const end = ev.endDate || ev.startDate || ev.date || start;
+    const cur = new Date(start + 'T00:00:00');
+    const last = new Date(end + 'T00:00:00');
+    if (isNaN(cur.getTime())) return [];
+    if (isNaN(last.getTime()) || last < cur) return [start];
+    const keys = [];
+    let guard = 0;
+    while (cur <= last && guard < 400) {
+        keys.push(toDateKey(cur));
+        cur.setDate(cur.getDate() + 1);
+        guard++;
+    }
+    return keys;
+}
+
+function calChipHtml(ev) {
+    const gc = eventGameColor(ev.game);
+    const sc = EVENT_STATUS_COLORS[ev.status] || '#888';
+    const label = escapeHtmlLb(ev.title || 'Event');
+    const tip = escapeHtmlLb([ev.title, ev.game, getStatusLabel(ev.status)].filter(Boolean).join(' \u2022 '));
+    return `<button type="button" class="cal-chip" data-event-id="${escapeHtmlLb(ev.id)}" style="--chip-game:${gc};--chip-status:${sc};" title="${tip}"><span class="cal-chip-text">${label}</span></button>`;
+}
+
+function calLegendHtml() {
+    const statuses = [
+        ['live', 'LIVE'],
+        ['upcoming', 'UPCOMING'],
+        ['coming-soon', 'COMING SOON'],
+        ['finished', 'FINISHED']
+    ];
+    const statusLegend = statuses
+        .map(([key, label]) => `<span class="cal-legend-item"><span class="cal-legend-status" style="background:${EVENT_STATUS_COLORS[key]}"></span>${label}</span>`)
+        .join('');
+    const gameLegend = eventGames
+        .map(g => `<span class="cal-legend-item"><span class="cal-legend-game" style="background:${eventGameColor(g)}"></span>${escapeHtmlLb(g.toUpperCase())}</span>`)
+        .join('');
+    return `
+        <div class="cal-legend">
+            <div class="cal-legend-group"><span class="cal-legend-title">STATUS</span>${statusLegend}</div>
+            <div class="cal-legend-group"><span class="cal-legend-title">GAME</span>${gameLegend}</div>
+        </div>
+    `;
+}
+
+function renderEventsCalendar() {
+    const wrap = document.getElementById('eventsCalendar');
+    if (!wrap) return;
+
+    if (calYear === null || calMonth === null) {
+        const now = new Date();
+        calYear = now.getFullYear();
+        calMonth = now.getMonth();
+        if (calYear < CAL_MIN_YEAR) {
+            calYear = CAL_MIN_YEAR;
+            calMonth = 0;
+        }
+    }
+
+    // Map each calendar day -> events on that day (all games, all statuses)
+    const dayMap = {};
+    eventsData.forEach(ev => {
+        eventDateKeys(ev).forEach(key => {
+            (dayMap[key] = dayMap[key] || []).push(ev);
+        });
+    });
+
+    const first = new Date(calYear, calMonth, 1);
+    const startWeekday = (first.getDay() + 6) % 7; // make Monday = 0
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+    const todayKey = toDateKey(new Date());
+    const atMin = calYear <= CAL_MIN_YEAR && calMonth <= 0;
+
+    let html = '';
+    html += `
+        <div class="cal-header">
+            <button type="button" class="cal-nav" data-cal-nav="prev"${atMin ? ' disabled' : ''} aria-label="Previous month">&lsaquo;</button>
+            <div class="cal-title">${CAL_MONTH_NAMES[calMonth]} ${calYear}</div>
+            <button type="button" class="cal-nav" data-cal-nav="next" aria-label="Next month">&rsaquo;</button>
+        </div>
+    `;
+    html += calLegendHtml();
+
+    html += '<div class="cal-grid cal-weekdays">' +
+        ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'].map(d => `<div class="cal-weekday">${d}</div>`).join('') +
+        '</div>';
+
+    html += '<div class="cal-grid cal-days">';
+    for (let i = 0; i < startWeekday; i++) {
+        html += '<div class="cal-cell cal-empty"></div>';
+    }
+    for (let day = 1; day <= daysInMonth; day++) {
+        const key = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const dayEvents = dayMap[key] || [];
+        const classes = ['cal-cell'];
+        if (dayEvents.length) classes.push('has-events');
+        if (key === todayKey) classes.push('is-today');
+        html += `<div class="${classes.join(' ')}">`;
+        html += `<div class="cal-date">${day}</div>`;
+        html += '<div class="cal-chips">';
+        dayEvents.slice(0, 3).forEach(ev => { html += calChipHtml(ev); });
+        if (dayEvents.length > 3) {
+            html += `<span class="cal-more">+${dayEvents.length - 3} more</span>`;
+        }
+        html += '</div></div>';
+    }
+    html += '</div>';
+
+    // Events without a date yet
+    const tba = eventsData.filter(ev => !(ev.startDate || ev.date));
+    if (tba.length) {
+        html += '<div class="cal-tba"><span class="cal-tba-label">DATE TBA</span>' +
+            tba.map(calChipHtml).join('') + '</div>';
+    }
+
+    wrap.innerHTML = html;
+
+    wrap.querySelectorAll('[data-cal-nav]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const dir = btn.getAttribute('data-cal-nav');
+            if (dir === 'prev') {
+                if (calMonth === 0) { calMonth = 11; calYear--; } else { calMonth--; }
+            } else {
+                if (calMonth === 11) { calMonth = 0; calYear++; } else { calMonth++; }
+            }
+            if (calYear < CAL_MIN_YEAR) { calYear = CAL_MIN_YEAR; calMonth = 0; }
+            renderEventsCalendar();
+        });
+    });
+
+    wrap.querySelectorAll('.cal-chip[data-event-id]').forEach(chip => {
+        chip.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const ev = eventsData.find(x => x.id === chip.getAttribute('data-event-id'));
+            if (ev) renderEventModal(ev);
+        });
+    });
+
+    applyEventImageRatios(wrap);
+}
+
+function setEventView(view) {
+    currentEventView = view;
+    const layout = document.getElementById('eventsLayout');
+    const cal = document.getElementById('eventsCalendar');
+
+    document.querySelectorAll('#eventsViewToggle .events-view-btn').forEach(btn => {
+        const active = btn.getAttribute('data-view') === view;
+        btn.classList.toggle('active', active);
+        btn.setAttribute('aria-pressed', String(active));
+    });
+
+    if (view === 'calendar') {
+        if (layout) layout.classList.add('is-hidden');
+        if (cal) cal.classList.remove('is-hidden');
+        if (!eventsData.length) {
+            loadEventsData().then(data => {
+                if (data && data.length) {
+                    eventsData = data;
+                    eventGames = [...new Set(data.map(e => e.game))];
+                }
+                renderEventsCalendar();
+            });
+        } else {
+            renderEventsCalendar();
+        }
+    } else {
+        if (cal) cal.classList.add('is-hidden');
+        if (layout) layout.classList.remove('is-hidden');
+    }
+}
+
+function initEventsView() {
+    const toggle = document.getElementById('eventsViewToggle');
+    if (!toggle) return;
+    toggle.querySelectorAll('.events-view-btn').forEach(btn => {
+        btn.addEventListener('click', () => setEventView(btn.getAttribute('data-view')));
+    });
+}
+
+
 // ========== EVENT MODAL: Render & Controls ==========
 function winnerName(winner) {
     return winner.displayName || winner.username || 'Winner';
@@ -1673,6 +1885,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initCommunityMemberStat();
     initHeroOngoingEvent();
     renderEvents();
+    initEventsView();
     renderLeaderboard();
     renderMediaKit();
     renderPartners();

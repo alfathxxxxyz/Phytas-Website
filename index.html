@@ -218,6 +218,10 @@
                 <div class="section-tag">COMPETE</div>
                 <h2 class="section-title">UPCOMING <span class="accent-text">EVENTS</span></h2>
             </div>
+            <div class="events-view-toggle" id="eventsViewToggle" role="tablist" aria-label="Events view">
+                <button type="button" class="events-view-btn active" data-view="list" role="tab" aria-pressed="true">LIST</button>
+                <button type="button" class="events-view-btn" data-view="calendar" role="tab" aria-pressed="false">CALENDAR</button>
+            </div>
             <div class="events-layout" id="eventsLayout">
                 <!-- Rendered dynamically by JS from data/events.json -->
                 <!-- Fallback static content shown if JSON fails -->
@@ -281,6 +285,9 @@
                     </div>
                 </div>
                 </div><!-- end fallback -->
+            </div>
+            <div class="events-calendar is-hidden" id="eventsCalendar" aria-label="Events calendar">
+                <!-- Rendered dynamically by JS -->
             </div>
         </div>
     </section>
