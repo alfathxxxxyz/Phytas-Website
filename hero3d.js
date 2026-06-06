@@ -52,7 +52,7 @@ function initHero3D() {
 
     // Load logo texture
     const textureLoader = new THREE.TextureLoader();
-    const logoPath = new URL('images/logo-pythas.png', window.location.href).href;
+    const logoPath = new URL('images/7bb28f56-fd57-488b-b9a1-768a7e414531', window.location.href).href;
 
     textureLoader.load(
         logoPath,
