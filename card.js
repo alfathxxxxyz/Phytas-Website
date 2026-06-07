@@ -25,9 +25,9 @@
 
     // Stat boxes (label + value)  [summit values bumped to 1.3x: 24 -> 31]
     lblAgoraSummit: { x: 145, y: 342, size: 17, color: '#FFFFFF', align: 'center', font: 'oswald', weight: 500, text: 'AGORA SUMMIT' },
-    summitAgora:    { x: 145, y: 400, size: 31, color: '#AAFF00', align: 'center', font: 'oswald', weight: 700 },
+    summitAgora:    { x: 145, y: 396, size: 40, color: '#AAFF00', align: 'center', font: 'oswald', weight: 700 },
     lblAztecSummit: { x: 375, y: 342, size: 17, color: '#FFFFFF', align: 'center', font: 'oswald', weight: 500, text: 'AZTEC SUMMIT' },
-    summitAztec:    { x: 375, y: 400, size: 31, color: '#AAFF00', align: 'center', font: 'oswald', weight: 700 },
+    summitAztec:    { x: 375, y: 396, size: 40, color: '#AAFF00', align: 'center', font: 'oswald', weight: 700 },
     lblScore:       { x: 585, y: 342, size: 17, color: '#FFFFFF', align: 'center', font: 'oswald', weight: 500, text: 'SCORE' },
     grade:          { x: 585, y: 380, size: 64, color: '#AAFF00', align: 'center', font: 'oswald', weight: 700 },
 
