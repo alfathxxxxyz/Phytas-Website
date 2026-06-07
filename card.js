@@ -21,7 +21,7 @@
     title:        { x: 318, y: 55,  size: 26, color: '#AAFF00', align: 'left',   font: 'oswald', weight: 700, text: 'PLAYER PROFILE' },
     displayName:  { x: 318, y: 103, size: 58, color: '#FFFFFF', align: 'left',   font: 'oswald', weight: 700 },
     username:     { x: 318, y: 185, size: 28, color: '#9FA3AA', align: 'left',   font: 'inter',  weight: 500 },
-    robloxId:     { x: 340, y: 260, size: 19, color: '#C8C8C8', align: 'left',   font: 'inter',  weight: 400 },
+    robloxId:     { x: 346, y: 256, size: 19, color: '#C8C8C8', align: 'left',   font: 'inter',  weight: 400 },
 
     // Stat boxes (label + value)  [summit values bumped to 1.3x: 24 -> 31]
     lblAgoraSummit: { x: 145, y: 342, size: 17, color: '#FFFFFF', align: 'center', font: 'oswald', weight: 500, text: 'AGORA SUMMIT' },
@@ -52,7 +52,7 @@
   // ---- Image elements (x,y = top-left; w,h = size) ----
   const IMAGES = {
     logo: { x: 75,  y: 828, w: 180, h: 48 },
-    qr:   { x: 545, y: 660, w: 102, h: 102 },
+    qr:   { x: 552, y: 666, w: 102, h: 102 },
   };
 
   // ---- DOM refs ----
