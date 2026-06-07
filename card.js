@@ -52,7 +52,7 @@
   // ---- Image elements (x,y = top-left; w,h = size) ----
   const IMAGES = {
     logo: { x: 75,  y: 828, w: 180, h: 48 },
-    qr:   { x: 552, y: 666, w: 102, h: 102 },
+    qr:   { x: 552, y: 663, w: 102, h: 102 },
   };
 
   // ---- DOM refs ----
@@ -254,10 +254,9 @@
     const count = qr.getModuleCount();
     const cell = size / count;
 
-    // White background for reliable scanning, dark modules.
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, size, canvas.height);
-    ctx.fillStyle = '#0a0c10';
+    // Transparent background + lime modules (PNG-friendly, matches card accent).
+    ctx.clearRect(0, 0, size, canvas.height);
+    ctx.fillStyle = '#AAFF00';
     for (let r = 0; r < count; r++) {
       for (let c = 0; c < count; c++) {
         if (qr.isDark(r, c)) ctx.fillRect(c * cell, r * cell, cell + 0.5, cell + 0.5);
