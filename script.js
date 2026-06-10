@@ -1484,6 +1484,17 @@ let lbAutoTimer = null;          // setInterval handle for auto-refresh
 let lbTickTimer = null;          // setInterval handle for the "x ago" label
 const LB_AUTO_REFRESH_MS = 45000; // auto-refresh every 45s while visible
 
+// User IDs hidden from ALL leaderboards (staff / test / excluded accounts).
+const LB_HIDDEN_IDS = new Set([
+    9124999411,
+    9155450474,
+    9073811105,
+    8902740169,
+    8885065544,
+    9572496148,
+    8877318735,
+]);
+
 function lbCacheKey(map, board) { return map + ':' + board; }
 
 // Format milliseconds -> M:SS.mmm  (e.g. 83470 -> 1:23.470)
@@ -1536,7 +1547,7 @@ async function loadLeaderboardBoard(board, force) {
         if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + (await res.text()).slice(0, 200));
         const json = await res.json();
         console.log('[leaderboard] response', json);
-        const players = (json && json.players) || [];
+        const players = ((json && json.players) || []).filter(p => !LB_HIDDEN_IDS.has(Number(p.user_id)));
         lbCache[key] = players;
         lbLastFetched = Date.now();
         updateLbUpdatedLabel();
