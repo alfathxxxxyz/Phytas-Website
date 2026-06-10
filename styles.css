@@ -4513,6 +4513,25 @@ body.theme-glitching .theme-toggle {
 
 
 /* ========== MOMENTS — title label on image corner ========== */
+/* Featured moments row (highlighted at the top) */
+.moments-featured {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.moments-featured .moment-featured {
+    margin: 0;
+    border-color: var(--lime);
+}
+
+@media (max-width: 600px) {
+    .moments-featured {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* Cut-corner label (same shape as the hero buttons), overlapping the bottom-left corner */
 .moment-label {
     position: absolute;
