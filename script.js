@@ -1476,7 +1476,7 @@ document.addEventListener('DOMContentLoaded', () => {
 const LEADERBOARD_API = WORKER_API;
 
 let lbBoard = 'summit';          // 'summit' | 'speedrun'
-let lbMap = 'aztec';             // 'aztec' | 'agora'
+let lbMap = 'agora';             // 'aztec' | 'agora'
 let lbCache = {};                // { "<map>:<board>": [...] }
 let lbNameCache = {};            // { user_id: { username, displayName } } resolved from Roblox
 

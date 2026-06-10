@@ -33,7 +33,9 @@
                 <li role="none"><a href="#shop" data-section="shop" role="menuitem" aria-label="Navigate to Shop section">SHOP</a></li>
                 <li role="none"><a href="#leaderboard" data-section="leaderboard" role="menuitem" aria-label="Navigate to Leaderboard section">LEADERBOARD</a></li>
                 <li role="none"><a href="#mediakit" data-section="mediakit" role="menuitem" aria-label="Navigate to Media Kit section">MEDIA KIT</a></li>
+                <!-- Player Card disembunyikan sementara
                 <li role="none"><a href="card.html" role="menuitem" aria-label="Generate your Player Card" class="nav-player-card" onclick="window.location.href='card.html'">PLAYER CARD</a></li>
+                -->
             </ul>
             <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark/light mode" type="button">
                 <span class="theme-icon sun-icon" aria-hidden="true">&#9728;</span>
@@ -474,6 +476,39 @@
     </section>
 
 
+    <!-- PHOTO GALLERY (title label on image corner) -->
+    <section class="gallery-section section-page" id="gallery">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-tag">SHOWCASE</div>
+                <h2 class="section-title">PYTHAS <span class="accent-text">GALLERY</span></h2>
+            </div>
+            <div class="gallery-grid">
+                <figure class="gallery-card">
+                    <img src="images/moments/image.png" alt="PYTHAS gallery" class="gallery-img" loading="lazy">
+                    <figcaption class="gallery-label">JUDUL 1</figcaption>
+                </figure>
+                <figure class="gallery-card">
+                    <img src="images/moments/download (2).png" alt="PYTHAS gallery" class="gallery-img" loading="lazy">
+                    <figcaption class="gallery-label gallery-label-magenta">JUDUL 2</figcaption>
+                </figure>
+                <figure class="gallery-card">
+                    <img src="images/moments/download (3).png" alt="PYTHAS gallery" class="gallery-img" loading="lazy">
+                    <figcaption class="gallery-label">JUDUL 3</figcaption>
+                </figure>
+                <figure class="gallery-card">
+                    <img src="images/moments/download (4).png" alt="PYTHAS gallery" class="gallery-img" loading="lazy">
+                    <figcaption class="gallery-label gallery-label-magenta">JUDUL 4</figcaption>
+                </figure>
+                <figure class="gallery-card">
+                    <img src="images/moments/download (5).png" alt="PYTHAS gallery" class="gallery-img" loading="lazy">
+                    <figcaption class="gallery-label">JUDUL 5</figcaption>
+                </figure>
+            </div>
+        </div>
+    </section>
+
+
     <!-- SHOP SECTION -->
     <section class="shop-section section-page" id="shop">
         <div class="container">
@@ -558,8 +593,8 @@
             </div>
             <!-- Map selector -->
             <div class="leaderboard-maps" id="leaderboardMaps">
-                <button class="lb-map active" data-map="aztec">MOUNT AZTEC</button>
-                <button class="lb-map" data-map="agora">MOUNT AGORA</button>
+                <button class="lb-map active" data-map="agora">MOUNT AGORA</button>
+                <button class="lb-map" data-map="aztec">MOUNT AZTEC</button>
             </div>
             <!-- Leaderboard mode tabs -->
             <div class="leaderboard-filters" id="leaderboardTabs">
