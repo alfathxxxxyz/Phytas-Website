@@ -901,14 +901,24 @@ function renderEventsLayout() {
     // Only events for the currently selected game
     const gameEvents = eventsData.filter(e => e.game === currentGameFilter);
 
-    // Sort: live first, then upcoming by date, then finished
+    // Sort: live first, then upcoming, then finished. Within the same status,
+    // show the MOST RECENT event first (newer date first; if dates are empty,
+    // the event added later in the list wins) so the big featured card = latest event.
     const statusOrder = { 'live': 0, 'upcoming': 1, 'coming-soon': 2, 'finished': 3 };
-    const sorted = [...gameEvents].sort((a, b) => {
-        const sa = statusOrder[a.status] ?? 9;
-        const sb = statusOrder[b.status] ?? 9;
-        if (sa !== sb) return sa - sb;
-        return new Date(a.date) - new Date(b.date);
-    });
+    const sorted = gameEvents
+        .map((e, i) => ({ e, i }))
+        .sort((a, b) => {
+            const sa = statusOrder[a.e.status] ?? 9;
+            const sb = statusOrder[b.e.status] ?? 9;
+            if (sa !== sb) return sa - sb;
+            const da = new Date(a.e.date).getTime();
+            const db = new Date(b.e.date).getTime();
+            const aHas = !Number.isNaN(da);
+            const bHas = !Number.isNaN(db);
+            if (aHas && bHas && da !== db) return db - da; // newer date first
+            return b.i - a.i;                              // fallback: later in list = newer
+        })
+        .map(x => x.e);
 
     let html = '';
 
