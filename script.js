@@ -1479,6 +1479,10 @@ let lbBoard = 'summit';          // 'summit' | 'speedrun'
 let lbMap = 'agora';             // 'aztec' | 'agora'
 let lbCache = {};                // { "<map>:<board>": [...] }
 let lbNameCache = {};            // { user_id: { username, displayName } } resolved from Roblox
+let lbLastFetched = 0;           // timestamp (ms) of the last successful fetch
+let lbAutoTimer = null;          // setInterval handle for auto-refresh
+let lbTickTimer = null;          // setInterval handle for the "x ago" label
+const LB_AUTO_REFRESH_MS = 45000; // auto-refresh every 45s while visible
 
 function lbCacheKey(map, board) { return map + ':' + board; }
 
@@ -1511,19 +1515,20 @@ async function renderLeaderboard() {
     await loadLeaderboardBoard(lbBoard);
 }
 
-async function loadLeaderboardBoard(board) {
+async function loadLeaderboardBoard(board, force) {
     const statusEl = document.getElementById('lbStatus');
-    if (statusEl) statusEl.textContent = 'Loading live data…';
 
     const key = lbCacheKey(lbMap, board);
 
-    // Serve from cache instantly if we already have it
-    if (lbCache[key]) {
+    // Serve from cache instantly if we already have it (unless forcing a refresh)
+    if (!force && lbCache[key]) {
         applyLeaderboardData(lbCache[key]);
         if (statusEl) statusEl.textContent = '';
         return;
     }
 
+    if (statusEl) statusEl.textContent = 'Loading live data…';
+    setLeaderboardRefreshing(true);
     try {
         const url = `${LEADERBOARD_API}/api/leaderboard/${board}?map=${encodeURIComponent(lbMap)}`;
         console.log('[leaderboard] fetching', url);
@@ -1533,6 +1538,8 @@ async function loadLeaderboardBoard(board) {
         console.log('[leaderboard] response', json);
         const players = (json && json.players) || [];
         lbCache[key] = players;
+        lbLastFetched = Date.now();
+        updateLbUpdatedLabel();
         applyLeaderboardData(players);
         if (statusEl) statusEl.textContent = '';
     } catch (err) {
@@ -1540,6 +1547,55 @@ async function loadLeaderboardBoard(board) {
         if (statusEl) statusEl.textContent = '';
         // Surface the real reason on-screen so issues are easy to diagnose
         showLeaderboardEmpty(true, 'Could not load leaderboard: ' + (err && err.message ? err.message : err));
+    } finally {
+        setLeaderboardRefreshing(false);
+    }
+}
+
+// Spinner / disabled state on the manual Refresh button while a fetch is running.
+function setLeaderboardRefreshing(on) {
+    const btn = document.getElementById('lbRefresh');
+    if (!btn) return;
+    btn.classList.toggle('is-refreshing', !!on);
+    btn.disabled = !!on;
+}
+
+// Update the "Last updated: …" label based on lbLastFetched.
+function updateLbUpdatedLabel() {
+    const el = document.getElementById('lbUpdated');
+    if (!el) return;
+    if (!lbLastFetched) { el.textContent = ''; return; }
+    const secs = Math.round((Date.now() - lbLastFetched) / 1000);
+    let txt;
+    if (secs < 5) txt = 'just now';
+    else if (secs < 60) txt = secs + 's ago';
+    else if (secs < 3600) txt = Math.floor(secs / 60) + 'm ago';
+    else txt = Math.floor(secs / 3600) + 'h ago';
+    el.textContent = 'Last updated: ' + txt;
+}
+
+// Force a fresh fetch of the current board/map (used by the Refresh button).
+function forceRefreshLeaderboard() {
+    loadLeaderboardBoard(lbBoard, true);
+}
+
+function isLeaderboardVisible() {
+    const sec = document.getElementById('leaderboard');
+    return !!(sec && sec.classList.contains('section-active'));
+}
+
+// Auto-refresh the leaderboard while its section is visible and the tab is focused.
+function startLeaderboardAutoRefresh() {
+    if (!lbAutoTimer) {
+        lbAutoTimer = setInterval(() => {
+            if (isLeaderboardVisible() && document.visibilityState === 'visible') {
+                loadLeaderboardBoard(lbBoard, true);
+            }
+        }, LB_AUTO_REFRESH_MS);
+    }
+    // Keep the "x ago" label ticking even between fetches.
+    if (!lbTickTimer) {
+        lbTickTimer = setInterval(updateLbUpdatedLabel, 10000);
     }
 }
 
@@ -1742,6 +1798,15 @@ document.addEventListener('DOMContentLoaded', () => {
             loadLeaderboardBoard(lbBoard);
         });
     }
+
+    // Manual refresh button (force a fresh fetch, bypassing cache)
+    const refreshBtn = document.getElementById('lbRefresh');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', forceRefreshLeaderboard);
+    }
+
+    // Auto-refresh while the leaderboard section is visible
+    startLeaderboardAutoRefresh();
 });
 
 
