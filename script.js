@@ -1890,3 +1890,43 @@ document.addEventListener('DOMContentLoaded', () => {
     renderMediaKit();
     renderPartners();
 });
+
+
+
+// ========== MOMENTS IMAGE LIGHTBOX ==========
+(function initLightbox() {
+    const lightbox = document.getElementById('lightbox');
+    if (!lightbox) return;
+    const lbImg = document.getElementById('lightboxImg');
+    const lbClose = document.getElementById('lightboxClose');
+
+    function openLightbox(src, alt) {
+        lbImg.src = src;
+        lbImg.alt = alt || '';
+        lightbox.classList.add('open');
+        lightbox.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox() {
+        lightbox.classList.remove('open');
+        lightbox.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+        lbImg.src = '';
+    }
+
+    document.querySelectorAll('.masonry-img').forEach(function (img) {
+        img.addEventListener('click', function () {
+            openLightbox(img.currentSrc || img.src, img.alt);
+        });
+    });
+
+    // Close when clicking the backdrop (not the image itself) or the close button
+    lightbox.addEventListener('click', function (e) {
+        if (e.target === lightbox) closeLightbox();
+    });
+    lbClose.addEventListener('click', closeLightbox);
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && lightbox.classList.contains('open')) closeLightbox();
+    });
+})();

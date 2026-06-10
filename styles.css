@@ -4523,7 +4523,7 @@ body.theme-glitching .theme-toggle {
 
 .moments-featured .moment-featured {
     margin: 0;
-    border-color: var(--lime);
+    border: none;
 }
 
 @media (max-width: 600px) {
@@ -4561,4 +4561,55 @@ body.theme-glitching .theme-toggle {
         font-size: 10px;
         letter-spacing: 1px;
     }
+}
+
+
+
+/* ========== IMAGE LIGHTBOX / POPUP ========== */
+.masonry-img {
+    cursor: zoom-in;
+}
+
+.lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(0, 0, 0, 0.92);
+    cursor: zoom-out;
+}
+
+.lightbox.open {
+    display: flex;
+}
+
+.lightbox-img {
+    max-width: 92vw;
+    max-height: 88vh;
+    object-fit: contain;
+    border: 1px solid var(--gray-dark);
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.6);
+    cursor: default;
+}
+
+.lightbox-close {
+    position: absolute;
+    top: 16px;
+    right: 24px;
+    width: 44px;
+    height: 44px;
+    background: none;
+    border: none;
+    color: var(--white);
+    font-size: 38px;
+    line-height: 1;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.lightbox-close:hover {
+    color: var(--lime);
 }
