@@ -4613,3 +4613,64 @@ body.theme-glitching .theme-toggle {
 .lightbox-close:hover {
     color: var(--lime);
 }
+
+
+
+/* ========== LEADERBOARD: last-updated + refresh controls ========== */
+.lb-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin: 2px 0 16px;
+    flex-wrap: wrap;
+}
+
+.lb-updated {
+    font-family: var(--font-heading);
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--gray);
+}
+
+.lb-refresh {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: var(--dark-panel);
+    color: var(--lime);
+    border: 1px solid var(--lime);
+    font-family: var(--font-heading);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.lb-refresh:hover {
+    background: var(--lime);
+    color: var(--black);
+}
+
+.lb-refresh:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.lb-refresh-icon {
+    display: inline-block;
+    font-size: 15px;
+    line-height: 1;
+}
+
+.lb-refresh.is-refreshing .lb-refresh-icon {
+    animation: lbspin 0.8s linear infinite;
+}
+
+@keyframes lbspin {
+    to { transform: rotate(360deg); }
+}
