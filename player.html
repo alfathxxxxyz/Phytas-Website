@@ -10,7 +10,7 @@
     <meta property="og:type" content="website">
     <link rel="icon" href="images/7bb28f56-fd57-488b-b9a1-768a7e414531 copy.png" type="image/png">
     <link rel="stylesheet" href="player.css">
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <!-- Navigation -->
@@ -73,49 +73,49 @@
                 </button>
             </div>
 
-            <!-- The Card (this entire element gets captured as PNG) -->
+            <!-- The Card -->
             <div class="player-card" id="playerCard" data-theme="dark">
-                <!-- Card Header -->
-                <div class="card-header">
-                    <div class="card-avatar">
-                        <img id="cardAvatar" src="" alt="Avatar">
+                <!-- Card Top Section: Avatar + Identity -->
+                <div class="card-top">
+                    <div class="card-avatar-wrap">
+                        <img id="cardAvatar" src="" alt="Avatar" class="card-avatar-img">
                     </div>
                     <div class="card-identity">
                         <h2 class="card-displayname" id="cardDisplayName">Display Name</h2>
                         <p class="card-username" id="cardUsername">@username</p>
-                        <div class="card-age-badge" id="cardAgeBadge">
-                            <span class="age-icon">&#9201;</span>
-                            <span class="age-text" id="cardAgeText">Veteran &bull; 5 years</span>
+                        <div class="card-tier-badge" id="cardAgeBadge">
+                            <span class="tier-dot"></span>
+                            <span id="cardAgeText">Veteran</span>
                         </div>
                     </div>
-                </div>
-
-                <!-- Account Age Calculator -->
-                <div class="card-age-section">
-                    <div class="age-calculator" id="ageCalculator">
-                        <div class="age-big-number" id="ageDays">0</div>
-                        <div class="age-label">DAYS ON ROBLOX</div>
-                        <div class="age-since" id="ageSince">Since January 1, 2020</div>
+                    <div class="card-qr-wrap">
+                        <canvas id="qrCanvas" width="64" height="64"></canvas>
                     </div>
                 </div>
 
-                <!-- Social Stats -->
-                <div class="card-social">
-                    <div class="social-stat">
-                        <span class="social-icon">&#128101;</span>
-                        <span class="social-value" id="cardFriends">0</span>
-                        <span class="social-label">Friends</span>
+                <!-- Stats Grid -->
+                <div class="card-stats-grid">
+                    <div class="stat-box">
+                        <span class="stat-value" id="cardFriends">0</span>
+                        <span class="stat-label">FRIENDS</span>
                     </div>
-                    <div class="social-stat">
-                        <span class="social-icon">&#10084;</span>
-                        <span class="social-value" id="cardFollowers">0</span>
-                        <span class="social-label">Followers</span>
+                    <div class="stat-box">
+                        <span class="stat-value" id="cardFollowers">0</span>
+                        <span class="stat-label">FOLLOWERS</span>
                     </div>
-                    <div class="social-stat">
-                        <span class="social-icon">&#9733;</span>
-                        <span class="social-value" id="cardFollowing">0</span>
-                        <span class="social-label">Following</span>
+                    <div class="stat-box">
+                        <span class="stat-value" id="cardFollowing">0</span>
+                        <span class="stat-label">FOLLOWING</span>
                     </div>
+                    <div class="stat-box stat-box-accent">
+                        <span class="stat-value" id="ageDays">0</span>
+                        <span class="stat-label">DAYS</span>
+                    </div>
+                </div>
+
+                <!-- Account Age -->
+                <div class="card-age-row">
+                    <span class="age-since" id="ageSince">Since January 1, 2020</span>
                 </div>
 
                 <!-- Badges -->
@@ -128,7 +128,7 @@
                     <p id="cardBioText"></p>
                 </div>
 
-                <!-- Phytas Stats (conditional) -->
+                <!-- Phytas Stats -->
                 <div class="card-phytas" id="cardPhytas" hidden>
                     <div class="phytas-header">
                         <img src="images/Pythas-Logo.png" alt="PYTHAS" class="phytas-logo-sm">
@@ -139,10 +139,10 @@
                     </div>
                 </div>
 
-                <!-- Phytas CTA (shows when no phytas data) -->
+                <!-- Phytas CTA -->
                 <div class="card-phytas-cta" id="cardPhytasCta" hidden>
-                    <p>Join PYTHAS to unlock racing stats! &#127918;</p>
-                    <a href="https://www.roblox.com/games/124216358732636/MOUNT-AGORA" target="_blank" rel="noopener" class="phytas-cta-link">Play Now</a>
+                    <p>Join PYTHAS to unlock racing stats!</p>
+                    <a href="https://www.roblox.com/games/124216358732636/MOUNT-AGORA" target="_blank" rel="noopener" class="phytas-cta-link">PLAY NOW</a>
                 </div>
 
                 <!-- Groups -->
@@ -151,12 +151,6 @@
                     <div class="groups-list" id="groupsList">
                         <!-- Dynamically populated -->
                     </div>
-                </div>
-
-                <!-- QR Code -->
-                <div class="card-qr">
-                    <canvas id="qrCanvas" width="80" height="80"></canvas>
-                    <span class="qr-label">Scan to view profile</span>
                 </div>
 
                 <!-- Card Footer -->
@@ -169,16 +163,16 @@
             <!-- Action Buttons -->
             <div class="card-actions">
                 <button class="btn-action btn-save" id="btnSave">
-                    <span>&#128190;</span> Save as PNG
+                    <span>&#128190;</span> Save PNG
                 </button>
                 <button class="btn-action btn-copy" id="btnCopy">
-                    <span>&#128203;</span> Copy Image
+                    <span>&#128203;</span> Copy
                 </button>
                 <button class="btn-action btn-share" id="btnShare">
-                    <span>&#128279;</span> Copy Link
+                    <span>&#128279;</span> Share
                 </button>
                 <button class="btn-action btn-new" id="btnNew">
-                    <span>&#128260;</span> New Search
+                    <span>&#128260;</span> New
                 </button>
             </div>
         </section>
